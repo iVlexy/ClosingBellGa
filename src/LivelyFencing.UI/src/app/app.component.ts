@@ -122,8 +122,8 @@ import { ThemeService } from './core/services/theme.service';
           <button mat-icon-button (click)="sidenav.toggle()">
             <mat-icon>menu</mat-icon>
           </button>
-          <mat-icon class="mobile-logo-icon">fence</mat-icon>
-          <span class="mobile-logo-text">Lookin\'s Lively</span>
+          <mat-icon class="mobile-logo-icon">{{ tenant.config.icon }}</mat-icon>
+          <span class="mobile-logo-text">{{ tenant.config.businessName }}</span>
           <span class="toolbar-spacer"></span>
           <button mat-icon-button (click)="theme.toggle()">
             <mat-icon>{{ theme.dark ? 'light_mode' : 'dark_mode' }}</mat-icon>
@@ -143,8 +143,8 @@ import { ThemeService } from './core/services/theme.service';
   `,
   styles: [`
     .app-container { height: 100vh; }
-    .sidenav { width: 230px; background: #1B5E20; color: white; display: flex; flex-direction: column; }
-    .sidenav-header { display: flex; align-items: center; gap: 8px; padding: 20px 16px; background: #2E7D32; }
+    .sidenav { width: 230px; background: var(--tenant-primary-dark, #1B5E20); color: white; display: flex; flex-direction: column; }
+    .sidenav-header { display: flex; align-items: center; gap: 8px; padding: 20px 16px; background: var(--tenant-primary, #2E7D32); }
     .logo-icon { color: #A5D6A7; font-size: 28px; width: 28px; height: 28px; flex-shrink: 0; }
     .logo-text { font-size: 16px; font-weight: bold; color: white; flex: 1; }
     .theme-toggle { color: rgba(255,255,255,0.8) !important; margin-left: auto; }
@@ -176,7 +176,7 @@ import { ThemeService } from './core/services/theme.service';
     .impersonation-banner span { flex: 1; }
     .impersonation-banner button { color: white; }
     /* Mobile toolbar */
-    .mobile-toolbar { background: #1B5E20 !important; color: white; position: sticky; top: 0; z-index: 100; }
+    .mobile-toolbar { background: var(--tenant-primary-dark, #1B5E20) !important; color: white; position: sticky; top: 0; z-index: 100; }
     .mobile-logo-icon { color: #A5D6A7; font-size: 22px; width: 22px; height: 22px; margin-left: 4px; }
     .mobile-logo-text { font-size: 15px; font-weight: 700; color: white; margin-left: 6px; }
     .toolbar-spacer { flex: 1; }
@@ -198,6 +198,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.theme.apply();
+    // Apply tenant colors as CSS variables
+    document.documentElement.style.setProperty('--tenant-primary', this.tenant.config.primaryColor);
+    document.documentElement.style.setProperty('--tenant-primary-dark', this.tenant.config.primaryColorDark || this.darkenColor(this.tenant.config.primaryColor));
     this.auth.getMe().subscribe();
     this.auth.impersonatedRole$.subscribe(role => {
       this.selectedRole = role ?? '';
@@ -220,5 +223,12 @@ export class AppComponent implements OnInit, OnDestroy {
   stopImpersonation() {
     this.auth.stopImpersonation();
     this.router.navigate(['/cq/dashboard']);
+  }
+  darkenColor(hex: string): string {
+    const n = parseInt(hex.replace('#',''), 16);
+    const r = Math.max(0, (n >> 16) - 40);
+    const g = Math.max(0, ((n >> 8) & 0xff) - 40);
+    const b = Math.max(0, (n & 0xff) - 40);
+    return '#' + [r,g,b].map(x => x.toString(16).padStart(2,'0')).join('');
   }
 }

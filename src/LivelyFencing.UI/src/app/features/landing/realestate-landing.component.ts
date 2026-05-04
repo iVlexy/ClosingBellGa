@@ -44,7 +44,7 @@ import { TenantService } from '../../core/services/tenant.service';
         <div class="re-hero-content">
           <div class="re-hero-badge">Real Estate Professionals</div>
           <h1 class="re-hero-title">{{ tenant.config.businessName }}</h1>
-          <p class="re-hero-sub">{{ tenant.config.tagline || 'Connecting people with properties. Expert guidance for buyers, sellers, and investors in today\'s market.' }}</p>
+          <p class="re-hero-sub">{{ tenant.config.tagline || taglineFallback }}</p>
           <div class="re-hero-actions">
             <a href="#contact" mat-raised-button class="re-cta-btn">
               <mat-icon>calendar_today</mat-icon>
@@ -371,6 +371,7 @@ export class RealEstateLandingComponent implements OnInit {
     message: ['']
   });
 
+  taglineFallback = "Connecting people with properties. Expert guidance for buyers, sellers, and investors in today's market.";
   services = [
     { icon: 'home', title: 'Residential Sales', description: 'From starter homes to luxury estates, we guide buyers and sellers through every step with expert market knowledge.' },
     { icon: 'business', title: 'Commercial Real Estate', description: 'Office spaces, retail, and industrial properties — we find the right fit for your business goals and budget.' },

@@ -8,6 +8,7 @@ export interface TenantConfig {
   industry: 'contractor' | 'realestate' | string;
   tagline: string;
   primaryColor: string;
+  primaryColorDark?: string;
   icon: string;
   features: string[];
   contact: { phone: string; email: string; };
