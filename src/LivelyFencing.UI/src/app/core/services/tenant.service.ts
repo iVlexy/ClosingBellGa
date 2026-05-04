@@ -42,6 +42,14 @@ export class TenantService {
     }
   }
 
+  /** CSS class to add to <html> to activate the matching Material theme */
+  get themeClass(): string {
+    switch (this.config.industry) {
+      case 'realestate': return 'theme-blue';
+      default: return 'theme-green'; // contractor / fallback → green (default)
+    }
+  }
+
   hasFeature(feature: string): boolean {
     return this.config.features.includes(feature);
   }

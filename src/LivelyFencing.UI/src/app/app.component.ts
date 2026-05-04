@@ -143,9 +143,9 @@ import { ThemeService } from './core/services/theme.service';
   `,
   styles: [`
     .app-container { height: 100vh; }
-    .sidenav { width: 230px; background: var(--tenant-primary-dark, #1B5E20); color: white; display: flex; flex-direction: column; }
-    .sidenav-header { display: flex; align-items: center; gap: 8px; padding: 20px 16px; background: var(--tenant-primary, #2E7D32); }
-    .logo-icon { color: #A5D6A7; font-size: 28px; width: 28px; height: 28px; flex-shrink: 0; }
+    .sidenav { width: 230px; background: color-mix(in srgb, var(--mat-sys-primary) 45%, black); color: white; display: flex; flex-direction: column; }
+    .sidenav-header { display: flex; align-items: center; gap: 8px; padding: 20px 16px; background: var(--mat-sys-primary); }
+    .logo-icon { color: var(--mat-sys-on-primary); font-size: 28px; width: 28px; height: 28px; flex-shrink: 0; }
     .logo-text { font-size: 16px; font-weight: bold; color: white; flex: 1; }
     .theme-toggle { color: rgba(255,255,255,0.8) !important; margin-left: auto; }
     .theme-toggle mat-icon { font-size: 20px; width: 20px; height: 20px; color: rgba(255,255,255,0.8); }
@@ -155,8 +155,8 @@ import { ThemeService } from './core/services/theme.service';
     mat-nav-list a span { color: white !important; }
     mat-nav-list a mat-icon { color: rgba(255,255,255,0.85) !important; }
     mat-nav-list a:hover { background: rgba(255,255,255,0.1) !important; }
-    .active-link { background: rgba(255,255,255,0.18) !important; border-left: 3px solid #A5D6A7; }
-    .active-link mat-icon { color: #A5D6A7 !important; }
+    .active-link { background: rgba(255,255,255,0.18) !important; border-left: 3px solid var(--mat-sys-on-primary); }
+    .active-link mat-icon { color: var(--mat-sys-on-primary) !important; }
     .active-link span { color: white !important; font-weight: 500; }
     ::ng-deep .sidenav .mdc-list-item__primary-text { color: white !important; }
     ::ng-deep .sidenav .mat-mdc-list-item .mat-icon { color: rgba(255,255,255,0.85) !important; }
@@ -176,8 +176,8 @@ import { ThemeService } from './core/services/theme.service';
     .impersonation-banner span { flex: 1; }
     .impersonation-banner button { color: white; }
     /* Mobile toolbar */
-    .mobile-toolbar { background: var(--tenant-primary-dark, #1B5E20) !important; color: white; position: sticky; top: 0; z-index: 100; }
-    .mobile-logo-icon { color: #A5D6A7; font-size: 22px; width: 22px; height: 22px; margin-left: 4px; }
+    .mobile-toolbar { background: color-mix(in srgb, var(--mat-sys-primary) 45%, black) !important; color: white; position: sticky; top: 0; z-index: 100; }
+    .mobile-logo-icon { color: var(--mat-sys-on-primary); font-size: 22px; width: 22px; height: 22px; margin-left: 4px; }
     .mobile-logo-text { font-size: 15px; font-weight: 700; color: white; margin-left: 6px; }
     .toolbar-spacer { flex: 1; }
     .mobile-toolbar button { color: white !important; }
@@ -198,9 +198,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.theme.apply();
-    // Apply tenant colors as CSS variables
-    document.documentElement.style.setProperty('--tenant-primary', this.tenant.config.primaryColor);
-    document.documentElement.style.setProperty('--tenant-primary-dark', this.tenant.config.primaryColorDark || this.darkenColor(this.tenant.config.primaryColor));
+    // Apply the tenant's Material theme class to <html>
+    document.documentElement.classList.add(this.tenant.themeClass);
     this.auth.getMe().subscribe();
     this.auth.impersonatedRole$.subscribe(role => {
       this.selectedRole = role ?? '';
@@ -223,12 +222,5 @@ export class AppComponent implements OnInit, OnDestroy {
   stopImpersonation() {
     this.auth.stopImpersonation();
     this.router.navigate(['/cq/dashboard']);
-  }
-  darkenColor(hex: string): string {
-    const n = parseInt(hex.replace('#',''), 16);
-    const r = Math.max(0, (n >> 16) - 40);
-    const g = Math.max(0, ((n >> 8) & 0xff) - 40);
-    const b = Math.max(0, (n & 0xff) - 40);
-    return '#' + [r,g,b].map(x => x.toString(16).padStart(2,'0')).join('');
   }
 }
