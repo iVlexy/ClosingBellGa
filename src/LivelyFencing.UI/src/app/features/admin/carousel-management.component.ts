@@ -120,14 +120,14 @@ import { ApiService } from '../../core/services/api.service';
     .add-card { margin-bottom: 24px; }
     .tab-content { padding: 20px 0 4px; }
     .upload-zone {
-      border: 2px dashed #A5D6A7; border-radius: 12px; padding: 40px 24px;
+      border: 2px dashed #BDBDBD; border-radius: 12px; padding: 40px 24px;
       text-align: center; cursor: pointer; transition: all .2s;
-      background: #F9FBE7;
+      background: #FAFAFA;
     }
     .upload-zone:hover, .upload-zone.drag-over {
-      border-color: #2E7D32; background: #E8F5E9;
+      border-color: #757575; background: #F5F5F5;
     }
-    .upload-icon { font-size: 48px; width: 48px; height: 48px; color: #2E7D32; display: block; margin: 0 auto 12px; }
+    .upload-icon { font-size: 48px; width: 48px; height: 48px; color: #9E9E9E; display: block; margin: 0 auto 12px; }
     .upload-label { font-size: 16px; font-weight: 600; color: #333; margin: 0 0 6px; }
     .upload-hint { font-size: 13px; color: #888; margin: 0; }
     .upload-progress { margin-top: 16px; }
@@ -148,7 +148,7 @@ import { ApiService } from '../../core/services/api.service';
     .img-preview-wrap { flex-shrink: 0; }
     .img-preview { width: 90px; height: 60px; object-fit: cover; border-radius: 6px; display: block; }
     .img-url { flex: 1; min-width: 0; }
-    .img-index { font-size: 11px; font-weight: 700; color: #2E7D32; display: block; margin-bottom: 2px; }
+    .img-index { font-size: 11px; font-weight: 700; color: #757575; display: block; margin-bottom: 2px; }
     .img-url-text { font-size: 12px; color: #666; word-break: break-all; line-height: 1.4; }
     .empty-state { text-align: center; padding: 48px; color: #aaa; }
     .empty-state mat-icon { font-size: 48px; width: 48px; height: 48px; display: block; margin: 0 auto 12px; }
