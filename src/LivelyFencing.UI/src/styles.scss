@@ -1,0 +1,119 @@
+@use '@angular/material' as mat;
+
+html {
+  @include mat.theme((
+    color: (
+      theme-type: light,
+      primary: mat.$green-palette,
+      tertiary: mat.$orange-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+html.dark-mode {
+  @include mat.theme((
+    color: (
+      theme-type: dark,
+      primary: mat.$green-palette,
+      tertiary: mat.$orange-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  background: var(--mat-sys-background, #f5f5f5);
+  color: var(--mat-sys-on-background, #212121);
+  transition: background 0.2s, color 0.2s;
+}
+
+mat-form-field { width: 100%; }
+.mat-mdc-table { width: 100%; }
+
+// Allow dialog content to grow to fit without scrollbars
+.mat-mdc-dialog-content { max-height: none !important; }
+
+// Prevent dialog horizontal overflow
+.mat-mdc-dialog-surface { overflow-x: hidden; }
+
+
+// ─── Mobile: hide secondary table columns ────────────────────────────────────
+@media (max-width: 600px) {
+  // Customers
+  .mat-column-company,
+  // Jobs
+  .mat-column-type,
+  .mat-column-location,
+  // Quotes
+  .mat-column-job,
+  .mat-column-ai,
+  // Contractors
+  .mat-column-taxId,
+  // Expenses
+  .mat-column-description,
+  .mat-column-vendor,
+  // Leads
+  .mat-column-message,
+  // Budgets
+  .mat-column-period,
+  .mat-column-totalActual,
+  .mat-column-variance {
+    display: none !important;
+  }
+
+  // Shared secondary columns that appear in multiple lists
+  .mat-column-phone,
+  .mat-column-city,
+  .mat-column-created,
+  .mat-column-date {
+    display: none !important;
+  }
+
+  // Hide email on pages where name + actions already fills the screen
+  app-contractor-list .mat-column-email,
+  app-leads .mat-column-email,
+  app-customer-list .mat-column-email {
+    display: none !important;
+  }
+
+  // Actions column: 3 icon buttons × 40px each = 130px min
+  .mat-column-actions {
+    width: 130px !important;
+    min-width: 130px !important;
+    max-width: 130px !important;
+  }
+
+  // Table scrolls within its container; page-level overflow-x:hidden prevents page scroll
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mat-mdc-table {
+    table-layout: fixed;
+    width: 100% !important;
+  }
+
+  .mat-mdc-cell:not(.mat-column-actions),
+  .mat-mdc-header-cell:not(.mat-column-actions) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  // Actions cell: never clip, let buttons wrap if needed
+  .mat-mdc-cell.mat-column-actions {
+    overflow: visible;
+    white-space: nowrap;
+    padding-right: 4px;
+  }
+
+}

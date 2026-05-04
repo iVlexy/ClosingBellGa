@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: livelyfencing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: api
+          image: localhost:5000/lf-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ConnectionStrings__DefaultConnection
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: CONNECTION_STRING
+            - name: Cloudflare__TeamDomain
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: CF_TEAM_DOMAIN
+            - name: Cloudflare__Audience
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: CF_AUDIENCE
+            - name: SendGrid__ApiKey
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: SENDGRID_API_KEY
+            - name: Encryption__Key
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: ENCRYPTION_KEY
+            - name: App__PortalBaseUrl
+              value: "https://lookinlivelyexterior.com"
+            - name: Ollama__BaseUrl
+              value: "http://ollama:11434"
+            - name: App__AllowedOrigins__0
+              value: "https://lookinlivelyexterior.com"
+            - name: DOTNET_USE_POLLING_FILE_WATCHER
+              value: "true"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5

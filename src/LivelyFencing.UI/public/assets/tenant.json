@@ -1,0 +1,36 @@
+{
+  "businessName": "Closing Bell Real Estate",
+  "industry": "realestate",
+  "tagline": "Disciplined Strategy. Thoughtful Execution.",
+  "primaryColor": "#1565C0",
+  "icon": "notifications",
+  "features": [
+    "dashboard",
+    "customers",
+    "leads",
+    "jobs",
+    "quotes",
+    "reports",
+    "income",
+    "expenses",
+    "help"
+  ],
+  "contact": {
+    "phone": "(678) 477-4786",
+    "email": "closingbellrealestate@gmail.com"
+  },
+  "stats": [
+    {
+      "value": "Luxury",
+      "label": "Real Estate Advisory"
+    },
+    {
+      "value": "GA",
+      "label": "Dawsonville & Metro Atlanta"
+    },
+    {
+      "value": "100%",
+      "label": "Client-First Approach"
+    }
+  ]
+}

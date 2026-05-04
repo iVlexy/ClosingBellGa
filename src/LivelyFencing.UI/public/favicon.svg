@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Background -->
+  <rect width="32" height="32" rx="4" fill="#1B5E20"/>
+  <!-- Rail top -->
+  <rect x="1" y="10" width="30" height="3" rx="1" fill="#A5D6A7"/>
+  <!-- Rail bottom -->
+  <rect x="1" y="19" width="30" height="3" rx="1" fill="#A5D6A7"/>
+  <!-- Picket left -->
+  <polygon points="5,3 3,7 3,27 7,27 7,7" fill="white"/>
+  <!-- Picket center -->
+  <polygon points="16,3 14,7 14,27 18,27 18,7" fill="white"/>
+  <!-- Picket right -->
+  <polygon points="27,3 25,7 25,27 29,27 29,7" fill="white"/>
+</svg>

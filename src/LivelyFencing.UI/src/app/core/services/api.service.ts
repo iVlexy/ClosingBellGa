@@ -1,0 +1,134 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+
+@Injectable({ providedIn: 'root' })
+export class ApiService {
+  private http = inject(HttpClient);
+  private base = environment.apiUrl;
+
+  // Customers
+  getCustomers(search?: string) { return this.http.get<any[]>(`${this.base}/customers`, { params: search ? { search } : {} }); }
+  getCustomer(id: string) { return this.http.get<any>(`${this.base}/customers/${id}`); }
+  createCustomer(data: any) { return this.http.post<any>(`${this.base}/customers`, data); }
+  updateCustomer(id: string, data: any) { return this.http.put<any>(`${this.base}/customers/${id}`, data); }
+  deleteCustomer(id: string) { return this.http.delete(`${this.base}/customers/${id}`); }
+
+  // Jobs
+  getJobs(customerId?: string, status?: string) {
+    let params = new HttpParams();
+    if (customerId) params = params.set('customerId', customerId);
+    if (status) params = params.set('status', status);
+    return this.http.get<any[]>(`${this.base}/jobs`, { params });
+  }
+  getJob(id: string) { return this.http.get<any>(`${this.base}/jobs/${id}`); }
+  createJob(data: any) { return this.http.post<any>(`${this.base}/jobs`, data); }
+  updateJob(id: string, data: any) { return this.http.put<any>(`${this.base}/jobs/${id}`, data); }
+  updateJobStatus(id: string, status: string) { return this.http.patch<any>(`${this.base}/jobs/${id}/status`, { status }); }
+  deleteJob(id: string) { return this.http.delete(`${this.base}/jobs/${id}`); }
+
+  // Quotes
+  getQuotes(status?: string, customerId?: string) {
+    let params = new HttpParams();
+    if (status) params = params.set('status', status);
+    if (customerId) params = params.set('customerId', customerId);
+    return this.http.get<any[]>(`${this.base}/quotes`, { params });
+  }
+  getQuote(id: string) { return this.http.get<any>(`${this.base}/quotes/${id}`); }
+  generateQuote(jobId: string) { return this.http.post<any>(`${this.base}/quotes/generate`, { jobId }); }
+  createManualQuote(data: any) { return this.http.post<any>(`${this.base}/quotes`, data); }
+  updateLineItems(id: string, lineItems: any[]) { return this.http.put<any>(`${this.base}/quotes/${id}/lineitems`, lineItems); }
+  updateQuote(id: string, data: any) { return this.http.patch<any>(`${this.base}/quotes/${id}`, data); }
+  approveQuote(id: string, adminNotes?: string) { return this.http.patch<any>(`${this.base}/quotes/${id}/approve`, { adminNotes }); }
+  rejectQuote(id: string, reason: string) { return this.http.patch<any>(`${this.base}/quotes/${id}/reject`, { reason }); }
+  sendQuote(id: string) { return this.http.patch<any>(`${this.base}/quotes/${id}/send`, {}); }
+  deleteQuote(id: string) { return this.http.delete(`${this.base}/quotes/${id}`); }
+  reopenQuote(id: string) { return this.http.patch<any>(`${this.base}/quotes/${id}/reopen`, {}); }
+  downloadQuotePdf(id: string) { return this.http.get(`${this.base}/quotes/${id}/pdf`, { responseType: 'blob' }); }
+
+  // Portal
+  getMyPortalQuotes() { return this.http.get<any[]>(`${this.base}/portal/quotes`); }
+  getPortalQuote(token: string) { return this.http.get<any>(`${this.base}/portal/quotes/${token}`); }
+  acceptPortalQuote(token: string) { return this.http.post<any>(`${this.base}/portal/quotes/${token}/accept`, {}); }
+  rejectPortalQuote(token: string, reason?: string) { return this.http.post<any>(`${this.base}/portal/quotes/${token}/reject`, { reason }); }
+  downloadPortalPdf(token: string) { return this.http.get(`${this.base}/portal/quotes/${token}/pdf`, { responseType: 'blob' }); }
+
+  // Contractors
+  getContractors() { return this.http.get<any[]>(`${this.base}/contractors`); }
+  getContractor(id: string) { return this.http.get<any>(`${this.base}/contractors/${id}`); }
+  createContractor(data: any) { return this.http.post<any>(`${this.base}/contractors`, data); }
+  updateContractor(id: string, data: any) { return this.http.put<any>(`${this.base}/contractors/${id}`, data); }
+  deleteContractor(id: string) { return this.http.delete(`${this.base}/contractors/${id}`); }
+  getContractorPayments(id: string, year?: number) {
+    return this.http.get<any[]>(`${this.base}/contractors/${id}/payments`, { params: year ? { year } : {} });
+  }
+  addPayment(contractorId: string, data: any) { return this.http.post<any>(`${this.base}/contractors/${contractorId}/payments`, data); }
+  deletePayment(contractorId: string, paymentId: string) { return this.http.delete(`${this.base}/contractors/${contractorId}/payments/${paymentId}`); }
+  download1099(id: string, year: number) { return this.http.get(`${this.base}/contractors/${id}/1099?year=${year}`, { responseType: 'blob' }); }
+
+  // Budgets
+  getBudgets(year?: number) { return this.http.get<any[]>(`${this.base}/budgets`, { params: year ? { year } : {} }); }
+  getBudget(id: string) { return this.http.get<any>(`${this.base}/budgets/${id}`); }
+  getBudgetActuals(id: string) { return this.http.get<any>(`${this.base}/budgets/${id}/actuals`); }
+  createBudget(data: any) { return this.http.post<any>(`${this.base}/budgets`, data); }
+  updateBudget(id: string, data: any) { return this.http.put<any>(`${this.base}/budgets/${id}`, data); }
+  deleteBudget(id: string) { return this.http.delete(`${this.base}/budgets/${id}`); }
+
+  // Reports
+  getRevenueReport(year: number, quarter?: number) {
+    return this.http.get<any>(`${this.base}/reports/revenue`, { params: quarter ? { year, quarter } : { year } });
+  }
+  getContractorPaymentsReport(year: number) { return this.http.get<any>(`${this.base}/reports/contractor-payments`, { params: { year } }); }
+  getJobSummaryReport(year: number) { return this.http.get<any>(`${this.base}/reports/job-summary`, { params: { year } }); }
+  getExpenseReport(year: number) { return this.http.get<any>(`${this.base}/reports/expenses`, { params: { year } }); }
+  getTaxSummaryReport(year: number) { return this.http.get<any>(`${this.base}/reports/tax-summary`, { params: { year } }); }
+
+  // Expenses
+  getExpenses(year?: number, category?: string) {
+    let params = new HttpParams();
+    if (year) params = params.set('year', year);
+    if (category) params = params.set('category', category);
+    return this.http.get<any[]>(`${this.base}/expenses`, { params });
+  }
+  createExpense(data: any) { return this.http.post<any>(`${this.base}/expenses`, data); }
+  updateExpense(id: string, data: any) { return this.http.put<any>(`${this.base}/expenses/${id}`, data); }
+  deleteExpense(id: string) { return this.http.delete(`${this.base}/expenses/${id}`); }
+  getIncomes(year?: number, category?: string) {
+    const params: any = {};
+    if (year) params['year'] = year;
+    if (category) params['category'] = category;
+    return this.http.get<any[]>(`${this.base}/incomes`, { params });
+  }
+  createIncome(data: any) { return this.http.post<any>(`${this.base}/incomes`, data); }
+  updateIncome(id: string, data: any) { return this.http.put<any>(`${this.base}/incomes/${id}`, data); }
+  deleteIncome(id: string) { return this.http.delete(`${this.base}/incomes/${id}`); }
+  getIncomeReport(year: number) { return this.http.get<any>(`${this.base}/reports/income`, { params: { year } }); }
+
+
+  // Leads
+  getLeads() { return this.http.get<any[]>(`${this.base}/contact`); }
+  markLeadContacted(id: string) { return this.http.patch(`${this.base}/contact/${id}/contacted`, {}); }
+
+  // Public
+  submitContactRequest(data: {name: string; email: string; phone: string; message: string}) {
+    return this.http.post<any>(`${this.base}/contact`, data);
+  }
+
+  // Users
+  getUsers() { return this.http.get<any[]>(`${this.base}/users`); }
+  updateUserRole(id: string, role: string) { return this.http.patch<any>(`${this.base}/users/${id}/role`, { role }); }
+  setUserActive(id: string, isActive: boolean) { return this.http.patch(`${this.base}/users/${id}/active`, { isActive }); }
+
+  // Site Settings
+  getCarouselUploadUrl() { return this.http.post<{uploadUrl: string; imageId: string; publicUrl: string}>(`${this.base}/site-settings/carousel/upload-url`, {}); }
+  getCarouselImages() { return this.http.get<string[]>(`${this.base}/site-settings/carousel`); }
+  updateCarouselImages(images: string[]) { return this.http.put<string[]>(`${this.base}/site-settings/carousel`, images); }
+
+  // Reviews
+  getReviews() { return this.http.get<any[]>(`${this.base}/reviews`); }
+  submitReview(data: { reviewerName: string; reviewerEmail?: string; rating: number; comment: string }) { return this.http.post<any>(`${this.base}/reviews`, data); }
+  getAllReviews() { return this.http.get<any[]>(`${this.base}/reviews/all`); }
+  approveReview(id: string) { return this.http.patch<any>(`${this.base}/reviews/${id}/approve`, {}); }
+  deleteReview(id: string) { return this.http.delete(`${this.base}/reviews/${id}`); }
+}
