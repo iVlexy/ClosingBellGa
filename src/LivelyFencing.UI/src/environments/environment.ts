@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.lookinlivelyexterior.com'
+  apiUrl: 'https://api-closingbellga.browning-home-lab.work'
 };
