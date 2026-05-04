@@ -417,7 +417,7 @@ export class RealEstateLandingComponent implements OnInit {
     window.location.href = '/cdn-cgi/access/logout?returnTo=' + window.location.origin + '/';
   }
 
-  login() { this.router.navigate(['/cq/dashboard']); }
+  login() { window.location.href = '/cq/dashboard'; }
 
   submit() {
     if (this.form.invalid || this.submitting) return;
