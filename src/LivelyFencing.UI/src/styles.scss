@@ -143,3 +143,12 @@ mat-form-field { width: 100%; }
   }
 
 }
+
+// ── Back-office page titles — always black regardless of tenant theme ─────────
+.page-title,
+.page-header h1,
+.cm-header h1,
+.rm-header h1,
+app-help h1 {
+  color: #212121 !important;
+}
