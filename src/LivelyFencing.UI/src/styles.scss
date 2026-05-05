@@ -25,11 +25,11 @@ html.dark-mode {
 }
 
 // ── Closing Bell Real Estate theme (blue) ────────────────────────────────────
-html.theme-blue {
+html.theme-luxe {
   @include mat.theme((
     color: (
       theme-type: light,
-      primary: mat.$blue-palette,
+      primary: mat.$green-palette,
       tertiary: mat.$orange-palette,
     ),
     typography: Roboto,
@@ -37,11 +37,11 @@ html.theme-blue {
   ));
 }
 
-html.theme-blue.dark-mode {
+html.theme-luxe.dark-mode {
   @include mat.theme((
     color: (
       theme-type: dark,
-      primary: mat.$blue-palette,
+      primary: mat.$green-palette,
       tertiary: mat.$orange-palette,
     ),
     typography: Roboto,
@@ -49,6 +49,14 @@ html.theme-blue.dark-mode {
   ));
 }
 
+
+// ── Closing Bell luxe: gold active-link indicator ────────────────────────────
+html.theme-luxe .active-link {
+  border-left-color: #C9A96E !important;
+}
+html.theme-luxe .active-link mat-icon {
+  color: #C9A96E !important;
+}
 
 * { box-sizing: border-box; }
 
