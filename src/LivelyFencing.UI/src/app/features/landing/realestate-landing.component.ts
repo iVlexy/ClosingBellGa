@@ -175,27 +175,47 @@ import { TenantService } from '../../core/services/tenant.service';
       </section>
 
       <!-- REVIEWS -->
-      <section class="re-reviews-section">
+      <section class="re-leave-review-section">
         <div class="re-section-header">
-          <h2>What Our Clients Say</h2>
+          <h2>Leave a Review</h2>
+          <p>We value your feedback. Share your experience working with us.</p>
         </div>
-        <div class="re-reviews-summary">
-          <span class="re-avg-rating">{{ avgRating | number:'1.1-1' }}</span>
-          <div>
-            <div class="re-avg-stars">
-              <mat-icon *ngFor="let s of [1,2,3,4,5]" class="re-star" [class.re-star-filled]="s <= roundedAvg">star</mat-icon>
+        <div class="re-leave-review-inner">
+          <div class="re-leave-review-card" *ngIf="!reviewSubmitted">
+            <div class="re-star-select">
+              <span class="re-star-label">Your Rating</span>
+              <div class="re-star-row">
+                <mat-icon *ngFor="let s of [1,2,3,4,5]" class="re-pick-star"
+                  [class.re-pick-star-filled]="s <= reviewRating"
+                  (click)="reviewRating = s"
+                  (mouseenter)="reviewHover = s"
+                  (mouseleave)="reviewHover = 0"
+                  [class.re-pick-star-hover]="s <= reviewHover">star</mat-icon>
+              </div>
             </div>
-            <div class="re-avg-label">{{ reviews.length }} verified reviews</div>
+            <mat-form-field appearance="outline" class="re-full">
+              <mat-label>Your Name</mat-label>
+              <input matInput [(ngModel)]="reviewName" required />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="re-full">
+              <mat-label>Email (optional)</mat-label>
+              <input matInput type="email" [(ngModel)]="reviewEmail" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="re-full">
+              <mat-label>Your Experience</mat-label>
+              <textarea matInput rows="4" [(ngModel)]="reviewComment" required></textarea>
+            </mat-form-field>
+            <button mat-raised-button class="re-submit-btn"
+              (click)="submitReview()"
+              [disabled]="reviewSubmitting || !reviewName || !reviewComment || reviewRating === 0">
+              <mat-spinner diameter="18" class="re-btn-spinner" *ngIf="reviewSubmitting"></mat-spinner>
+              {{ reviewSubmitting ? 'Submitting...' : 'Submit Review' }}
+            </button>
           </div>
-        </div>
-        <div class="re-reviews-grid">
-          <div class="re-reviews-empty" *ngIf="reviews.length === 0"><mat-icon>star_outline</mat-icon><p>Be the first to share your experience with us.</p></div>
-          <div class="re-review-card" *ngFor="let r of reviews | slice:0:6">
-            <div class="re-review-stars">
-              <mat-icon *ngFor="let s of [1,2,3,4,5]" class="re-star" [class.re-star-filled]="s <= r.rating">star</mat-icon>
-            </div>
-            <p class="re-review-comment">"{{ r.comment }}"</p>
-            <span class="re-review-author">— {{ r.reviewerName }}</span>
+          <div class="re-form-success" *ngIf="reviewSubmitted">
+            <mat-icon class="re-success-icon">check_circle</mat-icon>
+            <h3>Thank You!</h3>
+            <p>Your review has been submitted and will appear after approval.</p>
           </div>
         </div>
       </section>
@@ -318,21 +338,15 @@ import { TenantService } from '../../core/services/tenant.service';
     .re-form-success p { color: #666; line-height: 1.7; margin: 0; }
 
     /* REVIEWS */
-    .re-reviews-section { padding: 88px 48px; background: #FAFAF8; }
-    .re-reviews-summary { display: flex; align-items: center; gap: 20px; justify-content: center; margin-bottom: 56px; }
-    .re-avg-rating { font-size: 52px; font-weight: 800; color: #1A3A2A; line-height: 1; }
-    .re-avg-stars { display: flex; gap: 2px; }
-    .re-avg-label { font-size: 13px; color: #888; letter-spacing: .5px; }
-    .re-reviews-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; max-width: 1100px; margin: 0 auto; }
-    .re-review-card { background: #fff; border: 1px solid #E8EDE9; border-radius: 4px; padding: 28px; display: flex; flex-direction: column; gap: 14px; }
-    .re-review-stars { display: flex; gap: 2px; }
-    .re-star { font-size: 18px; color: #E0E0E0; }
-    .re-star.re-star-filled { color: #C9A96E; }
-    .re-review-comment { font-size: 14px; color: #555; line-height: 1.8; margin: 0; font-style: italic; flex: 1; }
-    .re-review-author { font-size: 12px; font-weight: 700; color: #2D5A40; letter-spacing: .5px; text-transform: uppercase; }
-    .re-reviews-empty { text-align: center; padding: 40px; color: #999; display: flex; flex-direction: column; align-items: center; gap: 12px; grid-column: 1 / -1; }
-    .re-reviews-empty mat-icon { font-size: 40px; width: 40px; height: 40px; color: #ccc; }
-    .re-reviews-empty p { font-size: 15px; margin: 0; }
+    .re-leave-review-section { padding: 88px 48px; background: #FAFAF8; }
+    .re-leave-review-inner { display: flex; justify-content: center; }
+    .re-leave-review-card { background: #fff; border: 1px solid #E8EDE9; border-radius: 4px; padding: 40px; width: 100%; max-width: 560px; box-shadow: 0 4px 24px rgba(0,0,0,.07); display: flex; flex-direction: column; gap: 16px; }
+    .re-star-select { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+    .re-star-label { font-size: 12px; font-weight: 700; color: #444; letter-spacing: .5px; text-transform: uppercase; }
+    .re-star-row { display: flex; gap: 4px; }
+    .re-pick-star { font-size: 32px; width: 32px; height: 32px; color: #E0E0E0; cursor: pointer; transition: color .15s; }
+    .re-pick-star.re-pick-star-filled { color: #C9A96E; }
+    .re-pick-star.re-pick-star-hover { color: #B8935A; }
 
     /* FOOTER */
     .re-footer { background: #0A0A0A; padding: 48px; text-align: center; border-top: 1px solid #1A3A2A; }
@@ -351,7 +365,7 @@ import { TenantService } from '../../core/services/tenant.service';
       .re-hero-title { font-size: 34px; }
       .re-hero-sub { font-size: 15px; }
       .re-hero-visual { display: none; }
-      .re-services, .re-why, .re-contact-section, .re-reviews-section { padding: 56px 20px; }
+      .re-services, .re-why, .re-contact-section, .re-leave-review-section { padding: 56px 20px; }
       .re-contact-inner { flex-direction: column; gap: 32px; }
       .re-section-header h2 { font-size: 26px; }
       .re-footer { padding: 36px 20px; }
@@ -370,9 +384,13 @@ export class RealEstateLandingComponent implements OnInit {
   submitting = false;
   year = new Date().getFullYear();
   currentUser: any = null;
-  reviews: any[] = [];
-  avgRating = 0;
-  roundedAvg = 0;
+  reviewRating = 0;
+  reviewHover = 0;
+  reviewName = '';
+  reviewEmail = '';
+  reviewComment = '';
+  reviewSubmitting = false;
+  reviewSubmitted = false;
 
   form = this.fb.group({
     name:    ['', Validators.required],
@@ -397,7 +415,6 @@ export class RealEstateLandingComponent implements OnInit {
   ];
 
   ngOnInit() {
-    this.loadReviews();
     this.auth.getMe().subscribe({
       next: user => {
         if (!user) return;
@@ -411,16 +428,17 @@ export class RealEstateLandingComponent implements OnInit {
     });
   }
 
-  loadReviews() {
-    this.api.getReviews().subscribe({
-      next: reviews => {
-        this.reviews = reviews;
-        if (reviews.length > 0) {
-          this.avgRating = reviews.reduce((s: number, r: any) => s + r.rating, 0) / reviews.length;
-          this.roundedAvg = Math.round(this.avgRating);
-        }
-      },
-      error: () => {}
+  submitReview() {
+    if (!this.reviewName || !this.reviewComment || this.reviewRating === 0) return;
+    this.reviewSubmitting = true;
+    this.api.submitReview({
+      reviewerName: this.reviewName,
+      reviewerEmail: this.reviewEmail || undefined,
+      rating: this.reviewRating,
+      comment: this.reviewComment
+    }).subscribe({
+      next: () => { this.reviewSubmitting = false; this.reviewSubmitted = true; },
+      error: () => { this.reviewSubmitting = false; this.snack.open('Something went wrong. Please try again.', 'OK', { duration: 4000 }); }
     });
   }
 
