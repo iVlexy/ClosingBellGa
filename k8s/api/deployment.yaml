@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api
-  namespace: livelyfencing
+  namespace: closingbell
 spec:
   replicas: 1
   selector:
@@ -48,17 +48,19 @@ spec:
                   name: api-secret
                   key: ENCRYPTION_KEY
             - name: App__PortalBaseUrl
-              value: "https://lookinlivelyexterior.com"
+              value: "https://stage.closingbellga.com"
             - name: Ollama__BaseUrl
-              value: "http://ollama:11434"
-            - name: App__AllowedOrigins__0
-              value: "https://lookinlivelyexterior.com"
+              value: "http://ollama.livelyfencing.svc.cluster.local:11434"
+            - name: AllowedOrigins__0
+              value: "https://stage.closingbellga.com"
+            - name: AllowedOrigins__1
+              value: "https://closingbellga.browning-home-lab.work"
             - name: DOTNET_USE_POLLING_FILE_WATCHER
               value: "true"
           resources:
             requests:
               memory: "256Mi"
-              cpu: "250m"
+              cpu: "100m"
             limits:
               memory: "1Gi"
               cpu: "1000m"
