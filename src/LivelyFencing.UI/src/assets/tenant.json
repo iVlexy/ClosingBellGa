@@ -1,14 +1,36 @@
 {
-  "businessName": "Lookin\u0027 Lively Exterior Solutions",
-  "industry": "contractor",
-  "tagline": "Built to Last",
-  "primaryColor": "#2e7d32",
-  "icon": "fence",
-  "features": ["dashboard","customers","leads","jobs","quotes","contractors","budgets","reports","expenses","income","help"],
-  "contact": { "phone": "", "email": "" },
+  "businessName": "Closing Bell GA",
+  "industry": "realestate",
+  "tagline": "Your Trusted Real Estate Partner",
+  "primaryColor": "#C9A96E",
+  "icon": "home",
+  "features": [
+    "dashboard",
+    "customers",
+    "leads",
+    "jobs",
+    "quotes",
+    "reports",
+    "expenses",
+    "income",
+    "help"
+  ],
+  "contact": {
+    "phone": "",
+    "email": ""
+  },
   "stats": [
-    { "value": "500+", "label": "Projects Completed" },
-    { "value": "25+",  "label": "Years Experience" },
-    { "value": "100%", "label": "Satisfaction Guaranteed" }
+    {
+      "value": "500+",
+      "label": "Homes Closed"
+    },
+    {
+      "value": "15+",
+      "label": "Years Experience"
+    },
+    {
+      "value": "100%",
+      "label": "Client Satisfaction"
+    }
   ]
 }
