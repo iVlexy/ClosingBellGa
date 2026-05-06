@@ -202,8 +202,11 @@ public class ContactRequest
     public string Email { get; set; } = "";
     public string Phone { get; set; } = "";
     public string Message { get; set; } = "";
+    public string Source { get; set; } = "Website";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public bool Contacted { get; set; } = false;
+    public DateTime? ConvertedAt { get; set; }
+    public Guid? ConvertedCustomerId { get; set; }
 }
 
 public class Review

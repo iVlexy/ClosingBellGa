@@ -109,6 +109,8 @@ export class ApiService {
   // Leads
   getLeads() { return this.http.get<any[]>(`${this.base}/contact`); }
   markLeadContacted(id: string) { return this.http.patch(`${this.base}/contact/${id}/contacted`, {}); }
+  createManualLead(data: { name: string; email: string; phone?: string; message?: string; source: string }) { return this.http.post<any>(`${this.base}/contact/manual`, data); }
+  markLeadConverted(id: string, customerId: string | null) { return this.http.patch(`${this.base}/contact/${id}/converted`, { customerId }); }
 
   // Public
   submitContactRequest(data: {name: string; email: string; phone: string; message: string}) {

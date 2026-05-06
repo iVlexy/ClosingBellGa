@@ -32,7 +32,8 @@ public class ContactRequestsController : ControllerBase
             Name = dto.Name.Trim(),
             Email = dto.Email.Trim().ToLower(),
             Phone = dto.Phone?.Trim() ?? "",
-            Message = dto.Message?.Trim() ?? ""
+            Message = dto.Message?.Trim() ?? "",
+            Source = "Website"
         };
         _db.ContactRequests.Add(req);
         await _db.SaveChangesAsync();
@@ -55,7 +56,7 @@ public class ContactRequestsController : ControllerBase
         var leads = await _db.ContactRequests
             .OrderByDescending(r => r.CreatedAt)
             .Select(r => new {
-                r.Id, r.Name, r.Email, r.Phone, r.Message, r.CreatedAt, r.Contacted
+                r.Id, r.Name, r.Email, r.Phone, r.Message, r.Source, r.CreatedAt, r.Contacted, r.ConvertedAt, r.ConvertedCustomerId
             })
             .ToListAsync();
         return Ok(leads);
@@ -72,6 +73,40 @@ public class ContactRequestsController : ControllerBase
         return NoContent();
     }
 
+    [HttpPost("manual")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Policy = LivelyFencing.API.Infrastructure.Auth.AuthorizationPolicies.AdminOrSales)]
+    public async Task<IActionResult> CreateManual([FromBody] ManualLeadDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Name) || string.IsNullOrWhiteSpace(dto.Email))
+            return BadRequest(new { error = "Name and email are required." });
+        var req = new ContactRequest
+        {
+            Name = dto.Name.Trim(),
+            Email = dto.Email.Trim().ToLower(),
+            Phone = dto.Phone?.Trim() ?? "",
+            Message = dto.Message?.Trim() ?? "",
+            Source = string.IsNullOrWhiteSpace(dto.Source) ? "Manual" : dto.Source.Trim()
+        };
+        _db.ContactRequests.Add(req);
+        await _db.SaveChangesAsync();
+        return Ok(new { req.Id, req.Name, req.Email, req.Phone, req.Message, req.Source, req.CreatedAt, req.Contacted, req.ConvertedAt, req.ConvertedCustomerId });
+    }
+
+    [HttpPatch("{id}/converted")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Policy = LivelyFencing.API.Infrastructure.Auth.AuthorizationPolicies.AdminOrSales)]
+    public async Task<IActionResult> MarkConverted(Guid id, [FromBody] ConvertedDto dto)
+    {
+        var req = await _db.ContactRequests.FindAsync(id);
+        if (req == null) return NotFound();
+        req.Contacted = true;
+        req.ConvertedAt = DateTime.UtcNow;
+        req.ConvertedCustomerId = dto.CustomerId;
+        await _db.SaveChangesAsync();
+        return NoContent();
+    }
+
 }
 
-public record ContactSubmitDto(string Name, string Email, string? Phone, string? Message);
+public record ConvertedDto(Guid? CustomerId);
+public record ContactSubmitDto(string Name, string Email, string? Phone, string? Message, string? Source);
+public record ManualLeadDto(string Name, string Email, string? Phone, string? Message, string Source);

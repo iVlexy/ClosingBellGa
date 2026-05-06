@@ -12,6 +12,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatSelectModule } from '@angular/material/select';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -28,9 +29,15 @@ import { AuthService } from '../../core/services/auth.service';
           <h1 class="page-title">Leads</h1>
           <p class="page-sub">Quote requests submitted from the website</p>
         </div>
+        <div class="header-actions">
+        <button mat-raised-button color="primary" (click)="openNewLead()">
+          <mat-icon>add</mat-icon> New Lead
+        </button>
         <div class="header-stats">
           <div class="stat-chip new"><mat-icon>fiber_new</mat-icon> {{ newCount() }} new</div>
           <div class="stat-chip total"><mat-icon>people</mat-icon> {{ leads().length }} total</div>
+          <div class="stat-chip converted"><mat-icon>how_to_reg</mat-icon> {{ convertedCount() }} converted</div>
+        </div>
         </div>
       </div>
 
@@ -42,6 +49,13 @@ import { AuthService } from '../../core/services/auth.service';
             <span class="status-badge" [class.new]="!l.contacted" [class.done]="l.contacted">
               {{ l.contacted ? 'Contacted' : 'New' }}
             </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="source">
+          <th mat-header-cell *matHeaderCellDef>Source</th>
+          <td mat-cell *matCellDef="let l">
+            <span class="source-badge" [class]="'src-' + (l.source || 'website').toLowerCase()">{{ l.source || 'Website' }}</span>
           </td>
         </ng-container>
 
@@ -126,6 +140,15 @@ import { AuthService } from '../../core/services/auth.service';
     .date-cell { font-size: 12px; color: #888; white-space: nowrap; }
     .table-row:hover { background: #F5F5F5; }
     .contacted-row { opacity: 0.6; }
+    .header-actions { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+    .stat-chip.converted { background: #E3F2FD; color: #1565C0; }
+    .source-badge { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
+    .src-website { background: #E8F5E9; color: #2E7D32; }
+    .src-manual { background: #FFF3E0; color: #E65100; }
+    .src-google { background: #FCE4EC; color: #C62828; }
+    .src-referral { background: #EDE7F6; color: #4527A0; }
+    .src-social { background: #E3F2FD; color: #1565C0; }
+    .src-other { background: #F5F5F5; color: #616161; }
     .empty-state { display: flex; flex-direction: column; align-items: center; padding: 64px; color: #9E9E9E; }
     .empty-state mat-icon { font-size: 48px; width: 48px; height: 48px; margin-bottom: 8px; }
     .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -143,14 +166,27 @@ export class LeadsComponent implements OnInit {
   private snack = inject(MatSnackBar);
 
   leads = signal<any[]>([]);
-  cols = ['status', 'name', 'email', 'phone', 'message', 'date', 'actions'];
+  cols = ['status', 'source', 'name', 'email', 'phone', 'message', 'date', 'actions'];
 
   newCount = () => this.leads().filter(l => !l.contacted).length;
+  convertedCount = () => this.leads().filter(l => l.convertedAt).length;
 
   ngOnInit() { this.load(); }
 
   load() {
     this.api.getLeads().subscribe(l => this.leads.set(l));
+  }
+
+  openNewLead() {
+    const ref = this.dialog.open(NewLeadDialogComponent, { width: '480px' });
+    ref.afterClosed().subscribe(result => {
+      if (result) {
+        this.api.createManualLead(result).subscribe({
+          next: (lead) => { this.leads.update(list => [lead, ...list]); this.snack.open('Lead created.', 'OK', { duration: 3000 }); },
+          error: () => this.snack.open('Failed to create lead.', 'OK', { duration: 3000 })
+        });
+      }
+    });
   }
 
   markContacted(lead: any) {
@@ -168,7 +204,8 @@ export class LeadsComponent implements OnInit {
         // Create customer then navigate to jobs to create a job
         this.api.createCustomer(result).subscribe({
           next: (customer) => {
-            this.markContacted(lead);
+            this.api.markLeadConverted(lead.id, customer.id).subscribe();
+            this.leads.update(list => list.map(l => l.id === lead.id ? { ...l, contacted: true, convertedAt: new Date().toISOString() } : l));
             this.snack.open(`Customer "${customer.name}" created! Now add a job to generate a quote.`, 'Go to Jobs', { duration: 8000 })
               .onAction().subscribe(() => {
                 // Handled by router below
@@ -182,6 +219,69 @@ export class LeadsComponent implements OnInit {
     });
   }
 }
+
+// ── New Lead Dialog ──────────────────────────────────────────────────────────
+@Component({
+  selector: 'app-new-lead-dialog',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule,
+    MatButtonModule, MatDialogModule, MatIconModule, MatSelectModule],
+  template: `
+    <h2 mat-dialog-title><mat-icon style="vertical-align:middle;margin-right:8px">person_add_alt</mat-icon> New Lead</h2>
+    <mat-dialog-content>
+      <form [formGroup]="form" class="form-grid">
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Full Name *</mat-label>
+          <input matInput formControlName="name">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Email *</mat-label>
+          <input matInput formControlName="email" type="email">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Phone</mat-label>
+          <input matInput formControlName="phone">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Source</mat-label>
+          <mat-select formControlName="source">
+            <mat-option value="Manual">Manual</mat-option>
+            <mat-option value="Google">Google</mat-option>
+            <mat-option value="Referral">Referral</mat-option>
+            <mat-option value="Social">Social Media</mat-option>
+            <mat-option value="Other">Other</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Notes / Message</mat-label>
+          <textarea matInput formControlName="message" rows="3"></textarea>
+        </mat-form-field>
+      </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close>Cancel</button>
+      <button mat-raised-button color="primary" [disabled]="form.invalid" (click)="save()">
+        <mat-icon>add</mat-icon> Create Lead
+      </button>
+    </mat-dialog-actions>
+  `,
+  styles: [`.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; padding-top:4px; } .full { grid-column: span 2; } mat-form-field { width:100%; }`]
+})
+export class NewLeadDialogComponent {
+  private fb = inject(FormBuilder);
+  dialogRef = inject(MatDialogRef<NewLeadDialogComponent>);
+
+  form = this.fb.group({
+    name:    ['', Validators.required],
+    email:   ['', [Validators.required, Validators.email]],
+    phone:   [''],
+    source:  ['Manual', Validators.required],
+    message: [''],
+  });
+
+  save() { if (this.form.valid) this.dialogRef.close(this.form.value); }
+}
+
 
 // ── Convert Lead Dialog ────────────────────────────────────────────────────────
 @Component({
