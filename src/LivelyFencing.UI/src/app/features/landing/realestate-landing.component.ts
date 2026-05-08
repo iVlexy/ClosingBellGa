@@ -184,6 +184,30 @@ import { TenantService } from '../../core/services/tenant.service';
         </div>
       </section>
 
+      <!-- TESTIMONIALS -->
+      <section class="re-testimonials" *ngIf="reviews.length > 0">
+        <div class="re-section-header">
+          <h2>What Our Clients Say</h2>
+          <p>Real experiences from the people we've had the privilege of serving</p>
+        </div>
+        <div class="re-testimonials-grid">
+          <div class="re-testimonial-card" *ngFor="let rv of reviews">
+            <div class="re-tcard-top">
+              <div class="re-tcard-stars">
+                <mat-icon *ngFor="let s of [1,2,3,4,5]" [class.re-star-filled]="s <= rv.rating">star</mat-icon>
+              </div>
+              <span *ngIf="rv.source === 'Google'" class="re-google-tag">Google</span>
+            </div>
+            <p class="re-tcard-comment">&#8220;{{ rv.comment }}&#8221;</p>
+            <div class="re-tcard-author">
+              <img *ngIf="rv.reviewerPhotoUrl" [src]="rv.reviewerPhotoUrl" alt="" class="re-tcard-avatar">
+              <div *ngIf="!rv.reviewerPhotoUrl" class="re-tcard-avatar-initial">{{ rv.reviewerName.charAt(0) }}</div>
+              <span class="re-tcard-name">{{ rv.reviewerName }}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- REVIEWS -->
       <section class="re-leave-review-section">
         <div class="re-section-header">
@@ -355,6 +379,21 @@ import { TenantService } from '../../core/services/tenant.service';
     .re-form-success h3 { font-size: 22px; font-weight: 700; color: #1A1A1A; margin: 0 0 12px; }
     .re-form-success p { color: #666; line-height: 1.7; margin: 0; }
 
+    /* TESTIMONIALS */
+    .re-testimonials { padding: 88px 48px; background: #fff; }
+    .re-testimonials-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; max-width: 1100px; margin: 0 auto; }
+    .re-testimonial-card { background: #FAFAF8; border: 1px solid #E8EDE9; border-radius: 8px; padding: 28px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 2px 12px rgba(0,0,0,.04); }
+    .re-tcard-top { display: flex; align-items: center; justify-content: space-between; }
+    .re-tcard-stars { display: flex; gap: 2px; }
+    .re-tcard-stars mat-icon { font-size: 18px; width: 18px; height: 18px; color: #E0E0E0; }
+    .re-tcard-stars mat-icon.re-star-filled { color: #C9A96E; }
+    .re-google-tag { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #4285F4; background: rgba(66,133,244,.08); padding: 3px 8px; border-radius: 3px; border: 1px solid rgba(66,133,244,.2); }
+    .re-tcard-comment { font-size: 14px; color: #444; line-height: 1.75; margin: 0; font-style: italic; flex: 1; }
+    .re-tcard-author { display: flex; align-items: center; gap: 10px; }
+    .re-tcard-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+    .re-tcard-avatar-initial { width: 36px; height: 36px; border-radius: 50%; background: #1A3A2A; color: #C9A96E; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; flex-shrink: 0; }
+    .re-tcard-name { font-size: 13px; font-weight: 600; color: #1A1A1A; }
+
     /* REVIEWS */
     .re-leave-review-section { padding: 88px 48px; background: #FAFAF8; }
     .re-leave-review-inner { display: flex; justify-content: center; }
@@ -392,7 +431,8 @@ import { TenantService } from '../../core/services/tenant.service';
       .re-hero-carousel { width: 100%; height: 260px; border-radius: 8px; }
       .re-hero-carousel::after { content: 'Meet Your Agent'; position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,.65)); color: #fff; font-size: 13px; font-weight: 600; letter-spacing: 1px; text-align: center; padding: 24px 0 10px; pointer-events: none; }
       .re-hero-carousel .re-car-dots { bottom: 38px; }
-      .re-services, .re-why, .re-contact-section, .re-leave-review-section { padding: 56px 20px; }
+      .re-services, .re-why, .re-contact-section, .re-testimonials, .re-leave-review-section { padding: 56px 20px; }
+      .re-testimonials-grid { grid-template-columns: 1fr; }
       .re-contact-inner { flex-direction: column; gap: 32px; }
       .re-section-header h2 { font-size: 26px; }
       .re-footer { padding: 36px 20px; }
@@ -419,6 +459,7 @@ export class RealEstateLandingComponent implements OnInit, OnDestroy {
   submitting = false;
   year = new Date().getFullYear();
   currentUser: any = null;
+  reviews: any[] = [];
   reviewRating = 0;
   reviewHover = 0;
   reviewName = '';
@@ -452,6 +493,7 @@ export class RealEstateLandingComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.api.getCarouselImages().subscribe({ next: imgs => { if (imgs?.length) { this.carouselImages = imgs; } }, error: () => {} });
     this._carouselTimer = setInterval(() => this.carouselNext(), 7000);
+    this.api.getReviews().subscribe({ next: r => this.reviews = r, error: () => {} });
     this.auth.getMe().subscribe({
       next: user => {
         if (!user) return;

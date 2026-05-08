@@ -29,7 +29,7 @@ public class ReviewsController : ControllerBase
             .Where(r => r.Approved && !r.IsDeleted)
             .OrderByDescending(r => r.CreatedAt)
             .Select(r => new {
-                r.Id, r.ReviewerName, r.Rating, r.Comment, r.CreatedAt
+                r.Id, r.ReviewerName, r.Rating, r.Comment, r.CreatedAt, r.Source, r.ReviewerPhotoUrl
             })
             .ToListAsync();
         return Ok(reviews);
