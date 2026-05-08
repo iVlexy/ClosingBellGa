@@ -346,7 +346,7 @@ const TX_TYPES = [
     .form-row-4 { display: flex; gap: 8px; }
     .form-row-4 mat-form-field { flex: 1; }
     .full { width: 100%; }
-    mat-dialog-content { max-height: 70vh; }
+    mat-dialog-content { max-height: 65vh; overflow-y: auto; }
     .pipeline-steps { display: flex; gap: 0; margin-bottom: 16px; overflow-x: auto; }
     .pipe-step { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 70px; }
     .pipe-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #ddd; background: #fff; transition: background .2s; }
@@ -391,6 +391,7 @@ const TX_TYPES = [
       .detail-dates, .commission-row { gap: 8px; }
       .doc-item { flex-wrap: wrap; }
       .doc-actions { margin-left: auto; }
+      mat-dialog-content { max-height: 55vh; }
     }
   `]
 })
@@ -481,7 +482,7 @@ export class TransactionsComponent implements OnInit {
       this.form.reset({ type: 'BuyerRepresentation', status: 'Prospecting' });
     }
     import('@angular/material/dialog').then(({ MatDialogRef }) => {});
-    const ref = this.dialog.open(this._formDialogRef!, { data: { tx }, disableClose: false, width: '95vw', maxWidth: '640px' });
+    const ref = this.dialog.open(this._formDialogRef!, { data: { tx }, disableClose: false, width: '95vw', maxWidth: '640px', maxHeight: '95dvh' });
   }
 
   saveTransaction(existing: any) {
@@ -504,7 +505,7 @@ export class TransactionsComponent implements OnInit {
 
   openDetail(tx: any) {
     this.api.getTransaction(tx.id).subscribe(full => {
-      this.dialog.open(this._detailDialogRef!, { data: { tx: full }, width: '95vw', maxWidth: '720px' });
+      this.dialog.open(this._detailDialogRef!, { data: { tx: full }, width: '95vw', maxWidth: '720px', maxHeight: '95dvh' });
     });
   }
 
@@ -522,7 +523,7 @@ export class TransactionsComponent implements OnInit {
 
   openAddDoc(tx: any) {
     this.docForm.reset({ status: 'Pending' });
-    this.dialog.open(this._addDocDialogRef!, { data: { tx }, width: '95vw', maxWidth: '380px' });
+    this.dialog.open(this._addDocDialogRef!, { data: { tx }, width: '95vw', maxWidth: '380px', maxHeight: '95dvh' });
   }
 
   saveDoc(tx: any) {
