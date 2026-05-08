@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal, computed, ViewChild, TemplateRef } from '@angular/core';
+import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -39,7 +40,7 @@ const TX_TYPES = [
   imports: [CommonModule, ReactiveFormsModule, MatButtonModule, MatIconModule,
     MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule,
     MatSnackBarModule, MatChipsModule, MatTooltipModule, MatProgressBarModule,
-    MatCheckboxModule, MatDividerModule],
+    MatCheckboxModule, MatDividerModule, DragDropModule],
   template: `
 <div class="page-container">
   <div class="page-header">
@@ -62,7 +63,7 @@ const TX_TYPES = [
   </div>
 
   <!-- Kanban board -->
-  <div class="board">
+  <div class="board" cdkDropListGroup>
     <div class="board-col" *ngFor="let stage of pipeline">
       <div class="col-header" [style.border-color]="stage.color">
         <span class="col-title">{{stage.label}}</span>
@@ -70,6 +71,7 @@ const TX_TYPES = [
       </div>
       <div class="col-cards">
         <div class="tx-card" *ngFor="let tx of byStatus(stage.key)"
+          cdkDrag [cdkDragData]="tx"
           (click)="openDetail(tx)">
           <div class="tx-client">{{tx.clientName}}</div>
           <div class="tx-addr" *ngIf="tx.address">{{tx.address}}</div>
@@ -378,6 +380,12 @@ const TX_TYPES = [
     .doc-actions mat-icon { font-size: 16px; }
     .active-ds { color: #1A3A2A !important; }
     .no-docs { color: #bbb; font-size: 13px; text-align: center; padding: 12px; }
+    /* Drag & drop */
+    .cdk-drag-preview { background:#fff; border-radius:8px; padding:10px 12px; border:1px solid #e5e7eb; box-shadow:0 8px 24px rgba(0,0,0,.18); font-size:13px; min-width:180px; }
+    .cdk-drag-placeholder { background:#e8f5e9; border:2px dashed #81C784; border-radius:8px; min-height:48px; opacity:.6; }
+    .cdk-drag-animating { transition: transform 200ms cubic-bezier(0,0,0.2,1); }
+    .cdk-drop-list-dragging .tx-card:not(.cdk-drag-placeholder) { transition: transform 200ms cubic-bezier(0,0,0.2,1); }
+    .cdk-drop-list-receiving { background:#f0f7f0 !important; outline:2px dashed #81C784; outline-offset:-4px; border-radius:0 0 8px 8px; }
     @media (max-width: 600px) {
       .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
       .page-header button { align-self: stretch; }
@@ -545,6 +553,11 @@ export class TransactionsComponent implements OnInit {
     this.api.deleteTransactionDoc(tx.id, doc.id).subscribe(() => {
       tx.documents = tx.documents.filter((d: any) => d.id !== doc.id);
     });
+  }
+
+  onDrop(event: CdkDragDrop<any[]>, targetStage: string) {
+    if (event.previousContainer === event.container) return;
+    this.moveStage(event.item.data, targetStage);
   }
 
   // Template refs — set via ViewChild in a real component; here we use dialog.open with inline refs
