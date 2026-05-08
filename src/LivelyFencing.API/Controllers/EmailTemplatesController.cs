@@ -74,8 +74,9 @@ public class EmailTemplatesController : ControllerBase
 
         string Sub(string text) => text
             .Replace("[ClientName]", client.Name)
-            .Replace("[Address]", address)
-            .Replace("[Date]", today);
+            .Replace("[Address]",    address)
+            .Replace("[Date]",       today)
+            .Replace("[AgentName]",  "Brandon Bell");
 
         try
         {
