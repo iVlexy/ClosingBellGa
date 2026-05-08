@@ -564,6 +564,7 @@ export class TransactionsComponent implements OnInit {
   onDrop(event: CdkDragDrop<any[]>, targetStage: string) {
     if (event.previousContainer === event.container) { this._wasDragged = false; return; }
     this.moveStage(event.item.data, targetStage);
+    this._wasDragged = false;
   }
 
   // Template refs — set via ViewChild in a real component; here we use dialog.open with inline refs
