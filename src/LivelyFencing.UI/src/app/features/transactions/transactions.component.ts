@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -103,7 +103,7 @@ const TX_TYPES = [
 <!-- Transaction Form Dialog -->
 <ng-template #formDialog let-data>
   <h2 mat-dialog-title>{{data.tx ? 'Edit Transaction' : 'New Transaction'}}</h2>
-  <mat-dialog-content [formGroup]="form" style="min-width:520px;max-width:640px">
+  <mat-dialog-content [formGroup]="form">
     <div class="form-row-2">
       <mat-form-field appearance="outline" style="flex:2">
         <mat-label>Client</mat-label>
@@ -199,7 +199,7 @@ const TX_TYPES = [
     <span>{{data.tx.clientName}} — {{data.tx.address || 'No address'}}</span>
     <span class="status-badge-detail" [style.background]="stageColor(data.tx.status)">{{statusLabel(data.tx.status)}}</span>
   </h2>
-  <mat-dialog-content style="min-width:560px;max-width:700px">
+  <mat-dialog-content>
     <!-- Pipeline progress -->
     <div class="pipeline-steps">
       <div class="pipe-step" *ngFor="let s of pipeline"
@@ -286,7 +286,7 @@ const TX_TYPES = [
 <!-- Add Doc Dialog -->
 <ng-template #addDocDialog let-data>
   <h2 mat-dialog-title>Add Document</h2>
-  <mat-dialog-content [formGroup]="docForm" style="min-width:340px">
+  <mat-dialog-content [formGroup]="docForm">
     <mat-form-field appearance="outline" class="full">
       <mat-label>Document Name</mat-label>
       <input matInput formControlName="name" placeholder="e.g. Purchase Agreement">
@@ -378,6 +378,20 @@ const TX_TYPES = [
     .doc-actions mat-icon { font-size: 16px; }
     .active-ds { color: #1A3A2A !important; }
     .no-docs { color: #bbb; font-size: 13px; text-align: center; padding: 12px; }
+    @media (max-width: 600px) {
+      .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .page-header button { align-self: stretch; }
+      .board-col { min-width: 160px; max-width: 175px; }
+      .form-row-2 { flex-direction: column; gap: 0; }
+      .form-row-4 { flex-direction: column; gap: 0; }
+      .pipeline-steps { gap: 0; }
+      .pipe-step { min-width: 48px; }
+      .pipe-label { font-size: 8px; }
+      .stage-actions button { font-size: 10px; padding: 0 6px; height: 26px; line-height: 26px; }
+      .detail-dates, .commission-row { gap: 8px; }
+      .doc-item { flex-wrap: wrap; }
+      .doc-actions { margin-left: auto; }
+    }
   `]
 })
 export class TransactionsComponent implements OnInit {
@@ -467,7 +481,7 @@ export class TransactionsComponent implements OnInit {
       this.form.reset({ type: 'BuyerRepresentation', status: 'Prospecting' });
     }
     import('@angular/material/dialog').then(({ MatDialogRef }) => {});
-    const ref = this.dialog.open(this._formDialogRef!, { data: { tx }, disableClose: false });
+    const ref = this.dialog.open(this._formDialogRef!, { data: { tx }, disableClose: false, width: '95vw', maxWidth: '640px' });
   }
 
   saveTransaction(existing: any) {
@@ -490,7 +504,7 @@ export class TransactionsComponent implements OnInit {
 
   openDetail(tx: any) {
     this.api.getTransaction(tx.id).subscribe(full => {
-      this.dialog.open(this._detailDialogRef!, { data: { tx: full }, width: '720px' });
+      this.dialog.open(this._detailDialogRef!, { data: { tx: full }, width: '95vw', maxWidth: '720px' });
     });
   }
 
@@ -508,7 +522,7 @@ export class TransactionsComponent implements OnInit {
 
   openAddDoc(tx: any) {
     this.docForm.reset({ status: 'Pending' });
-    this.dialog.open(this._addDocDialogRef!, { data: { tx }, width: '380px' });
+    this.dialog.open(this._addDocDialogRef!, { data: { tx }, width: '95vw', maxWidth: '380px' });
   }
 
   saveDoc(tx: any) {
@@ -533,7 +547,7 @@ export class TransactionsComponent implements OnInit {
   }
 
   // Template refs — set via ViewChild in a real component; here we use dialog.open with inline refs
-  private _formDialogRef: any;
-  private _detailDialogRef: any;
-  private _addDocDialogRef: any;
+  @ViewChild('formDialog') _formDialogRef!: TemplateRef<any>;
+  @ViewChild('detailDialog') _detailDialogRef!: TemplateRef<any>;
+  @ViewChild('addDocDialog') _addDocDialogRef!: TemplateRef<any>;
 }

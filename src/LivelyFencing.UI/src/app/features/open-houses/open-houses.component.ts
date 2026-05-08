@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -105,7 +105,7 @@ import { ApiService } from '../../core/services/api.service';
 
 <ng-template #formDialog>
   <h2 mat-dialog-title>{{editing ? 'Edit Attendee' : 'Add Attendee'}}</h2>
-  <mat-dialog-content [formGroup]="form" style="min-width:440px">
+  <mat-dialog-content [formGroup]="form">
     <mat-form-field appearance="outline" class="full">
       <mat-label>Property Address</mat-label>
       <input matInput formControlName="address">
@@ -158,6 +158,13 @@ import { ApiService } from '../../core/services/api.service';
     .empty-state { text-align: center; padding: 60px; color: #999; }
     .empty-state mat-icon { font-size: 48px; width: 48px; height: 48px; display: block; margin: 0 auto 12px; }
     a { color: #1A3A2A; }
+    @media (max-width: 600px) {
+      .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .page-header button { align-self: stretch; }
+      .cdk-column-email, .cdk-column-notes { display: none; }
+      .form-row-2 { flex-direction: column; gap: 0; }
+      .attendee-table { font-size: 12px; }
+    }
   `]
 })
 export class OpenHousesComponent implements OnInit {
@@ -169,7 +176,7 @@ export class OpenHousesComponent implements OnInit {
   attendees = signal<any[]>([]);
   cols = ['approved','name','phone','email','notes','actions'];
   editing: any = null;
-  private _dlgRef: any;
+  @ViewChild('formDialog') _dlgRef!: TemplateRef<any>;
 
   events = computed(() => {
     const map = new Map<string, { address: string; date: string; attendees: any[] }>();
@@ -198,7 +205,7 @@ export class OpenHousesComponent implements OnInit {
   openForm(address: string | null, date: string | null) {
     this.editing = null;
     this.form.reset({ address: address ?? '', eventDate: date ? new Date(date).toISOString().substring(0,10) : '', isPreApproved: false });
-    this.dialog.open(this._dlgRef!, { width: '480px' });
+    this.dialog.open(this._dlgRef!, { width: '95vw', maxWidth: '480px' });
   }
 
   openEdit(a: any) {
@@ -207,7 +214,7 @@ export class OpenHousesComponent implements OnInit {
       eventDate: a.eventDate?.substring(0,10) ?? '', name: a.name,
       phone: a.phone ?? '', email: a.email ?? '',
       isPreApproved: a.isPreApproved, agentNotes: a.agentNotes ?? '' });
-    this.dialog.open(this._dlgRef!, { width: '480px' });
+    this.dialog.open(this._dlgRef!, { width: '95vw', maxWidth: '480px' });
   }
 
   save() {

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -65,7 +65,7 @@ const STAGES = ['New Inquiry','Post-Showing','Pre-Offer','Post-Offer','Under Con
 
 <ng-template #formDialog>
   <h2 mat-dialog-title>{{editing ? 'Edit Template' : 'New Template'}}</h2>
-  <mat-dialog-content [formGroup]="form" style="min-width:520px">
+  <mat-dialog-content [formGroup]="form">
     <div class="form-row-2">
       <mat-form-field appearance="outline" style="flex:2">
         <mat-label>Template Name</mat-label>
@@ -112,6 +112,12 @@ const STAGES = ['New Inquiry','Post-Showing','Pre-Offer','Post-Offer','Under Con
     .full { width: 100%; }
     .empty-state { text-align: center; padding: 60px; color: #999; }
     .empty-state mat-icon { font-size: 48px; width: 48px; height: 48px; display: block; margin: 0 auto 12px; }
+    @media (max-width: 600px) {
+      .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .page-header button { align-self: stretch; }
+      .card-grid { grid-template-columns: 1fr; }
+      .form-row-2 { flex-direction: column; gap: 0; }
+    }
   `]
 })
 export class EmailTemplatesComponent implements OnInit {
@@ -123,7 +129,7 @@ export class EmailTemplatesComponent implements OnInit {
   templates = signal<any[]>([]);
   stages = STAGES;
   editing: any = null;
-  private _dlgRef: any;
+  @ViewChild('formDialog') _dlgRef!: TemplateRef<any>;
 
   stagesWithTemplates = computed(() => {
     const tmpl = this.templates();
@@ -147,7 +153,7 @@ export class EmailTemplatesComponent implements OnInit {
     this.editing = t;
     if (t) this.form.patchValue({ name: t.name, stage: t.stage, subject: t.subject, body: t.body, isActive: t.isActive });
     else this.form.reset({ stage: 'General', isActive: true });
-    this.dialog.open(this._dlgRef!, { width: '600px' });
+    this.dialog.open(this._dlgRef!, { width: '95vw', maxWidth: '600px' });
   }
 
   save() {

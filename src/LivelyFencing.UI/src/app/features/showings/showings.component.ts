@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
@@ -78,7 +78,7 @@ import { ApiService } from '../../core/services/api.service';
 
 <ng-template #formDialog>
   <h2 mat-dialog-title>{{editing ? 'Edit Showing' : 'Log Showing'}}</h2>
-  <mat-dialog-content [formGroup]="form" style="min-width:400px">
+  <mat-dialog-content [formGroup]="form">
     <mat-form-field appearance="outline" class="full">
       <mat-label>Client</mat-label>
       <mat-select formControlName="clientId">
@@ -130,6 +130,12 @@ import { ApiService } from '../../core/services/api.service';
     .feedback-preview { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; font-size: 13px; color: #555; }
     .empty-state { text-align: center; padding: 60px; color: #999; }
     .empty-state mat-icon { font-size: 48px; width: 48px; height: 48px; display: block; margin: 0 auto 12px; }
+    @media (max-width: 600px) {
+      .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .page-header button { align-self: stretch; }
+      .cdk-column-feedback, .cdk-column-rating { display: none; }
+      .form-row-2 { flex-direction: column; gap: 0; }
+    }
   `]
 })
 export class ShowingsComponent implements OnInit {
@@ -142,7 +148,7 @@ export class ShowingsComponent implements OnInit {
   clients = signal<any[]>([]);
   cols = ['date','client','address','rating','feedback','actions'];
   editing: any = null;
-  private _dlgRef: any;
+  @ViewChild('formDialog') _dlgRef!: TemplateRef<any>;
 
   form = this.fb.group({
     clientId: ['', Validators.required],
@@ -169,7 +175,7 @@ export class ShowingsComponent implements OnInit {
         feedbackRating: s.feedbackRating ?? null, feedbackNotes: s.feedbackNotes ?? '',
       });
     } else { this.form.reset(); }
-    this.dialog.open(this._dlgRef!, { width: '460px' });
+    this.dialog.open(this._dlgRef!, { width: '95vw', maxWidth: '460px' });
   }
 
   save() {

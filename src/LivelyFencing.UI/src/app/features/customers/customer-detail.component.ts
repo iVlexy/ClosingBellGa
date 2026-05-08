@@ -294,6 +294,18 @@ import { ApiService } from '../../core/services/api.service';
     .pref-addr { font-size: 13px; font-weight: 500; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .pref-city { font-size: 11px; color: #888; }
     .pref-price { font-size: 13px; font-weight: 600; color: #1A3A2A; }
+    @media (max-width: 600px) {
+      .page-header { flex-direction: column; align-items: flex-start; }
+      .info-grid { grid-template-columns: 1fr; }
+      .note-add { flex-direction: column; }
+      .note-type-field { width: 100%; }
+      .form-row-2 { flex-direction: column; gap: 0; }
+      .form-row-4 { flex-direction: column; gap: 0; }
+      .prefs-grid { flex-direction: column; }
+      .prefs-actions { flex-direction: column; align-items: stretch; }
+      .prefs-actions button { width: 100%; }
+      .tx-item { flex-wrap: wrap; gap: 8px; }
+    }
   `]
 })
 export class CustomerDetailComponent implements OnInit {

@@ -168,6 +168,19 @@ const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
     .close-rate { color: #2E7D32; font-size: 14px; }
     .empty-state { text-align: center; padding: 60px; color: #999; }
     .empty-state mat-icon { font-size: 48px; width: 48px; height: 48px; display: block; margin: 0 auto 12px; }
+    @media (max-width: 600px) {
+      .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .page-header mat-form-field { width: 100% !important; }
+      .metric-cards { gap: 10px; }
+      .metric-card { min-width: 120px; padding: 14px 16px; }
+      .metric-value { font-size: 22px; }
+      .month-bars { overflow-x: auto; padding-bottom: 4px; }
+      .month-bar-wrap { min-width: 34px; }
+      .month-value { font-size: 9px; }
+      .month-label { font-size: 9px; }
+      .funnel-bar { width: 36px; }
+      .pct-label { display: none; }
+    }
   `]
 })
 export class AnalyticsComponent implements OnInit {
