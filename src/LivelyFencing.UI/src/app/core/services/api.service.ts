@@ -176,6 +176,7 @@ export class ApiService {
   createEmailTemplate(data: any) { return this.http.post<any>(`${this.base}/email-templates`, data); }
   updateEmailTemplate(id: string, data: any) { return this.http.put<any>(`${this.base}/email-templates/${id}`, data); }
   deleteEmailTemplate(id: string) { return this.http.delete(`${this.base}/email-templates/${id}`); }
+  sendEmailTemplate(id: string, data: { clientId: string, address: string }) { return this.http.post(`${this.base}/email-templates/${id}/send`, data); }
 
   // Client Notes
   getClientNotes(clientId: string) { return this.http.get<any[]>(`${this.base}/client-notes`, { params: { clientId } }); }

@@ -127,4 +127,51 @@ public class SendGridEmailService
         _logger.LogInformation("Contact notification sent for {Email}", email);
     }
 
+    public async Task SendTemplateEmailAsync(string toEmail, string toName, string subject, string body)
+    {
+        var apiKey    = _config["SendGrid:ApiKey"]!;
+        var fromEmail = _config["SendGrid:FromEmail"] ?? "noreply@closingbellga.com";
+        var fromName  = _config["SendGrid:FromName"]  ?? "Closing Bell GA";
+
+        var client = new SendGridClient(apiKey);
+        var msg = new SendGridMessage
+        {
+            From    = new EmailAddress(fromEmail, fromName),
+            Subject = subject
+        };
+        msg.AddTo(new EmailAddress(toEmail, toName));
+
+        // Convert plain-text body to HTML, preserving line breaks
+        var htmlBody = System.Net.WebUtility.HtmlEncode(body)
+            .Replace("\r\n", "<br/>")
+            .Replace("\n",   "<br/>")
+            .Replace("\r",   "<br/>");
+
+        msg.HtmlContent = $"""
+<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#333;">
+  <div style="background:#1B5E20;padding:24px;text-align:center;">
+    <h1 style="color:white;margin:0;font-size:22px;">Closing Bell GA</h1>
+    <p style="color:#C8E6C9;margin:4px 0 0;font-size:13px;">Real Estate Services</p>
+  </div>
+  <div style="padding:32px;line-height:1.7;font-size:15px;">
+    {htmlBody}
+  </div>
+  <div style="background:#F5F5F5;padding:16px 32px;font-size:12px;color:#888;text-align:center;border-top:1px solid #eee;">
+    Closing Bell GA &mdash; Real Estate Services
+  </div>
+</body>
+</html>
+""";
+
+        var response = await client.SendEmailAsync(msg);
+        if (!response.IsSuccessStatusCode)
+        {
+            var respBody = await response.Body.ReadAsStringAsync();
+            _logger.LogError("SendGrid template email failed: {Status} {Body}", response.StatusCode, respBody);
+            throw new Exception($"Failed to send email: {response.StatusCode}");
+        }
+        _logger.LogInformation("Template email sent to {Email} (subject: {Subject})", toEmail, subject);
+    }
 }

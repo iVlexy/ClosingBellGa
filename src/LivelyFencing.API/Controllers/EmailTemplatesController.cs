@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using LivelyFencing.API.Data;
 using LivelyFencing.API.Domain.Entities;
 using LivelyFencing.API.Infrastructure.Auth;
+using LivelyFencing.API.Infrastructure.Email;
 
 namespace LivelyFencing.API.Controllers;
 
@@ -13,7 +14,13 @@ namespace LivelyFencing.API.Controllers;
 public class EmailTemplatesController : ControllerBase
 {
     private readonly AppDbContext _db;
-    public EmailTemplatesController(AppDbContext db) => _db = db;
+    private readonly SendGridEmailService _email;
+
+    public EmailTemplatesController(AppDbContext db, SendGridEmailService email)
+    {
+        _db = db;
+        _email = email;
+    }
 
     [HttpGet]
     public async Task<IActionResult> List()
@@ -48,6 +55,30 @@ public class EmailTemplatesController : ControllerBase
         return Ok(t);
     }
 
+    [HttpPost("{id}/send")]
+    [Authorize(Policy = AuthorizationPolicies.AdminOrSales)]
+    public async Task<IActionResult> Send(Guid id, [FromBody] SendTemplateRequest req)
+    {
+        var template = await _db.EmailTemplates.FindAsync(id);
+        if (template == null) return NotFound("Template not found.");
+
+        var client = await _db.Customers.FindAsync(req.ClientId);
+        if (client == null) return NotFound("Client not found.");
+        if (string.IsNullOrWhiteSpace(client.Email))
+            return BadRequest("This client does not have an email address on file.");
+
+        var today = DateTime.Today.ToString("MMMM d, yyyy");
+        var address = req.Address ?? string.Empty;
+
+        string Sub(string text) => text
+            .Replace("[ClientName]", client.Name)
+            .Replace("[Address]", address)
+            .Replace("[Date]", today);
+
+        await _email.SendTemplateEmailAsync(client.Email, client.Name, Sub(template.Subject), Sub(template.Body));
+        return Ok(new { message = $"Email sent to {client.Email}" });
+    }
+
     [HttpDelete("{id}")]
     [Authorize(Policy = AuthorizationPolicies.Admin)]
     public async Task<IActionResult> Delete(Guid id)
@@ -61,3 +92,4 @@ public class EmailTemplatesController : ControllerBase
 }
 
 public record EmailTemplateRequest(string Name, string Stage, string Subject, string Body, bool IsActive);
+public record SendTemplateRequest(Guid ClientId, string? Address);
