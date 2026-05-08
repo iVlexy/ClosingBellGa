@@ -1,5 +1,4 @@
 import { Component, OnInit, inject, signal, computed, ViewChild, TemplateRef } from '@angular/core';
-import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -40,7 +39,7 @@ const TX_TYPES = [
   imports: [CommonModule, ReactiveFormsModule, MatButtonModule, MatIconModule,
     MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule,
     MatSnackBarModule, MatChipsModule, MatTooltipModule, MatProgressBarModule,
-    MatCheckboxModule, MatDividerModule, DragDropModule],
+    MatCheckboxModule, MatDividerModule],
   template: `
 <div class="page-container">
   <div class="page-header">
@@ -63,7 +62,7 @@ const TX_TYPES = [
   </div>
 
   <!-- Kanban board -->
-  <div class="board" cdkDropListGroup>
+  <div class="board">
     <div class="board-col" *ngFor="let stage of pipeline">
       <div class="col-header" [style.border-color]="stage.color">
         <span class="col-title">{{stage.label}}</span>
@@ -71,8 +70,9 @@ const TX_TYPES = [
       </div>
       <div class="col-cards">
         <div class="tx-card" *ngFor="let tx of byStatus(stage.key)"
-          cdkDrag [cdkDragData]="tx"
-          (cdkDragStarted)="onDragStarted()"
+          draggable="true"
+          (dragstart)="onDragStart($event, tx)"
+          (dragend)="onDragEnd()"
           (click)="openDetail(tx)">
           <div class="tx-client">{{tx.clientName}}</div>
           <div class="tx-addr" *ngIf="tx.address">{{tx.address}}</div>
@@ -382,11 +382,9 @@ const TX_TYPES = [
     .active-ds { color: #1A3A2A !important; }
     .no-docs { color: #bbb; font-size: 13px; text-align: center; padding: 12px; }
     /* Drag & drop */
-    .cdk-drag-preview { background:#fff; border-radius:8px; padding:10px 12px; border:1px solid #e5e7eb; box-shadow:0 8px 24px rgba(0,0,0,.18); font-size:13px; min-width:180px; }
-    .cdk-drag-placeholder { background:#e8f5e9; border:2px dashed #81C784; border-radius:8px; min-height:48px; opacity:.6; }
-    .cdk-drag-animating { transition: transform 200ms cubic-bezier(0,0,0.2,1); }
-    .cdk-drop-list-dragging .tx-card:not(.cdk-drag-placeholder) { transition: transform 200ms cubic-bezier(0,0,0.2,1); }
-    .cdk-drop-list-receiving { background:#f0f7f0 !important; outline:2px dashed #81C784; outline-offset:-4px; border-radius:0 0 8px 8px; }
+    .tx-card[draggable=true] { cursor: grab; }
+    .tx-card[draggable=true]:active { cursor: grabbing; }
+    .col-cards.drag-over { background:#e8f5e9 !important; outline:2px dashed #81C784; outline-offset:-4px; border-radius:0 0 8px 8px; }
     @media (max-width: 600px) {
       .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
       .page-header button { align-self: stretch; }
@@ -558,13 +556,46 @@ export class TransactionsComponent implements OnInit {
   }
 
   private _wasDragged = false;
+  private _dragTx: any = null;
+  private _dropTarget: HTMLElement | null = null;
 
-  onDragStarted() { this._wasDragged = true; }
+  onDragStart(event: DragEvent, tx: any) {
+    this._dragTx = tx;
+    this._wasDragged = true;
+    event.dataTransfer!.effectAllowed = 'move';
+    (event.currentTarget as HTMLElement).style.opacity = '0.4';
+  }
 
-  onDrop(event: CdkDragDrop<any[]>, targetStage: string) {
-    if (event.previousContainer === event.container) { this._wasDragged = false; return; }
-    this.moveStage(event.item.data, targetStage);
-    this._wasDragged = false;
+  onDragEnd() {
+    this._dragTx = null;
+    // restore opacity on all cards
+    document.querySelectorAll<HTMLElement>('.tx-card').forEach(el => el.style.opacity = '');
+    if (this._dropTarget) {
+      this._dropTarget.classList.remove('drag-over');
+      this._dropTarget = null;
+    }
+  }
+
+  onDragEnter(event: DragEvent) {
+    const col = (event.currentTarget as HTMLElement);
+    col.classList.add('drag-over');
+    this._dropTarget = col;
+  }
+
+  onDragLeave(event: DragEvent) {
+    const col = event.currentTarget as HTMLElement;
+    if (!col.contains(event.relatedTarget as Node)) {
+      col.classList.remove('drag-over');
+    }
+  }
+
+  onNativeDrop(event: DragEvent, targetStage: string) {
+    event.preventDefault();
+    (event.currentTarget as HTMLElement).classList.remove('drag-over');
+    if (this._dragTx && this._dragTx.status !== targetStage) {
+      this.moveStage(this._dragTx, targetStage);
+    }
+    this._dragTx = null;
   }
 
   // Template refs — set via ViewChild in a real component; here we use dialog.open with inline refs
