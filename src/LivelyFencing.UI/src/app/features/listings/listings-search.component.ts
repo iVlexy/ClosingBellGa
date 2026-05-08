@@ -297,8 +297,9 @@ export class ListingsSearchComponent implements OnInit {
   totalPages = computed(() => Math.max(1, Math.ceil(this.total() / 12)));
 
   ngOnInit() {
+    if (!this.isLoggedIn()) { window.location.href = '/cq/dashboard'; return; }
     this.doSearch();
-    if (this.isLoggedIn()) this.loadReactions();
+    this.loadReactions();
   }
 
   isLoggedIn() { return !!this.auth.currentUser; }
