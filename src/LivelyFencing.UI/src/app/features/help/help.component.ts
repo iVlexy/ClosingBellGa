@@ -1,236 +1,276 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
   selector: 'app-help',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatIconModule, MatExpansionModule, MatChipsModule, MatDividerModule],
+  imports: [CommonModule, MatIconModule, MatExpansionModule, MatDividerModule],
   template: `
     <div class="help-container">
       <div class="help-header">
         <mat-icon class="header-icon">menu_book</mat-icon>
         <div>
-          <h1>Internal Workflow Guide</h1>
-          <p class="subtitle">End-to-end reference for the Lookin' Lively Exterior Solutions management system</p>
+          <h1>Agent Workflow Guide</h1>
+          <p class="subtitle">End-to-end reference for the Closing Bell GA real estate CRM</p>
         </div>
       </div>
 
-      <!-- Workflow overview -->
+      <!-- Workflow strip -->
       <div class="workflow-strip">
-        <div class="flow-step"><mat-icon>people</mat-icon><span>Customer</span></div>
+        <div class="flow-step"><mat-icon>person_search</mat-icon><span>Lead</span></div>
         <mat-icon class="arrow">arrow_forward</mat-icon>
-        <div class="flow-step"><mat-icon>build</mat-icon><span>Job</span></div>
+        <div class="flow-step"><mat-icon>people</mat-icon><span>Client</span></div>
         <mat-icon class="arrow">arrow_forward</mat-icon>
-        <div class="flow-step"><mat-icon>request_quote</mat-icon><span>Quote</span></div>
+        <div class="flow-step"><mat-icon>home_search</mat-icon><span>Showings</span></div>
         <mat-icon class="arrow">arrow_forward</mat-icon>
-        <div class="flow-step"><mat-icon>engineering</mat-icon><span>Contractors</span></div>
+        <div class="flow-step"><mat-icon>swap_horiz</mat-icon><span>Pipeline</span></div>
         <mat-icon class="arrow">arrow_forward</mat-icon>
-        <div class="flow-step"><mat-icon>receipt_long</mat-icon><span>Expenses</span></div>
+        <div class="flow-step"><mat-icon>verified</mat-icon><span>Closed</span></div>
         <mat-icon class="arrow">arrow_forward</mat-icon>
-        <div class="flow-step"><mat-icon>bar_chart</mat-icon><span>Reports</span></div>
+        <div class="flow-step"><mat-icon>analytics</mat-icon><span>Analytics</span></div>
       </div>
 
-      <!-- Sections -->
       <mat-accordion multi>
 
-        <!-- CUSTOMERS -->
+        <!-- LEADS -->
         <mat-expansion-panel expanded>
           <mat-expansion-panel-header>
-            <mat-panel-title><mat-icon class="section-icon">people</mat-icon>Step 1 — Clients</mat-panel-title>
-            <mat-panel-description><span class="role-chip admin">Admin</span><span class="role-chip sales">Sales</span><span class="role-chip accountant">Accountant</span></mat-panel-description>
+            <mat-panel-title><mat-icon class="si">person_search</mat-icon>Step 1 — Leads</mat-panel-title>
+            <mat-panel-description>
+              <span class="chip admin">Admin</span><span class="chip sales">Sales</span>
+            </mat-panel-description>
           </mat-expansion-panel-header>
-          <p>Every job starts with a customer record. Create the customer first so they can be linked to jobs and quotes.</p>
+          <p>Leads are prospective buyers or sellers who haven't yet become active clients. Capturing them early lets you track where they came from and how they convert.</p>
           <ol>
-            <li>Navigate to <strong>Clients</strong> in the sidebar.</li>
-            <li>Click <strong>New Customer</strong> and fill in name, email, phone, and address.</li>
-            <li>Save — the customer now appears in the list and can be searched by name, email, or company.</li>
-            <li>Click a customer's name to view their full detail page, including linked jobs and quote history.</li>
+            <li>Navigate to <strong>Leads</strong> in the sidebar.</li>
+            <li>Click <strong>New Lead</strong> and enter name, phone, email, and <strong>Lead Source</strong> (Referral, Zillow, Website, etc.).</li>
+            <li>Set a <strong>Status</strong>: New → Contacted → Qualified → Converted / Lost.</li>
+            <li>Add notes to record conversations and follow-up dates.</li>
+            <li>When a lead is ready, click <strong>Convert to Client</strong> — this creates a Client record and links it back to the lead source for funnel reporting.</li>
           </ol>
-          <div class="tip"><mat-icon>lightbulb</mat-icon> Keep the email accurate — it is used when sending quotes via the customer portal link.</div>
+          <div class="tip"><mat-icon>lightbulb</mat-icon> Lead source is used in the Analytics → Pipeline Funnel report to show which channels produce closed deals.</div>
         </mat-expansion-panel>
 
-        <!-- JOBS -->
+        <!-- CLIENTS -->
         <mat-expansion-panel>
           <mat-expansion-panel-header>
-            <mat-panel-title><mat-icon class="section-icon">build</mat-icon>Step 2 — Jobs</mat-panel-title>
-            <mat-panel-description><span class="role-chip admin">Admin</span><span class="role-chip sales">Sales</span><span class="role-chip accountant">Accountant</span><span class="role-chip fieldworker">Field Worker</span></mat-panel-description>
+            <mat-panel-title><mat-icon class="si">people</mat-icon>Step 2 — Clients</mat-panel-title>
+            <mat-panel-description>
+              <span class="chip admin">Admin</span><span class="chip sales">Sales</span><span class="chip accountant">Accountant</span>
+            </mat-panel-description>
           </mat-expansion-panel-header>
-          <p>A job represents a specific scope of work (e.g., "Install wood privacy fence — 120 ft"). Jobs are linked to a customer and track status through the project lifecycle.</p>
-          <ol>
-            <li>Navigate to <strong>Jobs</strong> and click <strong>New Job</strong>.</li>
-            <li>Select the customer, enter a title, description, and site address.</li>
-            <li>Set the initial status to <strong>Pending</strong>.</li>
-            <li>Add detailed scope notes — these are used by AI to auto-generate a quote.</li>
-          </ol>
-          <h4>Job Statuses</h4>
-          <table class="status-table">
-            <tr><td><span class="badge pending">Pending</span></td><td>Newly created, awaiting quote or scheduling</td></tr>
-            <tr><td><span class="badge inprogress">In Progress</span></td><td>Work has started on site</td></tr>
-            <tr><td><span class="badge completed">Completed</span></td><td>Work finished, ready to invoice</td></tr>
-            <tr><td><span class="badge cancelled">Cancelled</span></td><td>Job cancelled by customer or company</td></tr>
+          <p>Clients are active buyers or sellers. Each client has a detail page with four tabs:</p>
+          <table class="info-table">
+            <tr><td><strong>Activity Notes</strong></td><td>Log every call, email, meeting, or showing interaction with a type badge and timestamp.</td></tr>
+            <tr><td><strong>Buyer Criteria</strong></td><td>Record price range, bed/bath requirements, preferred areas, must-haves, and deal breakers. Updates any time as the search evolves.</td></tr>
+            <tr><td><strong>Transactions</strong></td><td>View all deals linked to this client with status and expected commission at a glance.</td></tr>
+            <tr><td><strong>Listings</strong></td><td>See properties the client has liked or passed on via the client portal.</td></tr>
           </table>
-          <div class="tip"><mat-icon>lightbulb</mat-icon> Field Workers can view jobs but cannot create or edit them.</div>
+          <div class="tip"><mat-icon>lightbulb</mat-icon> Always log a note after any client contact — it keeps a permanent record and helps with follow-up timing.</div>
         </mat-expansion-panel>
 
-        <!-- QUOTES -->
+        <!-- LISTINGS & PORTAL -->
         <mat-expansion-panel>
           <mat-expansion-panel-header>
-            <mat-panel-title><mat-icon class="section-icon">request_quote</mat-icon>Step 3 — Quotes</mat-panel-title>
-            <mat-panel-description><span class="role-chip admin">Admin</span><span class="role-chip sales">Sales</span><span class="role-chip accountant">Accountant</span></mat-panel-description>
+            <mat-panel-title><mat-icon class="si">home_work</mat-icon>Step 3 — Listings &amp; Client Portal</mat-panel-title>
+            <mat-panel-description>
+              <span class="chip admin">Admin</span><span class="chip sales">Sales</span>
+            </mat-panel-description>
           </mat-expansion-panel-header>
-          <p>Quotes are generated from jobs and sent to customers for approval via a secure portal link.</p>
-
-          <h4>Creating a Quote</h4>
+          <p>The Listings page connects to your MLS feed and lets clients react to properties directly from their portal link.</p>
           <ol>
-            <li>From the <strong>Quotes</strong> list, click <strong>New Quote</strong>.</li>
-            <li>Choose <strong>AI-Generate</strong> (uses job description to suggest line items &amp; pricing) or <strong>Manual</strong> (enter line items yourself).</li>
-            <li>Review and edit line items — adjust quantities, unit prices, and descriptions as needed.</li>
-            <li>Save the quote. It enters <strong>Draft</strong> status.</li>
+            <li>Navigate to <strong>Listings</strong> to search active MLS listings by location, price, beds, and baths.</li>
+            <li>Click a listing card to see full details, photos, and map.</li>
+            <li>Clients can access their personal portal link (sent by the agent) to browse listings and mark them <strong>Like</strong> or <strong>Pass</strong>.</li>
+            <li>Reactions sync to the client's <strong>Listings</strong> tab in their detail page — no manual entry needed.</li>
           </ol>
+          <div class="tip"><mat-icon>lightbulb</mat-icon> Use client preferences (price, beds, area) to pre-filter listings before sharing a portal link so clients only see relevant properties.</div>
+        </mat-expansion-panel>
 
-          <h4>Quote Workflow</h4>
-          <table class="status-table">
-            <tr><td><span class="badge draft">Draft</span></td><td>Being built — not yet visible to customer</td></tr>
-            <tr><td><span class="badge sent">Sent</span></td><td>Customer has received a portal link</td></tr>
-            <tr><td><span class="badge accepted">Accepted</span></td><td>Customer approved — <strong>cannot be deleted</strong></td></tr>
-            <tr><td><span class="badge rejected">Rejected</span></td><td>Customer declined with a reason</td></tr>
+        <!-- SHOWINGS -->
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title><mat-icon class="si">home_search</mat-icon>Step 4 — Showings</mat-panel-title>
+            <mat-panel-description>
+              <span class="chip admin">Admin</span><span class="chip sales">Sales</span>
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+          <p>Log every property tour in the Showings log. This creates a record tied to the client and informs the pipeline funnel analytics.</p>
+          <ol>
+            <li>Navigate to <strong>Showings</strong> and click <strong>Log Showing</strong>.</li>
+            <li>Select the client, enter the property address (and optional MLS key), and set the showing date.</li>
+            <li>After the tour, edit the showing to add a <strong>star rating</strong> (1–5) and feedback notes from the client.</li>
+            <li>Use the showing history to spot patterns — repeated low ratings may indicate the criteria need to be updated.</li>
+          </ol>
+          <div class="tip"><mat-icon>lightbulb</mat-icon> Showings appear in the Pipeline Funnel report, showing how many clients progressed from touring to submitting an offer.</div>
+        </mat-expansion-panel>
+
+        <!-- OPEN HOUSES -->
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title><mat-icon class="si">meeting_room</mat-icon>Step 5 — Open Houses</mat-panel-title>
+            <mat-panel-description>
+              <span class="chip admin">Admin</span><span class="chip sales">Sales</span>
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+          <p>Capture walk-in attendee information at open house events. Each record is grouped by property and event date.</p>
+          <ol>
+            <li>Navigate to <strong>Open Houses</strong> and click <strong>Add Attendee</strong>.</li>
+            <li>Enter the property address, event date, and the attendee's name, phone, and email.</li>
+            <li>Check <strong>Pre-approved buyer</strong> if they've confirmed financing — a great signal for immediate follow-up.</li>
+            <li>Add agent notes while the conversation is fresh (financing situation, timeline, interest level).</li>
+            <li>Follow up warm leads by converting them to clients via the Leads page.</li>
+          </ol>
+          <div class="tip"><mat-icon>lightbulb</mat-icon> All attendees for the same address + date are grouped into one event panel for easy review.</div>
+        </mat-expansion-panel>
+
+        <!-- PIPELINE -->
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title><mat-icon class="si">swap_horiz</mat-icon>Step 6 — Deal Pipeline</mat-panel-title>
+            <mat-panel-description>
+              <span class="chip admin">Admin</span><span class="chip sales">Sales</span>
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+          <p>The Pipeline is a Kanban board that tracks every active transaction from first contact to close. Click any card to see full details and manage documents.</p>
+
+          <h4>Pipeline Stages</h4>
+          <table class="info-table">
+            <tr><td><span class="badge" style="background:#607d8b;color:#fff">Prospecting</span></td><td>Initial contact — no offer yet</td></tr>
+            <tr><td><span class="badge" style="background:#1565C0;color:#fff">Offer Submitted</span></td><td>Offer written and submitted to seller</td></tr>
+            <tr><td><span class="badge" style="background:#6A1B9A;color:#fff">Under Contract</span></td><td>Offer accepted — in escrow</td></tr>
+            <tr><td><span class="badge" style="background:#E65100;color:#fff">Inspection</span></td><td>Home inspection period active</td></tr>
+            <tr><td><span class="badge" style="background:#BF360C;color:#fff">Appraisal</span></td><td>Lender appraisal ordered / in progress</td></tr>
+            <tr><td><span class="badge" style="background:#558B2F;color:#fff">Clear to Close</span></td><td>Lender has issued CTC — closing scheduled</td></tr>
+            <tr><td><span class="badge" style="background:#2E7D32;color:#fff">Closed</span></td><td>Title transferred, commission earned</td></tr>
+            <tr><td><span class="badge" style="background:#c62828;color:#fff">Fall Through</span></td><td>Deal did not close — track for future follow-up</td></tr>
           </table>
 
-          <h4>Sending a Quote</h4>
-          <ol>
-            <li>Open a <strong>Draft</strong> quote and click <strong>Send to Customer</strong>.</li>
-            <li>The system generates a unique portal link and sends it via email (SendGrid).</li>
-            <li>The customer clicks the link, reviews the itemized quote, and clicks <strong>Accept</strong> or <strong>Decline</strong>.</li>
-            <li>Status updates automatically and appears in your Quotes list.</li>
-          </ol>
-
-          <h4>Admin Review</h4>
-          <ol>
-            <li>Admins can <strong>Approve</strong> or <strong>Reject</strong> any quote from the detail view.</li>
-            <li>Add internal admin notes when approving/rejecting.</li>
-            <li>Download a PDF copy at any time from the quote detail page.</li>
-          </ol>
-          <div class="tip"><mat-icon>lightbulb</mat-icon> Accepted quotes cannot be deleted to preserve billing records.</div>
+          <h4>Document Checklist</h4>
+          <p>Each transaction has a document checklist. Open a deal card and click <strong>Add Doc</strong> to track:</p>
+          <table class="info-table">
+            <tr><td><strong>Pending</strong></td><td>Not yet sent or received</td></tr>
+            <tr><td><strong>Sent</strong></td><td>Sent to the appropriate party</td></tr>
+            <tr><td><strong>Signed</strong></td><td>Signed by all parties</td></tr>
+            <tr><td><strong>Received</strong></td><td>In possession / uploaded</td></tr>
+            <tr><td><strong>Not Required</strong></td><td>Waived or not applicable</td></tr>
+          </table>
+          <div class="tip"><mat-icon>lightbulb</mat-icon> Commission Expected and Commission Received are tracked separately — close the gap in the detail view to confirm you've been paid.</div>
         </mat-expansion-panel>
 
-        <!-- CONTRACTORS -->
+        <!-- EMAIL TEMPLATES -->
         <mat-expansion-panel>
           <mat-expansion-panel-header>
-            <mat-panel-title><mat-icon class="section-icon">engineering</mat-icon>Step 4 — Contractors &amp; Payments</mat-panel-title>
-            <mat-panel-description><span class="role-chip admin">Admin</span><span class="role-chip accountant">Accountant</span></mat-panel-description>
+            <mat-panel-title><mat-icon class="si">mail_outline</mat-icon>Step 7 — Email Templates</mat-panel-title>
+            <mat-panel-description>
+              <span class="chip admin">Admin</span><span class="chip sales">Sales</span>
+            </mat-panel-description>
           </mat-expansion-panel-header>
-          <p>Contractors are 1099 subcontractors. Track their information, payments, and generate year-end 1099 reports.</p>
+          <p>Store and reuse pre-written follow-up email templates organized by stage of the buying/selling process.</p>
           <ol>
-            <li>Navigate to <strong>Contractors</strong> and click <strong>New Contractor</strong>.</li>
-            <li>Enter name, email, phone, address, and Tax ID (SSN or EIN) — Tax IDs are stored encrypted and masked in the UI.</li>
-            <li>Open a contractor's detail page to log payments as jobs are completed.</li>
-            <li>Click <strong>Add Payment</strong>, enter the amount, job description, and payment date.</li>
-            <li>At year end, use the <strong>Download 1099</strong> button to generate a pre-filled 1099-NEC PDF.</li>
+            <li>Navigate to <strong>Email Templates</strong> and click <strong>New Template</strong>.</li>
+            <li>Give the template a name, select its stage (New Inquiry, Post-Showing, Pre-Offer, etc.), and write the subject and body.</li>
+            <li>Use placeholders like <code>[ClientName]</code>, <code>[Address]</code>, and <code>[Date]</code> — replace them manually before sending.</li>
+            <li>Click <strong>Copy</strong> on any template card to copy the full subject + body to your clipboard, then paste into your email client.</li>
+            <li>Toggle a template <strong>Inactive</strong> to hide it from view without deleting it.</li>
           </ol>
-          <div class="tip"><mat-icon>lightbulb</mat-icon> The Reports page → <em>Contractor Payments</em> tab shows total paid per contractor for any tax year.</div>
+          <div class="tip"><mat-icon>lightbulb</mat-icon> Build templates for every stage — a quick follow-up after showings and open houses dramatically improves conversion rates.</div>
         </mat-expansion-panel>
 
-        <!-- BUDGETS -->
+        <!-- ANALYTICS -->
         <mat-expansion-panel>
           <mat-expansion-panel-header>
-            <mat-panel-title><mat-icon class="section-icon">account_balance_wallet</mat-icon>Step 5 — Budgets</mat-panel-title>
-            <mat-panel-description><span class="role-chip admin">Admin</span><span class="role-chip accountant">Accountant</span></mat-panel-description>
+            <mat-panel-title><mat-icon class="si">analytics</mat-icon>Step 8 — Analytics</mat-panel-title>
+            <mat-panel-description>
+              <span class="chip admin">Admin</span><span class="chip sales">Sales</span><span class="chip accountant">Accountant</span>
+            </mat-panel-description>
           </mat-expansion-panel-header>
-          <p>Budgets let you plan annual spending by category and track actuals against those targets.</p>
-          <ol>
-            <li>Navigate to <strong>Budgets</strong> and click <strong>New Budget</strong>.</li>
-            <li>Set the year and a name (e.g., "2026 Operating Budget").</li>
-            <li>Add line items with category, description, and budgeted amount.</li>
-            <li>Open a budget to see <strong>Actuals</strong> — expenses recorded in the same category automatically populate the variance column.</li>
-          </ol>
-          <div class="tip"><mat-icon>lightbulb</mat-icon> Budget categories should match your Expense categories for accurate variance tracking.</div>
-        </mat-expansion-panel>
-
-        <!-- EXPENSES -->
-        <mat-expansion-panel>
-          <mat-expansion-panel-header>
-            <mat-panel-title><mat-icon class="section-icon">receipt_long</mat-icon>Step 6 — Expenses</mat-panel-title>
-            <mat-panel-description><span class="role-chip admin">Admin</span><span class="role-chip accountant">Accountant</span></mat-panel-description>
-          </mat-expansion-panel-header>
-          <p>Record all business expenses throughout the year. These feed into budget actuals, tax summaries, and expense reports.</p>
-          <ol>
-            <li>Navigate to <strong>Expenses</strong> and click <strong>Add Expense</strong>.</li>
-            <li>Enter date, vendor, category, amount, and an optional description/receipt note.</li>
-            <li>Use the <strong>Year</strong> and <strong>Category</strong> filters to find specific expenses.</li>
-            <li>Edit or delete individual expense entries as needed.</li>
-          </ol>
-          <h4>Common Categories</h4>
-          <p>Materials, Labor, Equipment, Fuel, Insurance, Marketing, Office, Utilities, Other</p>
-          <div class="tip"><mat-icon>lightbulb</mat-icon> Expenses are used to calculate the tax deductions section on the Tax Summary report.</div>
+          <p>Analytics gives you a data-driven view of your business performance for any calendar year.</p>
+          <table class="info-table">
+            <tr>
+              <td><strong>GCI Summary</strong></td>
+              <td>Total closings, total sales volume, and Gross Commission Income for the selected year. Monthly bar chart shows seasonal trends.</td>
+            </tr>
+            <tr>
+              <td><strong>Pipeline Funnel</strong></td>
+              <td>Breaks down your leads by source (Referral, Zillow, Website, etc.) and shows the percentage that converted to clients, had showings, submitted offers, and closed. Identify your best-performing lead sources.</td>
+            </tr>
+          </table>
+          <div class="tip"><mat-icon>lightbulb</mat-icon> Change the year selector in the top-right to compare performance year over year.</div>
         </mat-expansion-panel>
 
         <!-- REPORTS -->
         <mat-expansion-panel>
           <mat-expansion-panel-header>
-            <mat-panel-title><mat-icon class="section-icon">bar_chart</mat-icon>Step 7 — Reports</mat-panel-title>
-            <mat-panel-description><span class="role-chip admin">Admin</span><span class="role-chip accountant">Accountant</span></mat-panel-description>
+            <mat-panel-title><mat-icon class="si">bar_chart</mat-icon>Reports</mat-panel-title>
+            <mat-panel-description>
+              <span class="chip admin">Admin</span><span class="chip accountant">Accountant</span>
+            </mat-panel-description>
           </mat-expansion-panel-header>
-          <p>Reports aggregate data across the system for financial review and tax preparation.</p>
-          <table class="status-table">
-            <tr>
-              <td><strong>Revenue</strong></td>
-              <td>Accepted quote totals by month/quarter. Filter by year or quarter.</td>
-            </tr>
-            <tr>
-              <td><strong>Job Summary</strong></td>
-              <td>Count and status breakdown of all jobs for a given year.</td>
-            </tr>
-            <tr>
-              <td><strong>Contractor Payments</strong></td>
-              <td>Total paid to each contractor — use for 1099 threshold checks ($600+).</td>
-            </tr>
-            <tr>
-              <td><strong>Expenses</strong></td>
-              <td>Total expenses by category for the selected year.</td>
-            </tr>
-            <tr>
-              <td><strong>Tax Summary</strong></td>
-              <td>Gross revenue, total expenses, and estimated net taxable income for the year.</td>
-            </tr>
+          <p>The Reports page provides financial summaries for accounting and tax preparation.</p>
+          <table class="info-table">
+            <tr><td><strong>Revenue</strong></td><td>Income by month/quarter from accepted quotes and closed transactions.</td></tr>
+            <tr><td><strong>Job Summary</strong></td><td>Count and status breakdown of all jobs for a given year.</td></tr>
+            <tr><td><strong>Contractor Payments</strong></td><td>Total paid to each subcontractor — use for 1099 threshold checks ($600+).</td></tr>
+            <tr><td><strong>Expenses</strong></td><td>Total expenses by category for the selected year.</td></tr>
+            <tr><td><strong>Tax Summary</strong></td><td>Gross revenue minus total deductible expenses = estimated net taxable income.</td></tr>
           </table>
         </mat-expansion-panel>
 
-        <!-- USER ROLES -->
+        <!-- EXPENSES & INCOME -->
         <mat-expansion-panel>
           <mat-expansion-panel-header>
-            <mat-panel-title><mat-icon class="section-icon">manage_accounts</mat-icon>User Roles &amp; Permissions</mat-panel-title>
-            <mat-panel-description><span class="role-chip admin">Admin only</span></mat-panel-description>
+            <mat-panel-title><mat-icon class="si">receipt_long</mat-icon>Expenses &amp; Income</mat-panel-title>
+            <mat-panel-description>
+              <span class="chip admin">Admin</span><span class="chip accountant">Accountant</span>
+            </mat-panel-description>
           </mat-expansion-panel-header>
-          <table class="roles-table">
-            <thead>
-              <tr>
-                <th>Feature</th>
-                <th>Admin</th>
-                <th>Sales</th>
-                <th>Accountant</th>
-                <th>Field Worker</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td>Customers</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td><td class="n">—</td></tr>
-              <tr><td>Jobs (view)</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
-              <tr><td>Jobs (edit)</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td><td class="n">—</td></tr>
-              <tr><td>Quotes</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td><td class="n">—</td></tr>
-              <tr><td>Contractors</td><td class="y">✓</td><td class="n">—</td><td class="y">✓</td><td class="n">—</td></tr>
-              <tr><td>Budgets</td><td class="y">✓</td><td class="n">—</td><td class="y">✓</td><td class="n">—</td></tr>
-              <tr><td>Expenses</td><td class="y">✓</td><td class="n">—</td><td class="y">✓</td><td class="n">—</td></tr>
-              <tr><td>Reports</td><td class="y">✓</td><td class="n">—</td><td class="y">✓</td><td class="n">—</td></tr>
-              <tr><td>Delete records</td><td class="y">✓</td><td class="n">—</td><td class="n">—</td><td class="n">—</td></tr>
-              <tr><td>User Management</td><td class="y">✓</td><td class="n">—</td><td class="n">—</td><td class="n">—</td></tr>
-              <tr><td>Role Impersonation</td><td class="y">✓</td><td class="n">—</td><td class="n">—</td><td class="n">—</td></tr>
-            </tbody>
-          </table>
-          <div class="tip"><mat-icon>lightbulb</mat-icon> Admins can impersonate other roles using the dropdown in the bottom-left of the sidebar to preview the experience without switching accounts.</div>
+          <p>Track all business expenses and non-commission income entries throughout the year. These feed into budget actuals and tax summaries.</p>
+          <ol>
+            <li>Navigate to <strong>Expenses</strong> and click <strong>Add Expense</strong>.</li>
+            <li>Enter date, vendor, category, and amount. Use the filters to find entries by year or category.</li>
+            <li>Navigate to <strong>Income</strong> to record any non-commission income (referral fees, rental income, etc.).</li>
+          </ol>
+          <div class="tip"><mat-icon>lightbulb</mat-icon> Consistent expense categories improve tax summary accuracy. Match them to your Budgets for variance tracking.</div>
+        </mat-expansion-panel>
+
+        <!-- PERMISSIONS -->
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title><mat-icon class="si">manage_accounts</mat-icon>User Roles &amp; Permissions</mat-panel-title>
+            <mat-panel-description><span class="chip admin">Admin only</span></mat-panel-description>
+          </mat-expansion-panel-header>
+          <div class="table-scroll">
+            <table class="roles-table">
+              <thead>
+                <tr>
+                  <th>Feature</th>
+                  <th>Admin</th>
+                  <th>Sales</th>
+                  <th>Accountant</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Leads</td><td class="y">✓</td><td class="y">✓</td><td class="n">—</td></tr>
+                <tr><td>Clients</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓ (read)</td></tr>
+                <tr><td>Listings / Portal</td><td class="y">✓</td><td class="y">✓</td><td class="n">—</td></tr>
+                <tr><td>Showings</td><td class="y">✓</td><td class="y">✓</td><td class="n">—</td></tr>
+                <tr><td>Open Houses</td><td class="y">✓</td><td class="y">✓</td><td class="n">—</td></tr>
+                <tr><td>Pipeline / Transactions</td><td class="y">✓</td><td class="y">✓</td><td class="n">—</td></tr>
+                <tr><td>Email Templates</td><td class="y">✓</td><td class="y">✓</td><td class="n">—</td></tr>
+                <tr><td>Analytics</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+                <tr><td>Reports</td><td class="y">✓</td><td class="n">—</td><td class="y">✓</td></tr>
+                <tr><td>Expenses / Income</td><td class="y">✓</td><td class="n">—</td><td class="y">✓</td></tr>
+                <tr><td>Budgets</td><td class="y">✓</td><td class="n">—</td><td class="y">✓</td></tr>
+                <tr><td>Delete records</td><td class="y">✓</td><td class="n">—</td><td class="n">—</td></tr>
+                <tr><td>User Management</td><td class="y">✓</td><td class="n">—</td><td class="n">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="tip"><mat-icon>lightbulb</mat-icon> Admins can impersonate other roles using the dropdown in the sidebar to preview the experience without switching accounts.</div>
         </mat-expansion-panel>
 
       </mat-accordion>
@@ -249,7 +289,7 @@ import { MatDividerModule } from '@angular/material/divider';
       border-radius: 8px; padding: 14px 20px;
       margin-bottom: 24px; flex-wrap: wrap;
     }
-    .flow-step { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 64px; }
+    .flow-step { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 60px; }
     .flow-step mat-icon { color: #2E7D32; font-size: 22px; width: 22px; height: 22px; }
     .flow-step span { font-size: 11px; font-weight: 500; color: #2E7D32; }
     .arrow { color: #A5D6A7; font-size: 18px; width: 18px; height: 18px; }
@@ -257,36 +297,23 @@ import { MatDividerModule } from '@angular/material/divider';
     mat-expansion-panel { margin-bottom: 8px !important; }
     mat-panel-title { font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px; }
     mat-panel-description { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-    .section-icon { color: #2E7D32; font-size: 20px; width: 20px; height: 20px; }
+    .si { color: #2E7D32; font-size: 20px; width: 20px; height: 20px; }
 
-    .role-chip {
-      font-size: 10px; padding: 2px 7px; border-radius: 10px;
-      font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;
-    }
+    .chip { font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
     .admin { background: #E8F5E9; color: #1B5E20; }
     .sales { background: #E3F2FD; color: #0D47A1; }
     .accountant { background: #FFF8E1; color: #E65100; }
-    .fieldworker { background: #F3E5F5; color: #4A148C; }
 
     ol { padding-left: 20px; line-height: 2; }
     h4 { margin: 16px 0 8px; color: #333; font-size: 14px; font-weight: 600; }
+    code { background: #f5f5f5; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
 
-    .status-table { width: 100%; border-collapse: collapse; margin: 8px 0 12px; font-size: 14px; }
-    .status-table td { padding: 6px 10px; border-bottom: 1px solid #EEE; vertical-align: top; }
-    .status-table tr:last-child td { border-bottom: none; }
+    .info-table { width: 100%; border-collapse: collapse; margin: 8px 0 12px; font-size: 14px; }
+    .info-table td { padding: 7px 10px; border-bottom: 1px solid #EEE; vertical-align: top; }
+    .info-table tr:last-child td { border-bottom: none; }
+    .info-table td:first-child { white-space: nowrap; width: 1%; padding-right: 16px; }
 
-    .badge {
-      display: inline-block; padding: 2px 10px; border-radius: 12px;
-      font-size: 12px; font-weight: 600; white-space: nowrap;
-    }
-    .draft { background: #E0E0E0; color: #424242; }
-    .sent { background: #E3F2FD; color: #1565C0; }
-    .accepted { background: #E8F5E9; color: #1B5E20; }
-    .rejected { background: #FFEBEE; color: #B71C1C; }
-    .pending { background: #FFF9C4; color: #F57F17; }
-    .inprogress { background: #E3F2FD; color: #1565C0; }
-    .completed { background: #E8F5E9; color: #1B5E20; }
-    .cancelled { background: #FFEBEE; color: #B71C1C; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; white-space: nowrap; }
 
     .tip {
       display: flex; align-items: flex-start; gap: 8px;
@@ -296,11 +323,24 @@ import { MatDividerModule } from '@angular/material/divider';
     }
     .tip mat-icon { color: #F9A825; font-size: 18px; width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
 
-    .roles-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+    .table-scroll { overflow-x: auto; }
+    .roles-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; min-width: 400px; }
     .roles-table th { background: #F5F5F5; padding: 8px 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #DDD; }
     .roles-table td { padding: 7px 12px; border-bottom: 1px solid #EEE; }
     .roles-table .y { color: #2E7D32; font-weight: 700; text-align: center; }
     .roles-table .n { color: #BDBDBD; text-align: center; }
+
+    @media (max-width: 600px) {
+      .help-container { padding: 16px; }
+      .help-header { gap: 10px; }
+      .header-icon { font-size: 36px; width: 36px; height: 36px; }
+      h1 { font-size: 20px; }
+      .workflow-strip { gap: 4px; padding: 10px 12px; }
+      .flow-step { min-width: 44px; }
+      .flow-step span { font-size: 9px; }
+      .arrow { font-size: 14px; width: 14px; height: 14px; }
+      .info-table td:first-child { white-space: normal; }
+    }
   `]
 })
 export class HelpComponent {}
