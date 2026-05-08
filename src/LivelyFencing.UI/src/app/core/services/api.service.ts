@@ -133,6 +133,7 @@ export class ApiService {
   getAllReviews() { return this.http.get<any[]>(`${this.base}/reviews/all`); }
   approveReview(id: string) { return this.http.patch<any>(`${this.base}/reviews/${id}/approve`, {}); }
   deleteReview(id: string) { return this.http.delete(`${this.base}/reviews/${id}`); }
+  syncGoogleReviews() { return this.http.post<any>(`${this.base}/reviews/sync-google`, {}); }
   // Listings (Bridge Data Output / FMLS proxy)
   searchListings(params: any = {}) { return this.http.get<any>(`${this.base}/listings`, { params }); }
   getListing(key: string) { return this.http.get<any>(`${this.base}/listings/${key}`); }

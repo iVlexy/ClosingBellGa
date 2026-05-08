@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using LivelyFencing.API.Data;
 using LivelyFencing.API.Domain.Entities;
 using LivelyFencing.API.Infrastructure.Auth;
+using LivelyFencing.API.Infrastructure.Google;
 
 namespace LivelyFencing.API.Controllers;
 
@@ -12,7 +13,12 @@ namespace LivelyFencing.API.Controllers;
 public class ReviewsController : ControllerBase
 {
     private readonly AppDbContext _db;
-    public ReviewsController(AppDbContext db) => _db = db;
+    private readonly GoogleReviewsSyncService _googleSync;
+    public ReviewsController(AppDbContext db, GoogleReviewsSyncService googleSync)
+    {
+        _db = db;
+        _googleSync = googleSync;
+    }
 
     // Public: get approved reviews
     [HttpGet]
@@ -86,6 +92,19 @@ public class ReviewsController : ControllerBase
         review.IsDeleted = true;
         await _db.SaveChangesAsync();
         return NoContent();
+    }
+
+    // Admin: sync from Google Places
+    [HttpPost("sync-google")]
+    [Authorize(Policy = AuthorizationPolicies.AnyRole)]
+    public async Task<IActionResult> SyncGoogle()
+    {
+        var (imported, error) = await _googleSync.SyncAsync(_db);
+        if (error != null)
+            return BadRequest(new { message = error });
+        return Ok(new { imported, message = imported == 0
+            ? "No new reviews found."
+            : $"{imported} new review{(imported == 1 ? "" : "s")} imported and awaiting approval." });
     }
 }
 

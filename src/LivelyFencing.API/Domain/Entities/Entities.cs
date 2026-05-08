@@ -219,6 +219,10 @@ public class Review
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public bool Approved { get; set; } = false;
     public bool IsDeleted { get; set; } = false;
+    // Google sync
+    public string Source { get; set; } = "Manual";          // Manual | Google
+    public string? GoogleReviewId { get; set; }              // unique per Google review
+    public string? ReviewerPhotoUrl { get; set; }
 }
 
 public class SiteSettings

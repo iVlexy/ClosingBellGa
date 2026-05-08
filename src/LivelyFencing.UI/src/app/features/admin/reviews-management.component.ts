@@ -6,18 +6,31 @@ import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDividerModule } from '@angular/material/divider';
 import { ApiService } from '../../core/services/api.service';
 
 @Component({
   selector: 'app-reviews-management',
   standalone: true,
   imports: [CommonModule, MatIconModule, MatButtonModule, MatCardModule,
-    MatChipsModule, MatSnackBarModule, MatProgressSpinnerModule],
+    MatChipsModule, MatSnackBarModule, MatProgressSpinnerModule, MatTooltipModule, MatDividerModule],
   template: `
     <div class="rm-page">
       <div class="rm-header">
-        <h1>Reviews</h1>
-        <span class="pending-badge" *ngIf="pendingCount > 0">{{ pendingCount }} pending</span>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <h1>Reviews</h1>
+          <span class="pending-badge" *ngIf="pendingCount > 0">{{ pendingCount }} pending</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="google-status" *ngIf="syncMsg">{{ syncMsg }}</span>
+          <button mat-stroked-button (click)="syncGoogle()" [disabled]="syncing" class="sync-btn">
+            <img src="https://www.gstatic.com/images/branding/product/1x/googleg_16dp.png"
+                 alt="G" style="width:16px;height:16px;vertical-align:middle;margin-right:6px;">
+            <mat-spinner *ngIf="syncing" diameter="16" style="display:inline-block;vertical-align:middle;margin-right:4px;"></mat-spinner>
+            {{ syncing ? 'Syncing...' : 'Sync Google Reviews' }}
+          </button>
+        </div>
       </div>
 
       <div class="rm-loading" *ngIf="loading">
@@ -35,6 +48,7 @@ import { ApiService } from '../../core/services/api.service';
               <div class="card-top">
                 <div class="reviewer-info">
                   <div class="reviewer-name">{{ r.reviewerName }}</div>
+                  <span class="source-badge google-badge" *ngIf="r.source === 'Google'">Google</span>
                   <div class="reviewer-email" *ngIf="r.reviewerEmail">{{ r.reviewerEmail }}</div>
                   <div class="review-date">{{ r.createdAt | date:'mediumDate' }}</div>
                 </div>
@@ -66,6 +80,7 @@ import { ApiService } from '../../core/services/api.service';
               <div class="card-top">
                 <div class="reviewer-info">
                   <div class="reviewer-name">{{ r.reviewerName }}</div>
+                  <span class="source-badge google-badge" *ngIf="r.source === 'Google'">Google</span>
                   <div class="review-date">{{ r.createdAt | date:'mediumDate' }}</div>
                 </div>
                 <div class="stars">
@@ -87,7 +102,7 @@ import { ApiService } from '../../core/services/api.service';
   styles: [`
     :host { display: block; }
     .rm-page { padding: 32px; max-width: 1100px; margin: 0 auto; }
-    .rm-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+    .rm-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
     .rm-header h1 { font-size: 28px; font-weight: 700; color: #1B5E20; margin: 0; }
     .pending-badge { background: #E53935; color: #fff; border-radius: 12px; font-size: 13px; font-weight: 700; padding: 2px 10px; }
     .rm-loading { display: flex; justify-content: center; padding: 60px; }
@@ -109,6 +124,11 @@ import { ApiService } from '../../core/services/api.service';
     .card-actions { display: flex; gap: 8px; }
     .approve-btn { background: #2E7D32 !important; }
     .empty-state { color: #aaa; font-size: 14px; padding: 20px 0; }
+    .sync-btn { font-size: 13px; border-color: #4285F4 !important; color: #4285F4 !important; }
+    .sync-btn:disabled { opacity: .6; }
+    .google-status { font-size: 12px; color: #2E7D32; font-weight: 500; }
+    .source-badge { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 8px; display: inline-block; margin-top: 2px; }
+    .google-badge { background: #E8F0FE; color: #4285F4; }
   `]
 })
 export class ReviewsManagementComponent implements OnInit {
@@ -121,6 +141,9 @@ export class ReviewsManagementComponent implements OnInit {
   get pending() { return this.all.filter(r => !r.approved); }
   get approved() { return this.all.filter(r => r.approved); }
   get pendingCount() { return this.pending.length; }
+
+  syncing = false;
+  syncMsg = '';
 
   ngOnInit() { this.load(); }
 
@@ -139,6 +162,24 @@ export class ReviewsManagementComponent implements OnInit {
         this.snack.open('Review approved and now live.', 'OK', { duration: 3000 });
       },
       error: () => this.snack.open('Failed to approve review.', 'OK', { duration: 3000 })
+    });
+  }
+
+  syncGoogle() {
+    this.syncing = true;
+    this.syncMsg = '';
+    this.api.syncGoogleReviews().subscribe({
+      next: (res) => {
+        this.syncing = false;
+        this.syncMsg = res.message;
+        if (res.imported > 0) this.load();
+        setTimeout(() => this.syncMsg = '', 6000);
+      },
+      error: (err) => {
+        this.syncing = false;
+        const msg = err?.error?.message ?? 'Sync failed.';
+        this.snack.open(msg, 'OK', { duration: 5000 });
+      }
     });
   }
 

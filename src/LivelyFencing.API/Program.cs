@@ -62,6 +62,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddScoped<LivelyFencing.API.Infrastructure.Google.GoogleReviewsSyncService>();
 var app = builder.Build();
 
 // Auto-migrate on startup
