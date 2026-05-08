@@ -151,7 +151,7 @@ public class SendGridEmailService
 <!DOCTYPE html>
 <html>
 <body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#333;">
-  <div style="background:#1B5E20;padding:24px;text-align:center;">
+  <div style="background:#1B4D2E;padding:24px;text-align:center;">
     <h1 style="color:white;margin:0;font-size:22px;">Closing Bell Real Estate</h1>
     <p style="color:#C8E6C9;margin:4px 0 0;font-size:13px;">Real Estate Services</p>
   </div>
