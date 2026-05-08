@@ -47,6 +47,16 @@ spec:
                 secretKeyRef:
                   name: api-secret
                   key: ENCRYPTION_KEY
+            - name: Google__PlacesApiKey
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: GOOGLE_PLACES_API_KEY
+            - name: Google__PlaceId
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: GOOGLE_PLACE_ID
             - name: App__PortalBaseUrl
               value: "https://stage.closingbellga.com"
             - name: Ollama__BaseUrl
