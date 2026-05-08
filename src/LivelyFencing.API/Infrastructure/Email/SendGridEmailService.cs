@@ -158,8 +158,49 @@ public class SendGridEmailService
   <div style="padding:32px;line-height:1.7;font-size:15px;">
     {htmlBody}
   </div>
-  <div style="background:#F5F5F5;padding:16px 32px;font-size:12px;color:#888;text-align:center;border-top:1px solid #eee;">
-    Closing Bell Real Estate
+
+  <div style="margin:32px 32px 0;border-top:2px solid #eee;padding-top:24px;">
+    <table style="border-collapse:collapse;font-family:Arial,sans-serif;width:100%;max-width:540px;">
+      <tr>
+        <td style="background:#1B4D2E;padding:20px 24px;vertical-align:middle;border-radius:6px 0 0 6px;width:160px;text-align:center;">
+          <div style="color:white;font-size:22px;font-weight:bold;letter-spacing:1px;line-height:1.2;">BRANDON<br/><span style="font-style:italic;font-size:26px;">Bell</span></div>
+          <div style="color:#A5D6A7;font-size:9px;letter-spacing:2px;margin-top:4px;text-transform:uppercase;">Real Estate Professional</div>
+          <div style="margin-top:10px;">
+            <div style="display:inline-block;border:2px solid #A5D6A7;border-radius:50%;width:36px;height:36px;line-height:32px;text-align:center;">
+              <span style="color:#A5D6A7;font-size:18px;font-weight:bold;">&#9741;</span>
+            </div>
+          </div>
+        </td>
+        <td style="background:#F8FBF8;padding:16px 20px;vertical-align:middle;border:1px solid #E0EDE0;border-radius:0 6px 6px 0;">
+          <table style="border-collapse:collapse;font-size:13px;color:#333;">
+            <tr>
+              <td style="padding:3px 10px 3px 0;color:#666;font-size:11px;white-space:nowrap;">&#128222; Direct</td>
+              <td style="padding:3px 0;font-weight:600;"><a href="tel:6784774786" style="color:#1B4D2E;text-decoration:none;">678.477.4786</a></td>
+            </tr>
+            <tr>
+              <td style="padding:3px 10px 3px 0;color:#666;font-size:11px;white-space:nowrap;">&#128222; Office</td>
+              <td style="padding:3px 0;font-weight:600;"><a href="tel:6782066389" style="color:#1B4D2E;text-decoration:none;">678.206.6389</a></td>
+            </tr>
+            <tr>
+              <td style="padding:3px 10px 3px 0;color:#666;font-size:11px;white-space:nowrap;">&#9993; Email</td>
+              <td style="padding:3px 0;font-weight:600;"><a href="mailto:brandon@closingbellga.com" style="color:#1B4D2E;text-decoration:none;">brandon@closingbellga.com</a></td>
+            </tr>
+            <tr>
+              <td style="padding:3px 10px 3px 0;color:#666;font-size:11px;white-space:nowrap;">&#127968; Address</td>
+              <td style="padding:3px 0;color:#555;">22 Thayer Ridge Dr, Dawsonville, GA 30534</td>
+            </tr>
+            <tr>
+              <td style="padding:3px 10px 3px 0;color:#666;font-size:11px;white-space:nowrap;">&#127758; Web</td>
+              <td style="padding:3px 0;"><a href="https://www.closingbellga.com" style="color:#1B4D2E;text-decoration:none;font-weight:600;">www.ClosingBellGa.com</a></td>
+            </tr>
+          </table>
+          <div style="margin-top:10px;font-size:10px;color:#999;letter-spacing:1px;text-transform:uppercase;">Willow Bend Properties</div>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <div style="background:#1B4D2E;padding:16px 32px;font-size:11px;color:#A5D6A7;text-align:center;margin-top:0;">
+    &copy; 2026 Closing Bell Real Estate &nbsp;|&nbsp; Willow Bend Properties &nbsp;|&nbsp; Dawsonville, GA
   </div>
 </body>
 </html>
