@@ -1,13 +1,14 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { TenantService } from '../../core/services/tenant.service';
@@ -15,8 +16,8 @@ import { TenantService } from '../../core/services/tenant.service';
 @Component({
   selector: 'app-realestate-landing',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, MatIconModule, MatButtonModule,
-    MatFormFieldModule, MatInputModule, MatSnackBarModule, MatProgressSpinnerModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink, MatIconModule, MatButtonModule,
+    MatFormFieldModule, MatInputModule, MatSnackBarModule, MatProgressSpinnerModule, MatSelectModule],
   template: `
     <div class="re-page">
 
@@ -27,14 +28,15 @@ import { TenantService } from '../../core/services/tenant.service';
           <span class="re-brand-name">{{ tenant.config.businessName }}</span>
         </div>
         <div class="re-nav-actions">
+          <a routerLink="/portal/listings" class="re-nav-link re-browse-btn">Browse Listings</a>
           <a href="#services" class="re-nav-link">Services</a>
           <a href="#contact" class="re-nav-link">Contact</a>
           <span class="re-nav-greeting" *ngIf="currentUser">Hi, {{ currentUser?.name?.split(' ')[0] }}</span>
-          <button mat-stroked-button class="re-logout-btn" (click)="logout()" *ngIf="currentUser">
-            <mat-icon>logout</mat-icon> Logout
+          <button mat-icon-button class="re-logout-btn" (click)="logout()" *ngIf="currentUser">
+            <mat-icon>logout</mat-icon><span class="re-btn-label"> Logout</span>
           </button>
-          <button mat-stroked-button class="re-login-btn" (click)="login()" *ngIf="!currentUser">
-            <mat-icon>login</mat-icon> Login
+          <button mat-icon-button class="re-login-btn" (click)="login()" *ngIf="!currentUser">
+            <mat-icon>login</mat-icon><span class="re-btn-label"> Login</span>
           </button>
         </div>
       </nav>
@@ -69,24 +71,19 @@ import { TenantService } from '../../core/services/tenant.service';
             <div class="re-stat"><span class="re-stat-num">98%</span><span class="re-stat-label">Client Satisfaction</span></div>
           </div>
         </div>
-        <div class="re-hero-visual">
-          <div class="re-property-cards">
-            <div class="re-prop-card re-prop-1">
-              <mat-icon>home</mat-icon>
-              <div class="re-prop-label">Residential</div>
-            </div>
-            <div class="re-prop-card re-prop-2">
-              <mat-icon>apartment</mat-icon>
-              <div class="re-prop-label">Multi-Family</div>
-            </div>
-            <div class="re-prop-card re-prop-3">
-              <mat-icon>business</mat-icon>
-              <div class="re-prop-label">Commercial</div>
-            </div>
+        <div class="re-hero-carousel">
+          <div class="re-car-track" [style.transform]="carouselTransform">
+            <img *ngFor="let img of carouselImages" [src]="img" alt="Property photo" class="re-car-img" loading="lazy">
+          </div>
+          <button class="re-car-arrow re-car-prev" (click)="carouselPrev()" aria-label="Previous">&#8249;</button>
+          <button class="re-car-arrow re-car-next" (click)="carouselNext()" aria-label="Next">&#8250;</button>
+          <div class="re-car-dots">
+            <span *ngFor="let img of carouselImages; let i = index"
+              class="re-car-dot" [class.active]="i === carouselIndex"
+              (click)="carouselIndex = i"></span>
           </div>
         </div>
       </section>
-
       <!-- SERVICES -->
       <section class="re-services" id="services">
         <div class="re-section-header">
@@ -130,14 +127,13 @@ import { TenantService } from '../../core/services/tenant.service';
             <ul class="re-perks">
               <li><mat-icon>check_circle</mat-icon> No-pressure, no-obligation consultation</li>
               <li><mat-icon>check_circle</mat-icon> Free market analysis for sellers</li>
-              <li><mat-icon>check_circle</mat-icon> Personalized property search for buyers</li>
               <li><mat-icon>check_circle</mat-icon> Investment portfolio review available</li>
             </ul>
             <div class="re-contact-info" *ngIf="tenant.config.contact?.phone">
-              <mat-icon>phone</mat-icon> {{ tenant.config.contact.phone }}
+              <a [href]="'tel:' + tenant.config.contact.phone" class="re-contact-link"><mat-icon>phone</mat-icon> {{ tenant.config.contact.phone }}</a>
             </div>
             <div class="re-contact-info" *ngIf="tenant.config.contact?.email">
-              <mat-icon>email</mat-icon> {{ tenant.config.contact.email }}
+              <a [href]="'mailto:' + tenant.config.contact.email" class="re-contact-link"><mat-icon>email</mat-icon> {{ tenant.config.contact.email }}</a>
             </div>
           </div>
           <div class="re-form-card" *ngIf="!submitted">
@@ -154,6 +150,20 @@ import { TenantService } from '../../core/services/tenant.service';
               <mat-form-field appearance="outline" class="re-full">
                 <mat-label>Phone Number</mat-label>
                 <input matInput formControlName="phone">
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="re-full">
+                <mat-label>How did you find us?</mat-label>
+                <mat-select formControlName="referralSource">
+                  <mat-option value="">Prefer not to say</mat-option>
+                  <mat-option value="Google Search">Google Search</mat-option>
+                  <mat-option value="Google Maps">Google Maps</mat-option>
+                  <mat-option value="Facebook">Facebook</mat-option>
+                  <mat-option value="Instagram">Instagram</mat-option>
+                  <mat-option value="Referral / Word of Mouth">Referral / Word of Mouth</mat-option>
+                  <mat-option value="Zillow / Realtor.com">Zillow / Realtor.com</mat-option>
+                  <mat-option value="Yard Sign">Yard Sign</mat-option>
+                  <mat-option value="Other">Other</mat-option>
+                </mat-select>
               </mat-form-field>
               <mat-form-field appearance="outline" class="re-full">
                 <mat-label>Tell us about your real estate needs</mat-label>
@@ -247,8 +257,8 @@ import { TenantService } from '../../core/services/tenant.service';
     .re-nav-link { color: rgba(255,255,255,.7); text-decoration: none; font-weight: 500; font-size: 14px; letter-spacing: .3px; }
     .re-nav-link:hover { color: #C9A96E; }
     .re-nav-greeting { font-size: 14px; color: rgba(255,255,255,.6); font-weight: 500; }
-    .re-login-btn { color: #C9A96E !important; border-color: #C9A96E !important; font-size: 13px !important; font-weight: 600 !important; display: inline-flex !important; align-items: center !important; gap: 4px !important; padding: 0 14px !important; height: 36px !important; }
-    .re-logout-btn { color: rgba(255,255,255,.6) !important; border-color: rgba(255,255,255,.3) !important; font-size: 13px !important; font-weight: 600 !important; display: inline-flex !important; align-items: center !important; gap: 4px !important; padding: 0 14px !important; height: 36px !important; }
+        .re-login-btn { color: #C9A96E !important; border: 1px solid #C9A96E !important; font-size: 13px !important; font-weight: 600 !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 4px !important; padding: 0 14px !important; height: 36px !important; width: auto !important; border-radius: 4px !important; }
+    .re-logout-btn { color: rgba(255,255,255,.6) !important; border: 1px solid rgba(255,255,255,.3) !important; font-size: 13px !important; font-weight: 600 !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 4px !important; padding: 0 14px !important; height: 36px !important; width: auto !important; border-radius: 4px !important; }
 
     /* HERO */
     .re-hero {
@@ -272,21 +282,27 @@ import { TenantService } from '../../core/services/tenant.service';
     .re-stat-label { font-size: 11px; color: rgba(255,255,255,.5); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
     .re-stat-divider { width: 1px; height: 44px; background: rgba(255,255,255,.12); }
 
-    /* HERO VISUAL */
-    .re-hero-visual { flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-    .re-property-cards { display: flex; flex-direction: column; gap: 14px; }
-    .re-prop-card {
-      background: rgba(255,255,255,.04); border: 1px solid rgba(201,169,110,.25);
-      border-radius: 4px; padding: 22px 32px; display: flex; align-items: center; gap: 18px;
-      color: #fff; backdrop-filter: blur(12px); min-width: 230px;
-      transition: all .25s;
-    }
-    .re-prop-card:hover { background: rgba(201,169,110,.08); border-color: rgba(201,169,110,.5); }
-    .re-prop-card mat-icon { font-size: 32px; width: 32px; height: 32px; color: #C9A96E; }
-    .re-prop-label { font-size: 15px; font-weight: 500; letter-spacing: .5px; }
-    .re-prop-1 { transform: translateX(24px); }
-    .re-prop-3 { transform: translateX(24px); }
 
+    /* HERO CAROUSEL */
+    .re-hero-carousel {
+      position: relative; flex-shrink: 0; width: 580px; height: 440px;
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,.45);
+    }
+    .re-car-track { display: flex; width: 100%; height: 100%; transition: transform .5s ease; }
+    .re-car-img { min-width: 100%; height: 100%; object-fit: cover; flex-shrink: 0; }
+    .re-car-arrow {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: rgba(0,0,0,.45); color: #fff; border: none; cursor: pointer;
+      font-size: 32px; line-height: 1; padding: 6px 12px; border-radius: 6px;
+      opacity: 0; transition: opacity .2s; z-index: 2;
+    }
+    .re-hero-carousel:hover .re-car-arrow { opacity: 1; }
+    .re-car-prev { left: 10px; }
+    .re-car-next { right: 10px; }
+    .re-car-dots { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 2; }
+    .re-car-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.45); cursor: pointer; transition: background .2s; }
+    .re-car-dot.active { background: #C9A96E; }
     /* SECTION HEADER */
     .re-section-header { text-align: center; margin-bottom: 56px; }
     .re-section-header h2 { font-size: 34px; font-weight: 700; color: #1A1A1A; margin: 0 0 14px; letter-spacing: -.3px; }
@@ -324,6 +340,8 @@ import { TenantService } from '../../core/services/tenant.service';
     .re-perks li { display: flex; align-items: center; gap: 12px; font-size: 15px; color: #444; }
     .re-perks mat-icon { color: #2D5A40; font-size: 20px; width: 20px; height: 20px; }
     .re-contact-info { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #666; margin-bottom: 10px; }
+    .re-contact-link { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #2D5A40; margin-bottom: 10px; text-decoration: none; font-weight: 500; }
+    .re-contact-link:hover { text-decoration: underline; }
     .re-contact-info mat-icon { color: #2D5A40; font-size: 18px; width: 18px; height: 18px; }
     .re-form-card { flex: 1; min-width: 300px; background: #F5F7F5; border-radius: 4px; padding: 36px; box-shadow: 0 4px 24px rgba(0,0,0,.07); border: 1px solid #E8EDE9; }
     .re-form-card h3 { font-size: 18px; font-weight: 700; color: #1A1A1A; margin: 0 0 24px; letter-spacing: .3px; text-transform: uppercase; }
@@ -360,11 +378,20 @@ import { TenantService } from '../../core/services/tenant.service';
       .re-page { overflow-x: hidden; max-width: 100vw; }
       .re-nav { padding: 12px 16px; }
       .re-nav-actions .re-nav-link { display: none; }
+      .re-nav-actions .re-browse-btn { display: inline-flex; padding: 6px 14px; border: 1px solid rgba(255,255,255,.4); border-radius: 6px; font-size: 13px; }
       .re-brand-name { font-size: 15px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .re-nav-actions { gap: 8px; }
+      .re-nav-greeting { display: none; }
+      .re-btn-label { display: none; }
+      .re-logout-btn { width: 36px !important; height: 36px !important; border: none !important; padding: 0 !important; }
+      .re-login-btn { width: 36px !important; height: 36px !important; border: none !important; padding: 0 !important; }
+      .re-browse-btn { white-space: nowrap; font-size: 12px !important; padding: 5px 10px !important; }
       .re-hero { flex-direction: column; padding: 48px 20px; min-height: unset; gap: 32px; }
       .re-hero-title { font-size: 34px; }
       .re-hero-sub { font-size: 15px; }
-      .re-hero-visual { display: none; }
+      .re-hero-carousel { width: 100%; height: 260px; border-radius: 8px; }
+      .re-hero-carousel::after { content: 'Meet Your Agent'; position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,.65)); color: #fff; font-size: 13px; font-weight: 600; letter-spacing: 1px; text-align: center; padding: 24px 0 10px; pointer-events: none; }
+      .re-hero-carousel .re-car-dots { bottom: 38px; }
       .re-services, .re-why, .re-contact-section, .re-leave-review-section { padding: 56px 20px; }
       .re-contact-inner { flex-direction: column; gap: 32px; }
       .re-section-header h2 { font-size: 26px; }
@@ -372,13 +399,21 @@ import { TenantService } from '../../core/services/tenant.service';
     }
   `]
 })
-export class RealEstateLandingComponent implements OnInit {
+export class RealEstateLandingComponent implements OnInit, OnDestroy {
   tenant = inject(TenantService);
   private api = inject(ApiService);
   private auth = inject(AuthService);
   private router = inject(Router);
   private snack = inject(MatSnackBar);
   private fb = inject(FormBuilder);
+
+  carouselImages: string[] = [];
+  carouselIndex = 0;
+  private _carouselTimer: any;
+  get carouselTransform() { return `translateX(-${this.carouselIndex * 100}%)`; }
+  carouselNext() { this.carouselIndex = (this.carouselIndex + 1) % this.carouselImages.length; }
+  carouselPrev() { this.carouselIndex = (this.carouselIndex - 1 + this.carouselImages.length) % this.carouselImages.length; }
+  ngOnDestroy() { clearInterval(this._carouselTimer); }
 
   submitted = false;
   submitting = false;
@@ -396,6 +431,7 @@ export class RealEstateLandingComponent implements OnInit {
     name:    ['', Validators.required],
     email:   ['', [Validators.required, Validators.email]],
     phone:   [''],
+    referralSource: [''],
     message: ['']
   });
 
@@ -403,7 +439,6 @@ export class RealEstateLandingComponent implements OnInit {
   services = [
     { icon: 'home', title: 'Residential Sales', description: 'From starter homes to luxury estates, we guide buyers and sellers through every step with expert market knowledge.' },
     { icon: 'business', title: 'Commercial Real Estate', description: 'Office spaces, retail, and industrial properties — we find the right fit for your business goals and budget.' },
-    { icon: 'apartment', title: 'Property Management', description: 'Full-service management for rental portfolios including tenant screening, maintenance coordination, and rent collection.' },
     { icon: 'trending_up', title: 'Investment Analysis', description: 'Maximize ROI with our market data, comparative analysis, and hands-on investment strategy consulting.' }
   ];
 
@@ -415,6 +450,8 @@ export class RealEstateLandingComponent implements OnInit {
   ];
 
   ngOnInit() {
+    this.api.getCarouselImages().subscribe({ next: imgs => { if (imgs?.length) { this.carouselImages = imgs; } }, error: () => {} });
+    this._carouselTimer = setInterval(() => this.carouselNext(), 7000);
     this.auth.getMe().subscribe({
       next: user => {
         if (!user) return;
@@ -452,7 +489,7 @@ export class RealEstateLandingComponent implements OnInit {
     if (this.form.invalid || this.submitting) return;
     this.submitting = true;
     const { name, email, phone, message } = this.form.value;
-    this.api.submitContactRequest({ name: name!, email: email!, phone: phone || '', message: message || '' }).subscribe({
+    this.api.submitContactRequest({ name: name!, email: email!, phone: phone || '', message: message || '', source: this.form.value.referralSource || undefined }).subscribe({
       next: () => { this.submitting = false; this.submitted = true; },
       error: () => {
         this.submitting = false;

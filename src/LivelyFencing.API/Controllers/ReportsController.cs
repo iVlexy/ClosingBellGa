@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LivelyFencing.API.Data;
 using LivelyFencing.API.Domain.Enums;
+using LivelyFencing.API.Domain.Entities;
 using LivelyFencing.API.Infrastructure.Auth;
 
 namespace LivelyFencing.API.Controllers;
@@ -137,4 +138,72 @@ public class ReportsController : ControllerBase
             ByMonth = byMonth
         });
     }
+    [HttpGet("pipeline-funnel")]
+    public async Task<IActionResult> PipelineFunnel()
+    {
+        var leads = await _db.ContactRequests.ToListAsync();
+        var showingClientIds = await _db.Showings.Select(s => s.ClientId).Distinct().ToListAsync();
+        var showingSet = showingClientIds.ToHashSet();
+        var txClientStatuses = await _db.Transactions
+            .Select(t => new { t.ClientId, t.Status }).ToListAsync();
+        var txByClient = txClientStatuses.GroupBy(t => t.ClientId)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.Status).ToList());
+
+        var bySource = leads.GroupBy(l => string.IsNullOrWhiteSpace(l.Source) ? "Website" : l.Source);
+
+        var result = bySource.Select(kv =>
+        {
+            var total = kv.Count();
+            var convertedIds = kv.Where(l => l.ConvertedCustomerId.HasValue)
+                .Select(l => l.ConvertedCustomerId!.Value).ToHashSet();
+            var converted = convertedIds.Count;
+            var hadShowing = convertedIds.Count(id => showingSet.Contains(id));
+            var hadOffer = convertedIds.Count(id => txByClient.ContainsKey(id));
+            var closed = convertedIds.Count(id => txByClient.ContainsKey(id) &&
+                txByClient[id].Contains(TransactionStatus.Closed));
+            return new
+            {
+                Source = kv.Key,
+                TotalLeads = total,
+                ConvertedToClient = converted,
+                HadShowing = hadShowing,
+                SubmittedOffer = hadOffer,
+                Closed = closed
+            };
+        }).OrderByDescending(x => x.TotalLeads).ToList();
+
+        return Ok(result);
+    }
+
+    [HttpGet("gci-summary")]
+    public async Task<IActionResult> GciSummary([FromQuery] int year)
+    {
+        var transactions = await _db.Transactions
+            .Where(t => t.Status == TransactionStatus.Closed
+                && t.ClosingDate.HasValue
+                && t.ClosingDate.Value.Year == year)
+            .ToListAsync();
+
+        var byMonth = transactions
+            .GroupBy(t => t.ClosingDate!.Value.Month)
+            .Select(g => new
+            {
+                Month = g.Key,
+                ClosedCount = g.Count(),
+                TotalVolume = g.Sum(t => t.SalePrice ?? 0),
+                TotalCommission = g.Sum(t => t.CommissionReceived ?? t.CommissionExpected ?? 0)
+            })
+            .OrderBy(x => x.Month)
+            .ToList();
+
+        return Ok(new
+        {
+            Year = year,
+            TotalClosings = transactions.Count,
+            TotalVolume = transactions.Sum(t => t.SalePrice ?? 0),
+            TotalGCI = transactions.Sum(t => t.CommissionReceived ?? t.CommissionExpected ?? 0),
+            ByMonth = byMonth
+        });
+    }
+
 }

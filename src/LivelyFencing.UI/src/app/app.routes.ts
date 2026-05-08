@@ -100,6 +100,39 @@ export const routes: Routes = [
     loadComponent: () => import('./features/help/help.component').then(m => m.HelpComponent),
     canActivate: [authGuard(['Admin', 'Sales', 'Accountant', 'FieldWorker'])]
   },
+  {
+    path: 'portal/listings',
+    loadComponent: () => import('./features/listings/listings-search.component').then(m => m.ListingsSearchComponent)
+  },
+  {
+    path: 'portal/listings/:key',
+    loadComponent: () => import('./features/listings/listing-detail.component').then(m => m.ListingDetailComponent)
+  },
   { path: 'unauthorized', loadComponent: () => import('./features/unauthorized/unauthorized.component').then(m => m.UnauthorizedComponent) },
+  {
+    path: 'cq/transactions',
+    loadComponent: () => import('./features/transactions/transactions.component').then(m => m.TransactionsComponent),
+    canActivate: [authGuard(['Admin', 'Sales'])]
+  },
+  {
+    path: 'cq/showings',
+    loadComponent: () => import('./features/showings/showings.component').then(m => m.ShowingsComponent),
+    canActivate: [authGuard(['Admin', 'Sales'])]
+  },
+  {
+    path: 'cq/open-houses',
+    loadComponent: () => import('./features/open-houses/open-houses.component').then(m => m.OpenHousesComponent),
+    canActivate: [authGuard(['Admin', 'Sales'])]
+  },
+  {
+    path: 'cq/email-templates',
+    loadComponent: () => import('./features/email-templates/email-templates.component').then(m => m.EmailTemplatesComponent),
+    canActivate: [authGuard(['Admin', 'Sales'])]
+  },
+  {
+    path: 'cq/analytics',
+    loadComponent: () => import('./features/analytics/analytics.component').then(m => m.AnalyticsComponent),
+    canActivate: [authGuard(['Admin', 'Sales', 'Accountant'])]
+  },
   { path: '**', redirectTo: '/cq/dashboard' }
 ];

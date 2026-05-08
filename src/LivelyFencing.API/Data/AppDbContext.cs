@@ -25,6 +25,14 @@ public class AppDbContext : DbContext
     public DbSet<ContactRequest> ContactRequests => Set<ContactRequest>();
     public DbSet<Review> Reviews => Set<Review>();
     public DbSet<SiteSettings> SiteSettings => Set<SiteSettings>();
+    public DbSet<ListingPreference> ListingPreferences => Set<ListingPreference>();
+    public DbSet<Transaction> Transactions => Set<Transaction>();
+    public DbSet<TransactionDocument> TransactionDocuments => Set<TransactionDocument>();
+    public DbSet<BuyerPreferences> BuyerPreferences => Set<BuyerPreferences>();
+    public DbSet<ClientNote> ClientNotes => Set<ClientNote>();
+    public DbSet<Showing> Showings => Set<Showing>();
+    public DbSet<OpenHouseAttendee> OpenHouseAttendees => Set<OpenHouseAttendee>();
+    public DbSet<EmailTemplate> EmailTemplates => Set<EmailTemplate>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -154,6 +162,86 @@ public class AppDbContext : DbContext
             e.Property(x => x.Amount).HasColumnType("numeric(12,2)");
             e.HasOne(x => x.Job).WithMany().HasForeignKey(x => x.JobId).IsRequired(false).OnDelete(DeleteBehavior.SetNull);
             e.HasOne(x => x.Quote).WithMany().HasForeignKey(x => x.QuoteId).IsRequired(false).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // ListingPreference
+        modelBuilder.Entity<ListingPreference>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.HasQueryFilter(x => !x.IsDeleted);
+            e.Property(x => x.Reaction).HasConversion<string>();
+            e.Property(x => x.ListingPrice).HasColumnType("numeric(12,2)");
+            e.HasOne(x => x.Customer).WithMany().HasForeignKey(x => x.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(x => new { x.CustomerId, x.ListingKey });
+        });
+
+        // Transaction
+        modelBuilder.Entity<Transaction>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.HasQueryFilter(x => !x.IsDeleted);
+            e.Property(x => x.Type).HasConversion<string>();
+            e.Property(x => x.Status).HasConversion<string>();
+            e.Property(x => x.SalePrice).HasColumnType("numeric(12,2)");
+            e.Property(x => x.CommissionRate).HasColumnType("numeric(7,5)");
+            e.Property(x => x.CommissionExpected).HasColumnType("numeric(12,2)");
+            e.Property(x => x.CommissionReceived).HasColumnType("numeric(12,2)");
+            e.HasOne(x => x.Client).WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // TransactionDocument
+        modelBuilder.Entity<TransactionDocument>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Status).HasConversion<string>();
+            e.HasOne(x => x.Transaction).WithMany(t => t.Documents)
+                .HasForeignKey(x => x.TransactionId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // BuyerPreferences
+        modelBuilder.Entity<BuyerPreferences>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.MinPrice).HasColumnType("numeric(12,2)");
+            e.Property(x => x.MaxPrice).HasColumnType("numeric(12,2)");
+            e.Property(x => x.MinBaths).HasColumnType("numeric(3,1)");
+            e.Property(x => x.MaxBaths).HasColumnType("numeric(3,1)");
+            e.HasOne(x => x.Client).WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(x => x.ClientId).IsUnique();
+        });
+
+        // ClientNote
+        modelBuilder.Entity<ClientNote>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.HasQueryFilter(x => !x.IsDeleted);
+            e.HasOne(x => x.Client).WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(x => x.ClientId);
+        });
+
+        // Showing
+        modelBuilder.Entity<Showing>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.HasQueryFilter(x => !x.IsDeleted);
+            e.HasOne(x => x.Client).WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(x => x.ClientId);
+        });
+
+        // OpenHouseAttendee
+        modelBuilder.Entity<OpenHouseAttendee>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.HasQueryFilter(x => !x.IsDeleted);
+            e.HasIndex(x => x.EventDate);
+        });
+
+        // EmailTemplate
+        modelBuilder.Entity<EmailTemplate>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.HasQueryFilter(x => !x.IsDeleted);
         });
     }
 }

@@ -19,7 +19,7 @@ import { AuthService } from '../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatDialogModule],
   template: `
-    <h2 mat-dialog-title>{{ data?.id ? 'Edit Customer' : 'New Customer' }}</h2>
+    <h2 mat-dialog-title>{{ data?.id ? 'Edit Client' : 'New Client' }}</h2>
     <mat-dialog-content>
       <form [formGroup]="form" class="form-grid">
         <mat-form-field appearance="outline">
@@ -62,7 +62,7 @@ import { AuthService } from '../../core/services/auth.service';
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>Cancel</button>
       <button mat-raised-button color="primary" [disabled]="form.invalid" (click)="save()">
-        {{ data?.id ? 'Save Changes' : 'Create Customer' }}
+        {{ data?.id ? 'Save Changes' : 'Create Client' }}
       </button>
     </mat-dialog-actions>
   `,
@@ -106,14 +106,14 @@ export class CustomerFormDialogComponent {
   template: `
     <div class="page-container">
       <div class="page-header">
-        <h1 class="page-title">Customers</h1>
+        <h1 class="page-title">Clients</h1>
         <button mat-raised-button color="primary" (click)="openCreateDialog()" *ngIf="auth.hasRole('Admin','Sales')">
-          <mat-icon>person_add</mat-icon> New Customer
+          <mat-icon>person_add</mat-icon> New Client
         </button>
       </div>
 
       <mat-form-field appearance="outline" class="search-field">
-        <mat-label>Search customers</mat-label>
+        <mat-label>Search clients</mat-label>
         <input matInput [(ngModel)]="search" (ngModelChange)="loadCustomers()" placeholder="Name, email, or company">
         <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
@@ -146,7 +146,7 @@ export class CustomerFormDialogComponent {
             <button mat-icon-button matTooltip="Edit" *ngIf="auth.hasRole('Admin','Sales')" (click)="openEditDialog(c)">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button matTooltip="Delete customer" *ngIf="auth.isAdmin()" (click)="deleteCustomer(c)" class="delete-btn">
+            <button mat-icon-button matTooltip="Delete client" *ngIf="auth.isAdmin()" (click)="deleteCustomer(c)" class="delete-btn">
               <mat-icon>delete</mat-icon>
             </button>
           </td>
@@ -157,8 +157,8 @@ export class CustomerFormDialogComponent {
 
       <div *ngIf="customers().length === 0" class="empty-state">
         <mat-icon>people_outline</mat-icon>
-        <p>No customers found</p>
-        <button mat-raised-button color="primary" (click)="openCreateDialog()" *ngIf="auth.hasRole('Admin','Sales')">Add First Customer</button>
+        <p>No clients found</p>
+        <button mat-raised-button color="primary" (click)="openCreateDialog()" *ngIf="auth.hasRole('Admin','Sales')">Add First Client</button>
       </div>
     </div>
   `,
@@ -213,7 +213,7 @@ export class CustomerListComponent implements OnInit {
 
   deleteCustomer(c: any) {
     this.dialog.open(ConfirmDialogComponent, {
-      data: { title: 'Delete Customer', message: `Delete customer "${c.name}"? This can be recovered by an admin.` }, width: '400px'
+      data: { title: 'Delete Client', message: `Delete client "${c.name}"? This can be recovered by an admin.` }, width: '400px'
     }).afterClosed().subscribe(ok => {
       if (!ok) return;
       this.api.deleteCustomer(c.id).subscribe(() => this.loadCustomers());

@@ -113,7 +113,7 @@ export class ApiService {
   markLeadConverted(id: string, customerId: string | null) { return this.http.patch(`${this.base}/contact/${id}/converted`, { customerId }); }
 
   // Public
-  submitContactRequest(data: {name: string; email: string; phone: string; message: string}) {
+  submitContactRequest(data: {name: string; email: string; phone: string; message: string; source?: string}) {
     return this.http.post<any>(`${this.base}/contact`, data);
   }
 
@@ -133,4 +133,61 @@ export class ApiService {
   getAllReviews() { return this.http.get<any[]>(`${this.base}/reviews/all`); }
   approveReview(id: string) { return this.http.patch<any>(`${this.base}/reviews/${id}/approve`, {}); }
   deleteReview(id: string) { return this.http.delete(`${this.base}/reviews/${id}`); }
+  // Listings (Bridge Data Output / FMLS proxy)
+  searchListings(params: any = {}) { return this.http.get<any>(`${this.base}/listings`, { params }); }
+  getListing(key: string) { return this.http.get<any>(`${this.base}/listings/${key}`); }
+
+  // Listing Preferences
+  getListingPreferences(customerId: string) { return this.http.get<any[]>(`${this.base}/listing-preferences`, { params: { customerId } }); }
+  getMyListingPreferences() { return this.http.get<any[]>(`${this.base}/listing-preferences/my`); }
+  reactToListing(data: any) { return this.http.post<any>(`${this.base}/listing-preferences`, data); }
+  deleteListingPreference(id: string) { return this.http.delete(`${this.base}/listing-preferences/${id}`); }
+
+  // Transactions
+  getTransactions(clientId?: string, status?: string) {
+    const params: any = {};
+    if (clientId) params['clientId'] = clientId;
+    if (status) params['status'] = status;
+    return this.http.get<any[]>(`${this.base}/transactions`, { params });
+  }
+  getTransaction(id: string) { return this.http.get<any>(`${this.base}/transactions/${id}`); }
+  createTransaction(data: any) { return this.http.post<any>(`${this.base}/transactions`, data); }
+  updateTransaction(id: string, data: any) { return this.http.put<any>(`${this.base}/transactions/${id}`, data); }
+  updateTransactionStatus(id: string, status: string) { return this.http.patch<any>(`${this.base}/transactions/${id}/status`, { status }); }
+  deleteTransaction(id: string) { return this.http.delete(`${this.base}/transactions/${id}`); }
+  addTransactionDoc(txId: string, data: any) { return this.http.post<any>(`${this.base}/transactions/${txId}/documents`, data); }
+  updateTransactionDoc(txId: string, docId: string, data: any) { return this.http.put<any>(`${this.base}/transactions/${txId}/documents/${docId}`, data); }
+  deleteTransactionDoc(txId: string, docId: string) { return this.http.delete(`${this.base}/transactions/${txId}/documents/${docId}`); }
+
+  // Showings
+  getShowings(clientId?: string) { return this.http.get<any[]>(`${this.base}/showings`, { params: clientId ? { clientId } : {} }); }
+  createShowing(data: any) { return this.http.post<any>(`${this.base}/showings`, data); }
+  updateShowing(id: string, data: any) { return this.http.put<any>(`${this.base}/showings/${id}`, data); }
+  deleteShowing(id: string) { return this.http.delete(`${this.base}/showings/${id}`); }
+
+  // Open Houses
+  getOpenHouses(address?: string) { return this.http.get<any[]>(`${this.base}/open-houses`, { params: address ? { address } : {} }); }
+  createOpenHouseAttendee(data: any) { return this.http.post<any>(`${this.base}/open-houses`, data); }
+  updateOpenHouseAttendee(id: string, data: any) { return this.http.put<any>(`${this.base}/open-houses/${id}`, data); }
+  deleteOpenHouseAttendee(id: string) { return this.http.delete(`${this.base}/open-houses/${id}`); }
+
+  // Email Templates
+  getEmailTemplates() { return this.http.get<any[]>(`${this.base}/email-templates`); }
+  createEmailTemplate(data: any) { return this.http.post<any>(`${this.base}/email-templates`, data); }
+  updateEmailTemplate(id: string, data: any) { return this.http.put<any>(`${this.base}/email-templates/${id}`, data); }
+  deleteEmailTemplate(id: string) { return this.http.delete(`${this.base}/email-templates/${id}`); }
+
+  // Client Notes
+  getClientNotes(clientId: string) { return this.http.get<any[]>(`${this.base}/client-notes`, { params: { clientId } }); }
+  createClientNote(data: any) { return this.http.post<any>(`${this.base}/client-notes`, data); }
+  deleteClientNote(id: string) { return this.http.delete(`${this.base}/client-notes/${id}`); }
+
+  // Buyer Preferences
+  getBuyerPreferences(clientId: string) { return this.http.get<any>(`${this.base}/buyer-preferences/${clientId}`); }
+  saveBuyerPreferences(clientId: string, data: any) { return this.http.put<any>(`${this.base}/buyer-preferences/${clientId}`, data); }
+
+  // Analytics
+  getPipelineFunnel() { return this.http.get<any[]>(`${this.base}/reports/pipeline-funnel`); }
+  getGciSummary(year: number) { return this.http.get<any>(`${this.base}/reports/gci-summary`, { params: { year } }); }
+
 }

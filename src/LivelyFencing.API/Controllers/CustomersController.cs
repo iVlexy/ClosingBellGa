@@ -36,6 +36,28 @@ public class CustomersController : ControllerBase
     public async Task<IActionResult> Create([FromBody] CustomerRequest req)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        // If a customer with this email already exists (e.g. auto-created when
+        // they liked a listing), update their record and return it — no duplicate.
+        var existing = await _db.Customers.IgnoreQueryFilters()
+            .FirstOrDefaultAsync(c => c.Email == req.Email);
+        if (existing != null)
+        {
+            existing.Name = req.Name;
+            existing.Company = req.Company ?? existing.Company;
+            existing.Phone = req.Phone ?? existing.Phone;
+            existing.BillingAddress = req.BillingAddress ?? existing.BillingAddress;
+            existing.City = req.City ?? existing.City;
+            existing.State = req.State ?? existing.State;
+            existing.Zip = req.Zip ?? existing.Zip;
+            existing.IsActive = true;
+            existing.IsDeleted = false;
+            existing.DeletedAt = null;
+            existing.DeletedByEmail = null;
+            await _db.SaveChangesAsync();
+            return Ok(existing);
+        }
+
         var c = new Customer { Name = req.Name, Company = req.Company, Email = req.Email, Phone = req.Phone, BillingAddress = req.BillingAddress, City = req.City, State = req.State, Zip = req.Zip };
         _db.Customers.Add(c);
         await _db.SaveChangesAsync();

@@ -41,12 +41,12 @@ import { MatDividerModule } from '@angular/material/divider';
         <!-- CUSTOMERS -->
         <mat-expansion-panel expanded>
           <mat-expansion-panel-header>
-            <mat-panel-title><mat-icon class="section-icon">people</mat-icon>Step 1 — Customers</mat-panel-title>
+            <mat-panel-title><mat-icon class="section-icon">people</mat-icon>Step 1 — Clients</mat-panel-title>
             <mat-panel-description><span class="role-chip admin">Admin</span><span class="role-chip sales">Sales</span><span class="role-chip accountant">Accountant</span></mat-panel-description>
           </mat-expansion-panel-header>
           <p>Every job starts with a customer record. Create the customer first so they can be linked to jobs and quotes.</p>
           <ol>
-            <li>Navigate to <strong>Customers</strong> in the sidebar.</li>
+            <li>Navigate to <strong>Clients</strong> in the sidebar.</li>
             <li>Click <strong>New Customer</strong> and fill in name, email, phone, and address.</li>
             <li>Save — the customer now appears in the list and can be searched by name, email, or company.</li>
             <li>Click a customer's name to view their full detail page, including linked jobs and quote history.</li>

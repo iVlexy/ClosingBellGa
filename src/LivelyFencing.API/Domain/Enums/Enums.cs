@@ -90,3 +90,37 @@ public enum IncomeCategory
     MaterialSale,
     Other
 }
+
+public enum ListingReaction
+{
+    Like,
+    Dislike
+}
+
+public enum TransactionStatus
+{
+    Prospecting,
+    OfferSubmitted,
+    UnderContract,
+    Inspection,
+    Appraisal,
+    ClearToClose,
+    Closed,
+    FallThrough
+}
+
+public enum TransactionType
+{
+    BuyerRepresentation,
+    SellerRepresentation,
+    Dual
+}
+
+public enum DocumentStatus
+{
+    Pending,
+    Sent,
+    Signed,
+    Received,
+    NotRequired
+}

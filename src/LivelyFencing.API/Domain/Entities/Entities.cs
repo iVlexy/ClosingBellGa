@@ -245,3 +245,140 @@ public class Income
     public DateTime? DeletedAt { get; set; }
     public string? DeletedByEmail { get; set; }
 }
+
+public class ListingPreference
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid CustomerId { get; set; }
+    public Customer Customer { get; set; } = null!;
+    public string ListingKey { get; set; } = string.Empty;
+    public string ListingAddress { get; set; } = string.Empty;
+    public string? ListingCity { get; set; }
+    public decimal? ListingPrice { get; set; }
+    public string? ListingPhotoUrl { get; set; }
+    public ListingReaction Reaction { get; set; }
+    public string? Notes { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedByEmail { get; set; }
+}
+
+public class Transaction
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid ClientId { get; set; }
+    public Customer Client { get; set; } = null!;
+    public string? ListingKey { get; set; }
+    public string? Address { get; set; }
+    public TransactionType Type { get; set; }
+    public TransactionStatus Status { get; set; } = TransactionStatus.Prospecting;
+    public DateTime? OfferDate { get; set; }
+    public DateTime? ContractDate { get; set; }
+    public DateTime? InspectionDate { get; set; }
+    public DateTime? AppraisalDate { get; set; }
+    public DateTime? ClosingDate { get; set; }
+    public decimal? SalePrice { get; set; }
+    public decimal? CommissionRate { get; set; }
+    public decimal? CommissionExpected { get; set; }
+    public decimal? CommissionReceived { get; set; }
+    public string? Notes { get; set; }
+    public string CreatedByEmail { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedByEmail { get; set; }
+    public ICollection<TransactionDocument> Documents { get; set; } = new List<TransactionDocument>();
+}
+
+public class TransactionDocument
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid TransactionId { get; set; }
+    public Transaction Transaction { get; set; } = null!;
+    public string Name { get; set; } = string.Empty;
+    public DocumentStatus Status { get; set; } = DocumentStatus.Pending;
+    public DateTime? DueDate { get; set; }
+    public string? Notes { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+
+public class BuyerPreferences
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid ClientId { get; set; }
+    public Customer Client { get; set; } = null!;
+    public decimal? MinPrice { get; set; }
+    public decimal? MaxPrice { get; set; }
+    public int? MinBeds { get; set; }
+    public int? MaxBeds { get; set; }
+    public decimal? MinBaths { get; set; }
+    public decimal? MaxBaths { get; set; }
+    public string? PreferredAreas { get; set; }
+    public string? PropertyTypes { get; set; }
+    public string? MustHaves { get; set; }
+    public string? DealBreakers { get; set; }
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
+
+public class ClientNote
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid ClientId { get; set; }
+    public Customer Client { get; set; } = null!;
+    public string Note { get; set; } = string.Empty;
+    public string NoteType { get; set; } = "General";
+    public string CreatedByEmail { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedByEmail { get; set; }
+}
+
+public class Showing
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid ClientId { get; set; }
+    public Customer Client { get; set; } = null!;
+    public string? ListingKey { get; set; }
+    public string Address { get; set; } = string.Empty;
+    public DateTime ShowingDate { get; set; }
+    public int? FeedbackRating { get; set; }
+    public string? FeedbackNotes { get; set; }
+    public string CreatedByEmail { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedByEmail { get; set; }
+}
+
+public class OpenHouseAttendee
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string? ListingKey { get; set; }
+    public string Address { get; set; } = string.Empty;
+    public DateTime EventDate { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Phone { get; set; }
+    public string? Email { get; set; }
+    public bool IsPreApproved { get; set; } = false;
+    public string? AgentNotes { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedByEmail { get; set; }
+}
+
+public class EmailTemplate
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Name { get; set; } = string.Empty;
+    public string Stage { get; set; } = string.Empty;
+    public string Subject { get; set; } = string.Empty;
+    public string Body { get; set; } = string.Empty;
+    public bool IsActive { get; set; } = true;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedByEmail { get; set; }
+}

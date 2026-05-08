@@ -96,7 +96,7 @@ import { AuthService } from '../../core/services/auth.service';
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef></th>
           <td mat-cell *matCellDef="let l">
-            <button mat-icon-button matTooltip="Convert to Customer & Create Quote"
+            <button mat-icon-button matTooltip="Convert to Client"
               (click)="openConvert(l)" color="primary">
               <mat-icon>person_add</mat-icon>
             </button>

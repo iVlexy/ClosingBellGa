@@ -1,0 +1,366 @@
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { ApiService } from '../../core/services/api.service';
+import { AuthService } from '../../core/services/auth.service';
+
+@Component({
+  selector: 'app-listings-search',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterLink, MatCardModule, MatButtonModule,
+    MatIconModule, MatFormFieldModule, MatInputModule, MatSelectModule,
+    MatProgressSpinnerModule, MatTooltipModule],
+  template: `
+    <div class="listings-nav">
+      <a routerLink="/" class="listings-nav-home">
+        <mat-icon>arrow_back</mat-icon> Home
+      </a>
+    </div>
+    <div class="login-gate" *ngIf="!isLoggedIn()">
+      <mat-icon>lock</mat-icon>
+      <h2>Sign in to Browse Listings</h2>
+      <p>Create a free account or log in to search Atlanta metro area properties and save your favorites.</p>
+      <button mat-flat-button class="gate-btn" (click)="goLogin()">
+        <mat-icon>login</mat-icon> Log In / Sign Up
+      </button>
+      <a mat-button routerLink="/">← Back to Home</a>
+    </div>
+    <div *ngIf="isLoggedIn()">
+    <div class="search-hero">
+      <div class="hero-inner">
+        <h1 class="hero-title">Find Your Next Home</h1>
+        <p class="hero-sub">Browse Atlanta metro area properties</p>
+        <div class="filter-bar">
+          <mat-form-field appearance="outline" class="f-city">
+            <mat-label>City or ZIP</mat-label>
+            <input matInput [(ngModel)]="city" (keydown.enter)="doSearch()" placeholder="Atlanta, Decatur…">
+            <mat-icon matSuffix>location_on</mat-icon>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="f-sm">
+            <mat-label>Min Price</mat-label>
+            <mat-select [(ngModel)]="minPrice">
+              <mat-option [value]="null">Any</mat-option>
+              <mat-option [value]="200000">$200k</mat-option>
+              <mat-option [value]="300000">$300k</mat-option>
+              <mat-option [value]="400000">$400k</mat-option>
+              <mat-option [value]="500000">$500k</mat-option>
+              <mat-option [value]="600000">$600k</mat-option>
+              <mat-option [value]="750000">$750k</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="f-sm">
+            <mat-label>Max Price</mat-label>
+            <mat-select [(ngModel)]="maxPrice">
+              <mat-option [value]="null">Any</mat-option>
+              <mat-option [value]="300000">$300k</mat-option>
+              <mat-option [value]="400000">$400k</mat-option>
+              <mat-option [value]="500000">$500k</mat-option>
+              <mat-option [value]="600000">$600k</mat-option>
+              <mat-option [value]="750000">$750k</mat-option>
+              <mat-option [value]="1000000">$1M+</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="f-xs">
+            <mat-label>Min Beds</mat-label>
+            <mat-select [(ngModel)]="minBeds">
+              <mat-option [value]="null">Any</mat-option>
+              <mat-option [value]="1">1+</mat-option>
+              <mat-option [value]="2">2+</mat-option>
+              <mat-option [value]="3">3+</mat-option>
+              <mat-option [value]="4">4+</mat-option>
+              <mat-option [value]="5">5+</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="f-xs">
+            <mat-label>Type</mat-label>
+            <mat-select [(ngModel)]="propType">
+              <mat-option value="">Any</mat-option>
+              <mat-option value="Single Family Residence">Single Family</mat-option>
+              <mat-option value="Condominium">Condo</mat-option>
+              <mat-option value="Townhouse">Townhouse</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <button mat-flat-button class="search-btn" (click)="doSearch()">
+            <mat-icon>search</mat-icon> Search
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="results-wrap">
+      <div class="results-row" *ngIf="!loading()">
+        <span class="result-count">{{ total() }} {{ total() === 1 ? 'property' : 'properties' }}</span>
+        <mat-form-field appearance="outline" class="sort-field">
+          <mat-label>Sort by</mat-label>
+          <mat-select [(ngModel)]="sortBy" (ngModelChange)="applySort()">
+            <mat-option value="price-asc">Price: Low → High</mat-option>
+            <mat-option value="price-desc">Price: High → Low</mat-option>
+            <mat-option value="sqft-desc">Largest First</mat-option>
+            <mat-option value="year-desc">Newest Construction</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="spinner-wrap" *ngIf="loading()">
+        <mat-spinner diameter="48"></mat-spinner>
+      </div>
+
+      <div class="listing-grid" *ngIf="!loading()">
+        <div class="listing-card" *ngFor="let l of listings()" [routerLink]="['/portal/listings', l.listingKey]">
+          <div class="card-photo">
+            <img [src]="l.photos?.[0] || 'https://picsum.photos/seed/default/800/600'"
+                 [alt]="l.unparsedAddress" loading="lazy">
+            <span class="status-chip"
+              [class.active]="l.standardStatus === 'Active'"
+              [class.contract]="l.standardStatus === 'Active Under Contract'"
+              [class.soon]="l.standardStatus === 'Coming Soon'">
+              {{ l.standardStatus }}
+            </span>
+            <div class="reaction-btns" *ngIf="isLoggedIn()" (click)="$event.stopPropagation()">
+              <button mat-icon-button class="rb like"
+                [class.on]="getReaction(l.listingKey) === 'Like'"
+                (click)="react(l, 'Like')"
+                matTooltip="I like this">
+                <mat-icon>{{ getReaction(l.listingKey) === 'Like' ? 'favorite' : 'favorite_border' }}</mat-icon>
+              </button>
+              <button mat-icon-button class="rb pass"
+                [class.on]="getReaction(l.listingKey) === 'Dislike'"
+                (click)="react(l, 'Dislike')"
+                matTooltip="Not for me">
+                <mat-icon>{{ getReaction(l.listingKey) === 'Dislike' ? 'thumb_down' : 'thumb_down_off_alt' }}</mat-icon>
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-price">{{ l.listPrice | currency:'USD':'symbol':'1.0-0' }}</div>
+            <div class="card-addr">{{ l.unparsedAddress }}</div>
+            <div class="card-loc">{{ l.city }}, {{ l.stateOrProvince }} {{ l.postalCode }}</div>
+            <div class="card-stats">
+              <span><mat-icon>bed</mat-icon>{{ l.bedroomsTotal }} bd</span>
+              <span><mat-icon>bathtub</mat-icon>{{ l.bathroomsTotalDecimal }} ba</span>
+              <span><mat-icon>square_foot</mat-icon>{{ l.livingArea | number }} sqft</span>
+            </div>
+            <div class="card-subtype">{{ l.propertySubType }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty" *ngIf="!loading() && listings().length === 0">
+        <mat-icon>home_work</mat-icon>
+        <p>No properties match your filters. Try broadening your search.</p>
+      </div>
+
+      <div class="pagination" *ngIf="totalPages() > 1 && !loading()">
+        <button mat-stroked-button [disabled]="page() === 1" (click)="goTo(page() - 1)">
+          <mat-icon>chevron_left</mat-icon> Prev
+        </button>
+        <span>Page {{ page() }} of {{ totalPages() }}</span>
+        <button mat-stroked-button [disabled]="page() === totalPages()" (click)="goTo(page() + 1)">
+          Next <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+    </div>
+    </div>
+  `,
+  styles: [`
+    .login-gate {
+      min-height: 80vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center;
+      padding: 40px 24px; background: #f9f9f7;
+    }
+    .login-gate mat-icon { font-size: 56px; width: 56px; height: 56px; color: #C9A96E; margin-bottom: 16px; }
+    .login-gate h2 { font-size: 26px; font-weight: 700; color: #1A3A2A; margin: 0 0 12px; }
+    .login-gate p { color: #666; max-width: 380px; line-height: 1.6; margin: 0 0 28px; }
+    .gate-btn { background: #1A3A2A !important; color: #fff !important; padding: 0 28px; height: 48px; font-size: 15px; border-radius: 8px; margin-bottom: 12px; }
+    .gate-btn mat-icon { margin-right: 6px; }
+    .listings-nav {
+      background: color-mix(in srgb, var(--mat-sys-primary, #1A3A2A) 45%, black);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+    }
+    .listings-nav-home {
+      display: flex; align-items: center; gap: 4px;
+      color: rgba(255,255,255,.8); text-decoration: none;
+      font-size: 14px; font-weight: 500;
+    }
+    .listings-nav-home:hover { color: #C9A96E; }
+    .listings-nav-home mat-icon { font-size: 18px; width: 18px; height: 18px; }
+    .search-hero {
+      background: linear-gradient(135deg, #1A3A2A 0%, #2D5A3D 65%, #1A3A2A 100%);
+      padding: 56px 20px 52px;
+    }
+    .hero-inner { max-width: 960px; margin: 0 auto; text-align: center; }
+    .hero-title { color: #fff; font-size: 38px; font-weight: 700; margin: 0 0 8px; letter-spacing: -.5px; }
+    .hero-sub { color: rgba(255,255,255,.7); font-size: 16px; margin: 0 0 36px; }
+    .filter-bar { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: flex-end; }
+    .f-city { min-width: 220px; }
+    .f-sm { min-width: 140px; }
+    .f-xs { min-width: 120px; }
+    .filter-bar ::ng-deep .mat-mdc-text-field-wrapper { background: #fff; border-radius: 8px; }
+    .filter-bar ::ng-deep label.mdc-floating-label { color: #555 !important; }
+    .search-btn {
+      height: 56px; padding: 0 28px; font-size: 15px;
+      background: #C9A96E !important; color: #fff !important;
+      border-radius: 8px; margin-bottom: 2px;
+    }
+    .search-btn mat-icon { margin-right: 6px; }
+
+    .results-wrap { max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }
+    .results-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+    .result-count { color: #666; font-size: 14px; }
+    .sort-field { min-width: 200px; }
+    .spinner-wrap { display: flex; justify-content: center; padding: 64px 0; }
+
+    .listing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 24px; }
+
+    .listing-card {
+      border-radius: 12px; overflow: hidden; background: #fff; cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0,0,0,.08);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .listing-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,.14); }
+
+    .card-photo { position: relative; height: 210px; overflow: hidden; }
+    .card-photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s; }
+    .listing-card:hover .card-photo img { transform: scale(1.04); }
+
+    .status-chip {
+      position: absolute; top: 10px; left: 10px;
+      padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .4px;
+      background: rgba(0,0,0,.55); color: #fff;
+    }
+    .status-chip.active { background: #1A3A2A; }
+    .status-chip.contract { background: #C84B00; }
+    .status-chip.soon { background: #5C35B0; }
+
+    .reaction-btns {
+      position: absolute; bottom: 8px; right: 8px;
+      display: flex; gap: 4px;
+    }
+    .rb { width: 34px; height: 34px; background: rgba(255,255,255,.88) !important; }
+    .rb mat-icon { font-size: 19px; width: 19px; height: 19px; color: #aaa; }
+    .rb.like.on mat-icon { color: #E53935; }
+    .rb.pass.on mat-icon { color: #555; }
+
+    .card-body { padding: 14px 16px; }
+    .card-price { font-size: 22px; font-weight: 700; color: #1A3A2A; margin-bottom: 3px; }
+    .card-addr { font-size: 14px; font-weight: 500; color: #111; }
+    .card-loc { font-size: 12px; color: #777; margin-bottom: 10px; }
+    .card-stats { display: flex; gap: 12px; margin-bottom: 6px; flex-wrap: wrap; }
+    .card-stats span { display: flex; align-items: center; gap: 3px; font-size: 12px; color: #444; }
+    .card-stats mat-icon { font-size: 15px; width: 15px; height: 15px; color: #999; }
+    .card-subtype { font-size: 11px; color: #C9A96E; font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+
+    .empty { text-align: center; padding: 72px 0; color: #999; }
+    .empty mat-icon { font-size: 60px; width: 60px; height: 60px; display: block; margin: 0 auto 12px; }
+
+    .pagination { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 36px; }
+    .pagination span { color: #555; }
+
+    @media (max-width: 599px) {
+      .hero-title { font-size: 26px; }
+      .filter-bar { flex-direction: column; align-items: stretch; }
+      .f-city, .f-sm, .f-xs { min-width: unset; width: 100%; }
+      .search-btn { width: 100%; }
+      .listing-grid { grid-template-columns: 1fr; }
+    }
+  `]
+})
+export class ListingsSearchComponent implements OnInit {
+  api = inject(ApiService);
+  auth = inject(AuthService);
+
+  listings = signal<any[]>([]);
+  total = signal(0);
+  page = signal(1);
+  loading = signal(false);
+  myReactions = signal<Record<string, string>>({});
+  sortBy = 'price-asc';
+
+  city = '';
+  minPrice: number | null = null;
+  maxPrice: number | null = null;
+  minBeds: number | null = null;
+  propType = '';
+
+  totalPages = computed(() => Math.max(1, Math.ceil(this.total() / 12)));
+
+  ngOnInit() {
+    this.doSearch();
+    if (this.isLoggedIn()) this.loadReactions();
+  }
+
+  isLoggedIn() { return !!this.auth.currentUser; }
+
+  doSearch(resetPage = true) {
+    if (resetPage) this.page.set(1);
+    this.loading.set(true);
+    const params: any = { page: this.page() };
+    if (this.city) params['city'] = this.city;
+    if (this.minPrice != null) params['minPrice'] = this.minPrice;
+    if (this.maxPrice != null) params['maxPrice'] = this.maxPrice;
+    if (this.minBeds != null) params['minBeds'] = this.minBeds;
+    if (this.propType) params['propertyType'] = this.propType;
+
+    this.api.searchListings(params).subscribe({
+      next: (res: any) => {
+        this.listings.set(res.listings ?? []);
+        this.total.set(res.total ?? 0);
+        this.loading.set(false);
+        this.applySort();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  applySort() {
+    const arr = [...this.listings()];
+    if (this.sortBy === 'price-asc') arr.sort((a, b) => a.listPrice - b.listPrice);
+    else if (this.sortBy === 'price-desc') arr.sort((a, b) => b.listPrice - a.listPrice);
+    else if (this.sortBy === 'sqft-desc') arr.sort((a, b) => b.livingArea - a.livingArea);
+    else if (this.sortBy === 'year-desc') arr.sort((a, b) => b.yearBuilt - a.yearBuilt);
+    this.listings.set(arr);
+  }
+
+  goTo(p: number) {
+    this.page.set(p);
+    this.doSearch(false);
+  }
+
+  loadReactions() {
+    this.api.getMyListingPreferences().subscribe((prefs: any[]) => {
+      const map: Record<string, string> = {};
+      prefs.forEach(p => { map[p.listingKey] = p.reaction; });
+      this.myReactions.set(map);
+    });
+  }
+
+  getReaction(key: string) { return this.myReactions()[key]; }
+
+  goLogin() { window.location.href = '/cq/dashboard'; }
+
+  react(listing: any, reaction: string) {
+    this.api.reactToListing({
+      listingKey: listing.listingKey,
+      listingAddress: listing.unparsedAddress,
+      listingCity: listing.city,
+      listingPrice: listing.listPrice,
+      listingPhotoUrl: listing.photos?.[0] ?? null,
+      reaction,
+      notes: null,
+      customerId: null
+    }).subscribe(() => this.loadReactions());
+  }
+}

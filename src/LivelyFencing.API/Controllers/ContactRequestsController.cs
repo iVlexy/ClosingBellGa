@@ -33,7 +33,7 @@ public class ContactRequestsController : ControllerBase
             Email = dto.Email.Trim().ToLower(),
             Phone = dto.Phone?.Trim() ?? "",
             Message = dto.Message?.Trim() ?? "",
-            Source = "Website"
+            Source = string.IsNullOrWhiteSpace(dto.Source) ? "Website" : dto.Source.Trim()
         };
         _db.ContactRequests.Add(req);
         await _db.SaveChangesAsync();

@@ -8,16 +8,12 @@
     "dashboard",
     "customers",
     "leads",
-    "jobs",
-    "quotes",
-    "reports",
-    "income",
-    "expenses",
-    "help"
+    "help",
+    "listings"
   ],
   "contact": {
     "phone": "(678) 477-4786",
-    "email": "closingbellrealestate@gmail.com"
+    "email": "brandon@closingbellga.com"
   },
   "stats": [
     {

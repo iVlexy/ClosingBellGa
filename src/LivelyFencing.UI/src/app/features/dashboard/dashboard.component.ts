@@ -21,10 +21,10 @@ import { forkJoin } from 'rxjs';
       <div class="stats-grid" *ngIf="!loading; else spinner">
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-icon customers"><mat-icon>people</mat-icon></div>
+            <div class="stat-icon clients"><mat-icon>people</mat-icon></div>
             <div class="stat-info">
-              <div class="stat-value">{{ stats.customers }}</div>
-              <div class="stat-label">Active Customers</div>
+              <div class="stat-value">{{ stats.clients }}</div>
+              <div class="stat-label">Active Clients</div>
             </div>
           </mat-card-content>
           <mat-card-actions><a mat-button routerLink="/cq/customers">View All</a></mat-card-actions>
@@ -32,35 +32,35 @@ import { forkJoin } from 'rxjs';
 
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-icon jobs"><mat-icon>build</mat-icon></div>
+            <div class="stat-icon new-leads"><mat-icon>fiber_new</mat-icon></div>
             <div class="stat-info">
-              <div class="stat-value">{{ stats.activeJobs }}</div>
-              <div class="stat-label">Active Jobs</div>
+              <div class="stat-value">{{ stats.newLeads }}</div>
+              <div class="stat-label">New Leads</div>
             </div>
           </mat-card-content>
-          <mat-card-actions><a mat-button routerLink="/cq/jobs">View All</a></mat-card-actions>
+          <mat-card-actions><a mat-button routerLink="/cq/leads">View All</a></mat-card-actions>
         </mat-card>
 
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-icon pending"><mat-icon>pending_actions</mat-icon></div>
+            <div class="stat-icon total-leads"><mat-icon>record_voice_over</mat-icon></div>
             <div class="stat-info">
-              <div class="stat-value">{{ stats.pendingApproval }}</div>
-              <div class="stat-label">Quotes Pending Approval</div>
+              <div class="stat-value">{{ stats.totalLeads }}</div>
+              <div class="stat-label">Total Leads</div>
             </div>
           </mat-card-content>
-          <mat-card-actions><a mat-button routerLink="/cq/quotes" [queryParams]="{status:'PendingApproval'}">Review</a></mat-card-actions>
+          <mat-card-actions><a mat-button routerLink="/cq/leads">View All</a></mat-card-actions>
         </mat-card>
 
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-icon revenue"><mat-icon>attach_money</mat-icon></div>
+            <div class="stat-icon converted"><mat-icon>how_to_reg</mat-icon></div>
             <div class="stat-info">
-              <div class="stat-value">\${{ stats.yearRevenue | number:'1.0-0' }}</div>
-              <div class="stat-label">{{ currentYear }} Revenue</div>
+              <div class="stat-value">{{ stats.converted }}</div>
+              <div class="stat-label">Converted</div>
             </div>
           </mat-card-content>
-          <mat-card-actions><a mat-button routerLink="/cq/reports">Reports</a></mat-card-actions>
+          <mat-card-actions><a mat-button routerLink="/cq/leads">View All</a></mat-card-actions>
         </mat-card>
       </div>
 
@@ -71,16 +71,16 @@ import { forkJoin } from 'rxjs';
   `,
   styles: [`
     .page-container { padding: 24px; }
-    .page-title { font-size: 24px; font-weight: 500; color: #1B5E20; margin: 0; }
+    .page-title { font-size: 24px; font-weight: 500; color: #1A3A2A; margin: 0; }
     .page-subtitle { color: #666; margin: 4px 0 24px; }
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
     .stat-card mat-card-content { display: flex; align-items: center; gap: 16px; padding: 20px; }
     .stat-icon { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
     .stat-icon mat-icon { color: white; }
-    .stat-icon.customers { background: #1565C0; }
-    .stat-icon.jobs { background: #E65100; }
-    .stat-icon.pending { background: #F57F17; }
-    .stat-icon.revenue { background: #2E7D32; }
+    .stat-icon.clients { background: #1A3A2A; }
+    .stat-icon.new-leads { background: #E65100; }
+    .stat-icon.total-leads { background: #1565C0; }
+    .stat-icon.converted { background: #2E7D32; }
     .stat-value { font-size: 28px; font-weight: 700; }
     .stat-label { font-size: 12px; color: #666; }
     .spinner-center { display: flex; justify-content: center; padding: 60px; }
@@ -90,21 +90,18 @@ export class DashboardComponent implements OnInit {
   auth = inject(AuthService);
   api = inject(ApiService);
   loading = true;
-  currentYear = new Date().getFullYear();
-  stats = { customers: 0, activeJobs: 0, pendingApproval: 0, yearRevenue: 0 };
+  stats = { clients: 0, newLeads: 0, totalLeads: 0, converted: 0 };
 
   ngOnInit() {
     forkJoin({
       customers: this.api.getCustomers(),
-      jobs: this.api.getJobs(undefined, 'Active'),
-      pendingQuotes: this.api.getQuotes('PendingApproval'),
-      revenue: this.api.getRevenueReport(this.currentYear)
+      leads: this.api.getLeads()
     }).subscribe({
       next: (data) => {
-        this.stats.customers = data.customers.length;
-        this.stats.activeJobs = data.jobs.length;
-        this.stats.pendingApproval = data.pendingQuotes.length;
-        this.stats.yearRevenue = data.revenue.total ?? 0;
+        this.stats.clients = data.customers.length;
+        this.stats.totalLeads = data.leads.length;
+        this.stats.newLeads = data.leads.filter((l: any) => !l.contacted).length;
+        this.stats.converted = data.leads.filter((l: any) => l.convertedAt).length;
         this.loading = false;
       },
       error: () => { this.loading = false; }
