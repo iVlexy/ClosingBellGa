@@ -72,6 +72,7 @@ const TX_TYPES = [
       <div class="col-cards">
         <div class="tx-card" *ngFor="let tx of byStatus(stage.key)"
           cdkDrag [cdkDragData]="tx"
+          (cdkDragStarted)="onDragStarted()"
           (click)="openDetail(tx)">
           <div class="tx-client">{{tx.clientName}}</div>
           <div class="tx-addr" *ngIf="tx.address">{{tx.address}}</div>
@@ -512,6 +513,7 @@ export class TransactionsComponent implements OnInit {
   }
 
   openDetail(tx: any) {
+    if (this._wasDragged) { this._wasDragged = false; return; }
     this.api.getTransaction(tx.id).subscribe(full => {
       this.dialog.open(this._detailDialogRef!, { data: { tx: full }, width: '95vw', maxWidth: '720px', maxHeight: '95dvh' });
     });
@@ -555,8 +557,12 @@ export class TransactionsComponent implements OnInit {
     });
   }
 
+  private _wasDragged = false;
+
+  onDragStarted() { this._wasDragged = true; }
+
   onDrop(event: CdkDragDrop<any[]>, targetStage: string) {
-    if (event.previousContainer === event.container) return;
+    if (event.previousContainer === event.container) { this._wasDragged = false; return; }
     this.moveStage(event.item.data, targetStage);
   }
 
