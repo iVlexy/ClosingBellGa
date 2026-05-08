@@ -68,7 +68,11 @@ const TX_TYPES = [
         <span class="col-title">{{stage.label}}</span>
         <span class="col-badge" [style.background]="stage.color">{{countByStatus(stage.key)}}</span>
       </div>
-      <div class="col-cards">
+      <div class="col-cards"
+        (dragover)="onDragOver($event)"
+        (dragenter)="onDragEnter($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onNativeDrop($event, stage.key)">
         <div class="tx-card" *ngFor="let tx of byStatus(stage.key)"
           draggable="true"
           (dragstart)="onDragStart($event, tx)"
@@ -576,7 +580,13 @@ export class TransactionsComponent implements OnInit {
     }
   }
 
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+    event.dataTransfer!.dropEffect = 'move';
+  }
+
   onDragEnter(event: DragEvent) {
+    event.preventDefault();
     const col = (event.currentTarget as HTMLElement);
     col.classList.add('drag-over');
     this._dropTarget = col;
