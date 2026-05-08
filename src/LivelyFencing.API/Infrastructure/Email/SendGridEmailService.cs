@@ -163,6 +163,7 @@ public class SendGridEmailService
     <table style="border-collapse:collapse;font-family:Arial,sans-serif;width:100%;max-width:540px;">
       <tr>
         <td style="background:#1B4D2E;padding:20px 24px;vertical-align:middle;border-radius:6px 0 0 6px;width:160px;text-align:center;">
+          <img src="https://imagedelivery.net/7SJFqNxbKSsrglTrI1f7bw/724ccf55-fb6b-46ff-37f4-70f364eb5c00/public" alt="Brandon Bell" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #A5D6A7;display:block;margin:0 auto 10px;"/>
           <div style="color:white;font-size:22px;font-weight:bold;letter-spacing:1px;line-height:1.2;">BRANDON<br/><span style="font-style:italic;font-size:26px;">Bell</span></div>
           <div style="color:#A5D6A7;font-size:9px;letter-spacing:2px;margin-top:4px;text-transform:uppercase;">Real Estate Professional</div>
           <div style="margin-top:10px;">
