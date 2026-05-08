@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed, ViewChild, TemplateRef } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ViewChild, ElementRef, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -62,7 +62,7 @@ const TX_TYPES = [
   </div>
 
   <!-- Kanban board -->
-  <div class="board">
+  <div class="board" #boardEl (dragover)="onBoardDragOver($event)">
     <div class="board-col" *ngFor="let stage of pipeline">
       <div class="col-header" [style.border-color]="stage.color">
         <span class="col-title">{{stage.label}}</span>
@@ -562,6 +562,8 @@ export class TransactionsComponent implements OnInit {
   private _wasDragged = false;
   private _dragTx: any = null;
   private _dropTarget: HTMLElement | null = null;
+  private _scrollRaf: number | null = null;
+  @ViewChild('boardEl') boardEl!: ElementRef<HTMLElement>;
 
   onDragStart(event: DragEvent, tx: any) {
     this._dragTx = tx;
@@ -572,11 +574,37 @@ export class TransactionsComponent implements OnInit {
 
   onDragEnd() {
     this._dragTx = null;
+    this._stopAutoScroll();
     // restore opacity on all cards
     document.querySelectorAll<HTMLElement>('.tx-card').forEach(el => el.style.opacity = '');
     if (this._dropTarget) {
       this._dropTarget.classList.remove('drag-over');
       this._dropTarget = null;
+    }
+  }
+
+  private _stopAutoScroll() {
+    if (this._scrollRaf !== null) { cancelAnimationFrame(this._scrollRaf); this._scrollRaf = null; }
+  }
+
+  onBoardDragOver(event: DragEvent) {
+    const board = this.boardEl?.nativeElement;
+    if (!board || !this._dragTx) return;
+    const rect = board.getBoundingClientRect();
+    const ZONE = 80;   // px from edge that triggers scroll
+    const SPEED = 12;  // px per frame
+    const x = event.clientX;
+    let delta = 0;
+    if (x < rect.left + ZONE) delta = -SPEED * (1 - (x - rect.left) / ZONE);
+    else if (x > rect.right - ZONE) delta = SPEED * (1 - (rect.right - x) / ZONE);
+
+    this._stopAutoScroll();
+    if (delta !== 0) {
+      const scroll = () => {
+        board.scrollLeft += delta;
+        this._scrollRaf = requestAnimationFrame(scroll);
+      };
+      this._scrollRaf = requestAnimationFrame(scroll);
     }
   }
 
