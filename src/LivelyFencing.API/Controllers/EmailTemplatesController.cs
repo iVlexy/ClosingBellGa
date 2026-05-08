@@ -15,11 +15,13 @@ public class EmailTemplatesController : ControllerBase
 {
     private readonly AppDbContext _db;
     private readonly SendGridEmailService _email;
+    private readonly ILogger<EmailTemplatesController> _logger;
 
-    public EmailTemplatesController(AppDbContext db, SendGridEmailService email)
+    public EmailTemplatesController(AppDbContext db, SendGridEmailService email, ILogger<EmailTemplatesController> logger)
     {
         _db = db;
         _email = email;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -65,7 +67,7 @@ public class EmailTemplatesController : ControllerBase
         var client = await _db.Customers.FindAsync(req.ClientId);
         if (client == null) return NotFound("Client not found.");
         if (string.IsNullOrWhiteSpace(client.Email))
-            return BadRequest("This client does not have an email address on file.");
+            return BadRequest(new { message = "This client does not have an email address on file." });
 
         var today = DateTime.Today.ToString("MMMM d, yyyy");
         var address = req.Address ?? string.Empty;
@@ -75,8 +77,16 @@ public class EmailTemplatesController : ControllerBase
             .Replace("[Address]", address)
             .Replace("[Date]", today);
 
-        await _email.SendTemplateEmailAsync(client.Email, client.Name, Sub(template.Subject), Sub(template.Body));
-        return Ok(new { message = $"Email sent to {client.Email}" });
+        try
+        {
+            await _email.SendTemplateEmailAsync(client.Email, client.Name, Sub(template.Subject), Sub(template.Body));
+            return Ok(new { message = $"Email sent to {client.Email}" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send template email to {Email}", client.Email);
+            return StatusCode(502, new { message = "Email delivery failed. The SendGrid API key may not be configured — please contact your administrator." });
+        }
     }
 
     [HttpDelete("{id}")]
