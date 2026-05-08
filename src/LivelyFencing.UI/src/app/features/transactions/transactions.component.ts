@@ -78,6 +78,10 @@ const TX_TYPES = [
           (dragstart)="onDragStart($event, tx)"
           (dragend)="onDragEnd()"
           (click)="openDetail(tx)">
+          <div class="tx-hint-bar">
+            <span class="tx-hint-text">Click to edit</span>
+            <mat-icon class="tx-hint-icon">edit</mat-icon>
+          </div>
           <div class="tx-client">{{tx.clientName}}</div>
           <div class="tx-addr" *ngIf="tx.address">{{tx.address}}</div>
           <div class="tx-meta">
@@ -335,7 +339,10 @@ const TX_TYPES = [
     .col-title { font-size: 12px; font-weight: 600; color: #333; }
     .col-badge { color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
     .col-cards { background: #f3f4f6; border-radius: 0 0 8px 8px; padding: 8px; display: flex; flex-direction: column; gap: 8px; min-height: 200px; }
-    .tx-card { background: #fff; border-radius: 8px; padding: 10px 12px; cursor: pointer; border: 1px solid #e5e7eb; transition: box-shadow .15s; }
+    .tx-card { background: #fff; border-radius: 8px; padding: 10px 12px; cursor: pointer; border: 1px solid #e5e7eb; transition: box-shadow .15s; position: relative; }
+    .tx-hint-bar { position: absolute; top: 7px; right: 8px; pointer-events: none; }
+    .tx-hint-text { font-size: 10px; color: #bbb; letter-spacing: .3px; display: inline; }
+    .tx-hint-icon { font-size: 13px; width: 13px; height: 13px; color: #bbb; display: none; vertical-align: middle; }
     .tx-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.12); }
     .tx-client { font-weight: 600; font-size: 13px; color: #1A3A2A; }
     .tx-addr { font-size: 11px; color: #666; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -393,6 +400,8 @@ const TX_TYPES = [
       .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
       .page-header button { align-self: stretch; }
       .board-col { min-width: 160px; max-width: 175px; }
+      .tx-hint-text { display: none; }
+      .tx-hint-icon { display: inline !important; }
       .form-row-2 { flex-direction: column; gap: 0; }
       .form-row-4 { flex-direction: column; gap: 0; }
       .pipeline-steps { gap: 0; }
