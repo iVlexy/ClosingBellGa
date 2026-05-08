@@ -152,14 +152,14 @@ public class SendGridEmailService
 <html>
 <body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#333;">
   <div style="background:#1B5E20;padding:24px;text-align:center;">
-    <h1 style="color:white;margin:0;font-size:22px;">Closing Bell GA</h1>
+    <h1 style="color:white;margin:0;font-size:22px;">Closing Bell Real Estate</h1>
     <p style="color:#C8E6C9;margin:4px 0 0;font-size:13px;">Real Estate Services</p>
   </div>
   <div style="padding:32px;line-height:1.7;font-size:15px;">
     {htmlBody}
   </div>
   <div style="background:#F5F5F5;padding:16px 32px;font-size:12px;color:#888;text-align:center;border-top:1px solid #eee;">
-    Closing Bell GA &mdash; Real Estate Services
+    Closing Bell Real Estate
   </div>
 </body>
 </html>
