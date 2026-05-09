@@ -201,16 +201,6 @@ public class QuotesController : ControllerBase
         if (quote == null) return NotFound();
         if (quote.Status != QuoteStatus.Approved && quote.Status != QuoteStatus.Draft) return BadRequest($"Cannot send a quote in status {quote.Status}");
 
-        var portalBase = _config["App:PortalBaseUrl"] ?? "https://lookinlivelyexterior.com";
-        var pdf = new QuotePdfDocument(quote, portalBase);
-        var pdfBytes = pdf.GeneratePdf();
-
-        await _email.SendQuoteAsync(
-            quote.Customer.Email, quote.Customer.Name,
-            quote.Customer.Name, quote.Job.Title,
-            pdfBytes, quote.Id, quote.PortalToken,
-            quote.TotalAmount, quote.ValidUntil);
-
         quote.Status = QuoteStatus.Sent;
         quote.SentAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
@@ -225,7 +215,7 @@ public class QuotesController : ControllerBase
             .Include(q => q.Customer).Include(q => q.Job).Include(q => q.LineItems.OrderBy(li => li.SortOrder))
             .FirstOrDefaultAsync(q => q.Id == id);
         if (quote == null) return NotFound();
-        var portalBase = _config["App:PortalBaseUrl"] ?? "https://lookinlivelyexterior.com";
+        var portalBase = _config["App:PortalBaseUrl"] ?? "https://closingbellga.com";
         var pdf = new QuotePdfDocument(quote, portalBase);
         var bytes = pdf.GeneratePdf();
         return File(bytes, "application/pdf", $"LLES-Quote-{quote.Id.ToString()[..8].ToUpper()}.pdf");
@@ -327,7 +317,7 @@ public class PortalController : ControllerBase
         if (quote == null) return NotFound();
         var email = User.GetEmail();
         if (!string.Equals(quote.Customer.Email, email, StringComparison.OrdinalIgnoreCase) && !User.IsAdmin()) return StatusCode(403);
-        var portalBase = config["App:PortalBaseUrl"] ?? "https://lookinlivelyexterior.com";
+        var portalBase = config["App:PortalBaseUrl"] ?? "https://closingbellga.com";
         var bytes = new QuotePdfDocument(quote, portalBase).GeneratePdf();
         return File(bytes, "application/pdf", $"LLES-Quote-{quote.Id.ToString()[..8].ToUpper()}.pdf");
     }

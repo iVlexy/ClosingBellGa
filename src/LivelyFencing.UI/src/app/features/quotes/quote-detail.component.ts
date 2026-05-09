@@ -42,9 +42,7 @@ import { AuthService } from '../../core/services/auth.service';
           <button mat-raised-button color="warn" *ngIf="quote().status === 'PendingApproval' && auth.isAdmin()" (click)="reject()" [disabled]="working">
             <mat-icon>cancel</mat-icon> Reject
           </button>
-          <button mat-raised-button color="accent" *ngIf="(quote().status === 'Approved' || quote().status === 'Draft') && auth.isAdmin()" (click)="send()" [disabled]="working">
-            <mat-icon>send</mat-icon> Send to Customer
-          </button>
+
           <button mat-stroked-button *ngIf="canEdit() && !editing" (click)="startEdit()" [disabled]="working">
             <mat-icon>edit</mat-icon> Edit Quote
           </button>
@@ -277,14 +275,6 @@ export class QuoteDetailComponent implements OnInit {
         next: () => { this.loadQuote(); this.working = false; this.snackBar.open('Quote rejected', 'OK', { duration: 3000 }); },
         error: () => this.working = false
       });
-    });
-  }
-
-  send() {
-    this.working = true;
-    this.api.sendQuote(this.quote().id).subscribe({
-      next: () => { this.loadQuote(); this.working = false; this.snackBar.open('Quote sent to customer', 'OK', { duration: 3000 }); },
-      error: () => this.working = false
     });
   }
 
