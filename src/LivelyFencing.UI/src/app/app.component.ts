@@ -78,14 +78,6 @@ import { ThemeService } from './core/services/theme.service';
             <mat-icon matListItemIcon>build</mat-icon>
             <span matListItemTitle>Jobs</span>
           </a>
-          <a mat-list-item routerLink="/cq/quotes" routerLinkActive="active-link" *ngIf="auth.hasRole('Admin','Sales','Accountant') && tenant.hasFeature('quotes')">
-            <mat-icon matListItemIcon>request_quote</mat-icon>
-            <span matListItemTitle>Quotes</span>
-          </a>
-          <a mat-list-item routerLink="/cq/contractors" routerLinkActive="active-link" *ngIf="auth.hasRole('Admin','Accountant') && tenant.hasFeature('contractors')">
-            <mat-icon matListItemIcon>engineering</mat-icon>
-            <span matListItemTitle>Contractors</span>
-          </a>
           <a mat-list-item routerLink="/cq/budgets" routerLinkActive="active-link" *ngIf="auth.hasRole('Admin','Accountant') && tenant.hasFeature('budgets')">
             <mat-icon matListItemIcon>account_balance_wallet</mat-icon>
             <span matListItemTitle>Budgets</span>

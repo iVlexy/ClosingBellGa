@@ -34,49 +34,13 @@ import { AuthService } from '../../core/services/auth.service';
         <mat-card-header><mat-card-title>{{ year }} Tax Summary (Schedule C)</mat-card-title></mat-card-header>
         <mat-card-content>
           <div class="summary-grid">
-            <div class="summary-item revenue"><div class="label">Total Revenue</div><div class="value">{{ taxSummary().totalRevenue | currency }}</div></div>
-            <div class="summary-item cost"><div class="label">Contractor Costs</div><div class="value">{{ taxSummary().totalContractorCosts | currency }}</div></div>
+            <div class="summary-item revenue"><div class="label">Total Income</div><div class="value">{{ taxSummary().totalIncome | currency }}</div></div>
             <div class="summary-item expense"><div class="label">Business Expenses</div><div class="value">{{ taxSummary().totalExpenses | currency }}</div></div>
             <div class="summary-item profit"><div class="label">Gross Profit</div><div class="value">{{ taxSummary().grossProfit | currency }}</div></div>
-            <div class="summary-item jobs"><div class="label">Completed Jobs</div><div class="value">{{ taxSummary().completedJobs }}</div></div>
           </div>
         </mat-card-content>
       </mat-card>
 
-      <!-- Revenue by Month -->
-      <mat-card *ngIf="revenue()">
-        <mat-card-header><mat-card-title>Revenue by Month</mat-card-title></mat-card-header>
-        <mat-card-content>
-          <div class="table-wrap"><table mat-table [dataSource]="revenue().byMonth || []" class="full-width">
-            <ng-container matColumnDef="month"><th mat-header-cell *matHeaderCellDef>Month</th><td mat-cell *matCellDef="let r">{{ r.year }}-{{ r.month | number:'2.0-0' }}</td></ng-container>
-            <ng-container matColumnDef="quotes"><th mat-header-cell *matHeaderCellDef class="num">Quotes</th><td mat-cell *matCellDef="let r" class="num">{{ r.quoteCount }}</td></ng-container>
-            <ng-container matColumnDef="revenue"><th mat-header-cell *matHeaderCellDef class="num">Revenue</th><td mat-cell *matCellDef="let r" class="num">{{ r.revenue | currency }}</td></ng-container>
-            <tr mat-header-row *matHeaderRowDef="['month','quotes','revenue']"></tr>
-            <tr mat-row *matRowDef="let row; columns: ['month','quotes','revenue'];"></tr>
-          </table></div>
-          <div class="export-row"><button mat-stroked-button (click)="exportCsv(revenue().byMonth, 'revenue-'+year)"><mat-icon>download</mat-icon> Export CSV</button></div>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Contractor Payments -->
-      <mat-card *ngIf="contractorPayments()">
-        <mat-card-header>
-          <mat-card-title>Contractor Payments (1099 Prep)</mat-card-title>
-          <mat-card-subtitle>Total: {{ contractorPayments().totalPaid | currency }} across {{ contractorPayments().totalContractors }} contractors</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <div class="table-wrap"><table mat-table [dataSource]="contractorPayments().contractors || []" class="full-width">
-            <ng-container matColumnDef="name"><th mat-header-cell *matHeaderCellDef>Contractor</th><td mat-cell *matCellDef="let c">{{ c.name }}</td></ng-container>
-            <ng-container matColumnDef="email"><th mat-header-cell *matHeaderCellDef>Email</th><td mat-cell *matCellDef="let c">{{ c.email }}</td></ng-container>
-            <ng-container matColumnDef="payments"><th mat-header-cell *matHeaderCellDef class="num">Payments</th><td mat-cell *matCellDef="let c" class="num">{{ c.paymentCount }}</td></ng-container>
-            <ng-container matColumnDef="total"><th mat-header-cell *matHeaderCellDef class="num">Total Paid</th><td mat-cell *matCellDef="let c" class="num"><strong>{{ c.totalPaid | currency }}</strong></td></ng-container>
-            <ng-container matColumnDef="actions"><th mat-header-cell *matHeaderCellDef></th><td mat-cell *matCellDef="let c"><a mat-icon-button [routerLink]="['/cq/contractors', c.contractorId]" matTooltip="View Contractor"><mat-icon>open_in_new</mat-icon></a></td></ng-container>
-            <tr mat-header-row *matHeaderRowDef="['name','email','payments','total','actions']"></tr>
-            <tr mat-row *matRowDef="let row; columns: ['name','email','payments','total','actions'];"></tr>
-          </table></div>
-          <div class="export-row"><button mat-stroked-button (click)="exportCsv(contractorPayments().contractors, 'contractors-'+year)"><mat-icon>download</mat-icon> Export CSV</button></div>
-        </mat-card-content>
-      </mat-card>
       <!-- Expense Breakdown -->
       <mat-card *ngIf="expenseReport()">
         <mat-card-header>
@@ -122,9 +86,7 @@ import { AuthService } from '../../core/services/auth.service';
     .summary-item .label { font-size: 12px; color: #666; }
     .summary-item .value { font-size: 22px; font-weight: bold; margin-top: 4px; }
     .summary-item.revenue { background: #E8F5E9; } .summary-item.revenue .value { color: #2E7D32; }
-    .summary-item.cost { background: #FFF3E0; } .summary-item.cost .value { color: #E65100; }
     .summary-item.profit { background: #E3F2FD; } .summary-item.profit .value { color: #1565C0; }
-    .summary-item.jobs { background: #F3E5F5; } .summary-item.jobs .value { color: #6A1B9A; }
     .summary-item.expense { background: #FBE9E7; } .summary-item.expense .value { color: #BF360C; }
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
     .section-label { font-size: 14px; font-weight: 500; color: #555; margin: 8px 0; }
@@ -145,16 +107,12 @@ export class ReportsComponent implements OnInit {
   year = new Date().getFullYear();
   years = Array.from({ length: 5 }, (_, i) => this.year - i);
   taxSummary = signal<any>(null);
-  revenue = signal<any>(null);
-  contractorPayments = signal<any>(null);
   expenseReport = signal<any>(null);
 
   ngOnInit() { this.loadAll(); }
 
   loadAll() {
     this.api.getTaxSummaryReport(this.year).subscribe(d => this.taxSummary.set(d));
-    this.api.getRevenueReport(this.year).subscribe(d => this.revenue.set(d));
-    this.api.getContractorPaymentsReport(this.year).subscribe(d => this.contractorPayments.set(d));
     this.api.getExpenseReport(this.year).subscribe(d => this.expenseReport.set(d));
   }
 

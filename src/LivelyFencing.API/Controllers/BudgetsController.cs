@@ -34,18 +34,11 @@ public class BudgetsController : ControllerBase
         var budget = await _db.Budgets.Include(b => b.LineItems).FirstOrDefaultAsync(b => b.Id == id);
         if (budget == null) return NotFound();
 
-        // Aggregate contractor payments by category (all payments map to Labour for now)
-        var payments = await _db.ContractorPayments
-            .Where(p => budget.JobId.HasValue ? p.JobId == budget.JobId : p.TaxYear == budget.Year)
-            .GroupBy(p => "Labour")
-            .Select(g => new { Category = g.Key, Actual = g.Sum(p => p.Amount) })
-            .ToListAsync();
-
         var actuals = budget.LineItems.Select(li => new
         {
             li.Id, Category = li.Category.ToString(), li.Description, li.PlannedAmount,
-            ActualAmount = payments.FirstOrDefault(p => p.Category == li.Category.ToString())?.Actual ?? 0m,
-        }).Select(x => new { x.Id, x.Category, x.Description, x.PlannedAmount, x.ActualAmount, Variance = x.PlannedAmount - x.ActualAmount }).ToList();
+            ActualAmount = 0m, Variance = li.PlannedAmount
+        }).ToList();
 
         return Ok(new { budget.Id, budget.Name, budget.Year, LineItems = actuals, TotalPlanned = actuals.Sum(a => a.PlannedAmount), TotalActual = actuals.Sum(a => a.ActualAmount) });
     }

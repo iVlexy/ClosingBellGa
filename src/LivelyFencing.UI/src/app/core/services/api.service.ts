@@ -28,41 +28,7 @@ export class ApiService {
   updateJobStatus(id: string, status: string) { return this.http.patch<any>(`${this.base}/jobs/${id}/status`, { status }); }
   deleteJob(id: string) { return this.http.delete(`${this.base}/jobs/${id}`); }
 
-  // Quotes
-  getQuotes(status?: string, customerId?: string) {
-    let params = new HttpParams();
-    if (status) params = params.set('status', status);
-    if (customerId) params = params.set('customerId', customerId);
-    return this.http.get<any[]>(`${this.base}/quotes`, { params });
-  }
-  getQuote(id: string) { return this.http.get<any>(`${this.base}/quotes/${id}`); }
-  generateQuote(jobId: string) { return this.http.post<any>(`${this.base}/quotes/generate`, { jobId }); }
-  createManualQuote(data: any) { return this.http.post<any>(`${this.base}/quotes`, data); }
-  updateLineItems(id: string, lineItems: any[]) { return this.http.put<any>(`${this.base}/quotes/${id}/lineitems`, lineItems); }
-  updateQuote(id: string, data: any) { return this.http.patch<any>(`${this.base}/quotes/${id}`, data); }
-  approveQuote(id: string, adminNotes?: string) { return this.http.patch<any>(`${this.base}/quotes/${id}/approve`, { adminNotes }); }
-  rejectQuote(id: string, reason: string) { return this.http.patch<any>(`${this.base}/quotes/${id}/reject`, { reason }); }
-  sendQuote(id: string) { return this.http.patch<any>(`${this.base}/quotes/${id}/send`, {}); }
-  deleteQuote(id: string) { return this.http.delete(`${this.base}/quotes/${id}`); }
-  reopenQuote(id: string) { return this.http.patch<any>(`${this.base}/quotes/${id}/reopen`, {}); }
 
-  // Portal
-  getMyPortalQuotes() { return this.http.get<any[]>(`${this.base}/portal/quotes`); }
-  getPortalQuote(token: string) { return this.http.get<any>(`${this.base}/portal/quotes/${token}`); }
-  acceptPortalQuote(token: string) { return this.http.post<any>(`${this.base}/portal/quotes/${token}/accept`, {}); }
-  rejectPortalQuote(token: string, reason?: string) { return this.http.post<any>(`${this.base}/portal/quotes/${token}/reject`, { reason }); }
-
-  // Contractors
-  getContractors() { return this.http.get<any[]>(`${this.base}/contractors`); }
-  getContractor(id: string) { return this.http.get<any>(`${this.base}/contractors/${id}`); }
-  createContractor(data: any) { return this.http.post<any>(`${this.base}/contractors`, data); }
-  updateContractor(id: string, data: any) { return this.http.put<any>(`${this.base}/contractors/${id}`, data); }
-  deleteContractor(id: string) { return this.http.delete(`${this.base}/contractors/${id}`); }
-  getContractorPayments(id: string, year?: number) {
-    return this.http.get<any[]>(`${this.base}/contractors/${id}/payments`, { params: year ? { year } : {} });
-  }
-  addPayment(contractorId: string, data: any) { return this.http.post<any>(`${this.base}/contractors/${contractorId}/payments`, data); }
-  deletePayment(contractorId: string, paymentId: string) { return this.http.delete(`${this.base}/contractors/${contractorId}/payments/${paymentId}`); }
 
   // Budgets
   getBudgets(year?: number) { return this.http.get<any[]>(`${this.base}/budgets`, { params: year ? { year } : {} }); }
@@ -73,10 +39,6 @@ export class ApiService {
   deleteBudget(id: string) { return this.http.delete(`${this.base}/budgets/${id}`); }
 
   // Reports
-  getRevenueReport(year: number, quarter?: number) {
-    return this.http.get<any>(`${this.base}/reports/revenue`, { params: quarter ? { year, quarter } : { year } });
-  }
-  getContractorPaymentsReport(year: number) { return this.http.get<any>(`${this.base}/reports/contractor-payments`, { params: { year } }); }
   getJobSummaryReport(year: number) { return this.http.get<any>(`${this.base}/reports/job-summary`, { params: { year } }); }
   getExpenseReport(year: number) { return this.http.get<any>(`${this.base}/reports/expenses`, { params: { year } }); }
   getTaxSummaryReport(year: number) { return this.http.get<any>(`${this.base}/reports/tax-summary`, { params: { year } }); }

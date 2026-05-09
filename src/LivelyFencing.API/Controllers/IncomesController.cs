@@ -28,7 +28,7 @@ public class IncomesController : ControllerBase
         return Ok(results.Select(i => new {
             i.Id, i.Date, i.Amount, Category = i.Category.ToString(),
             i.Description, i.JobId, JobTitle = i.Job?.Title,
-            i.QuoteId, i.Notes, i.CreatedByEmail, i.CreatedAt
+            i.Notes, i.CreatedByEmail, i.CreatedAt
         }));
     }
 
@@ -46,13 +46,12 @@ public class IncomesController : ControllerBase
             Category = cat,
             Description = req.Description,
             JobId = req.JobId,
-            QuoteId = req.QuoteId,
             Notes = req.Notes,
             CreatedByEmail = email
         };
         _db.Incomes.Add(income);
         await _db.SaveChangesAsync(ct);
-        return Ok(new { income.Id, income.Date, income.Amount, Category = income.Category.ToString(), income.Description, income.JobId, income.QuoteId, income.Notes, income.CreatedAt });
+return Ok(new { income.Id, income.Date, income.Amount, Category = income.Category.ToString(), income.Description, income.JobId, income.Notes, income.CreatedAt });
     }
 
     [HttpPut("{id}")]
@@ -67,10 +66,9 @@ public class IncomesController : ControllerBase
         income.Category = cat;
         income.Description = req.Description;
         income.JobId = req.JobId;
-        income.QuoteId = req.QuoteId;
         income.Notes = req.Notes;
         await _db.SaveChangesAsync(ct);
-        return Ok(new { income.Id, income.Date, income.Amount, Category = income.Category.ToString(), income.Description, income.JobId, income.QuoteId, income.Notes });
+        return Ok(new { income.Id, income.Date, income.Amount, Category = income.Category.ToString(), income.Description, income.JobId, income.Notes });
     }
 
     [HttpDelete("{id}")]
@@ -87,4 +85,4 @@ public class IncomesController : ControllerBase
     }
 }
 
-public record IncomeRequest(DateTime Date, decimal Amount, string Category, string Description, Guid? JobId, Guid? QuoteId, string? Notes);
+public record IncomeRequest(DateTime Date, decimal Amount, string Category, string Description, Guid? JobId, string? Notes);

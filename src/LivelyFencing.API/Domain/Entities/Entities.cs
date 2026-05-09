@@ -30,7 +30,6 @@ public class Customer
     public DateTime? DeletedAt { get; set; }
     public string? DeletedByEmail { get; set; }
     public ICollection<Job> Jobs { get; set; } = new List<Job>();
-    public ICollection<Quote> Quotes { get; set; } = new List<Quote>();
 }
 
 public class Job
@@ -52,7 +51,6 @@ public class Job
     public bool IsDeleted { get; set; } = false;
     public DateTime? DeletedAt { get; set; }
     public string? DeletedByEmail { get; set; }
-    public ICollection<Quote> Quotes { get; set; } = new List<Quote>();
     public JobEmbedding? Embedding { get; set; }
 }
 
@@ -62,82 +60,6 @@ public class JobEmbedding
     public Job Job { get; set; } = null!;
     public Pgvector.Vector Embedding { get; set; } = null!;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-}
-
-public class Quote
-{
-    public Guid Id { get; set; } = Guid.NewGuid();
-    public Guid JobId { get; set; }
-    public Job Job { get; set; } = null!;
-    public Guid CustomerId { get; set; }
-    public Customer Customer { get; set; } = null!;
-    public QuoteStatus Status { get; set; } = QuoteStatus.Draft;
-    public bool AIGenerated { get; set; }
-    public string? AIContextSnapshot { get; set; }
-    public string? AdminNotes { get; set; }
-    public decimal TotalAmount { get; set; }
-    public DateTime ValidUntil { get; set; } = DateTime.UtcNow.AddDays(30);
-    public Guid PortalToken { get; set; } = Guid.NewGuid();
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? SentAt { get; set; }
-    public DateTime? AcceptedAt { get; set; }
-    public DateTime? RejectedAt { get; set; }
-    public string? CustomerRejectionReason { get; set; }
-    public bool IsDeleted { get; set; } = false;
-    public DateTime? DeletedAt { get; set; }
-    public string? DeletedByEmail { get; set; }
-    public ICollection<QuoteLineItem> LineItems { get; set; } = new List<QuoteLineItem>();
-}
-
-public class QuoteLineItem
-{
-    public Guid Id { get; set; } = Guid.NewGuid();
-    public Guid QuoteId { get; set; }
-    public Quote Quote { get; set; } = null!;
-    public LineItemCategory Category { get; set; }
-    public string Description { get; set; } = string.Empty;
-    public decimal Quantity { get; set; }
-    public decimal UnitPrice { get; set; }
-    public decimal Total => Quantity * UnitPrice;
-    public int SortOrder { get; set; }
-}
-
-public class Contractor
-{
-    public Guid Id { get; set; } = Guid.NewGuid();
-    public string Name { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string? Phone { get; set; }
-    public string? Address { get; set; }
-    public string? City { get; set; }
-    public string? State { get; set; }
-    public string? Zip { get; set; }
-    public TaxIdType TaxIdType { get; set; }
-    public byte[] TaxIdEncrypted { get; set; } = Array.Empty<byte>();
-    public byte[] TaxIdIV { get; set; } = Array.Empty<byte>();
-    public bool IsActive { get; set; } = true;
-    public bool IsDeleted { get; set; } = false;
-    public DateTime? DeletedAt { get; set; }
-    public string? DeletedByEmail { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public ICollection<ContractorPayment> Payments { get; set; } = new List<ContractorPayment>();
-}
-
-public class ContractorPayment
-{
-    public Guid Id { get; set; } = Guid.NewGuid();
-    public Guid ContractorId { get; set; }
-    public Contractor Contractor { get; set; } = null!;
-    public Guid? JobId { get; set; }
-    public Job? Job { get; set; }
-    public decimal Amount { get; set; }
-    public DateTime PaymentDate { get; set; }
-    public string? Description { get; set; }
-    public int TaxYear { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public bool IsDeleted { get; set; } = false;
-    public DateTime? DeletedAt { get; set; }
-    public string? DeletedByEmail { get; set; }
 }
 
 public class Budget
@@ -242,8 +164,6 @@ public class Income
     public string Description { get; set; } = string.Empty;
     public Guid? JobId { get; set; }
     public Job? Job { get; set; }
-    public Guid? QuoteId { get; set; }
-    public Quote? Quote { get; set; }
     public string? Notes { get; set; }
     public string CreatedByEmail { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

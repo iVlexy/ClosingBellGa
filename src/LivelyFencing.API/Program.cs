@@ -1,6 +1,5 @@
 using LivelyFencing.API.Data;
 using LivelyFencing.API.Infrastructure.Auth;
-using LivelyFencing.API.Infrastructure.AI;
 using LivelyFencing.API.Infrastructure.Email;
 using Microsoft.EntityFrameworkCore;
 using Pgvector.EntityFrameworkCore;
@@ -15,11 +14,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
-// AI Service
-builder.Services.AddHttpClient<OllamaQuoteService>(client =>
-{
-    client.Timeout = TimeSpan.FromMinutes(5); // AI generation can be slow on CPU
-});
 
 // Email Service
 builder.Services.AddSingleton<SendGridEmailService>();

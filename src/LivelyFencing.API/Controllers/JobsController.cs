@@ -28,7 +28,7 @@ public class JobsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> Get(Guid id)
     {
-        var j = await _db.Jobs.Include(x => x.Customer).Include(x => x.Quotes).FirstOrDefaultAsync(x => x.Id == id);
+        var j = await _db.Jobs.Include(x => x.Customer).FirstOrDefaultAsync(x => x.Id == id);
         return j == null ? NotFound() : Ok(j);
     }
 

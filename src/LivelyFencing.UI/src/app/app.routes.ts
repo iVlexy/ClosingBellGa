@@ -32,26 +32,6 @@ export const routes: Routes = [
     canActivate: [authGuard(['Admin', 'Sales', 'Accountant', 'FieldWorker'])]
   },
   {
-    path: 'cq/quotes',
-    loadComponent: () => import('./features/quotes/quote-list.component').then(m => m.QuoteListComponent),
-    canActivate: [authGuard(['Admin', 'Sales', 'Accountant'])]
-  },
-  {
-    path: 'cq/quotes/:id',
-    loadComponent: () => import('./features/quotes/quote-detail.component').then(m => m.QuoteDetailComponent),
-    canActivate: [authGuard(['Admin', 'Sales', 'Accountant'])]
-  },
-  {
-    path: 'cq/contractors',
-    loadComponent: () => import('./features/contractors/contractor-list.component').then(m => m.ContractorListComponent),
-    canActivate: [authGuard(['Admin', 'Accountant'])]
-  },
-  {
-    path: 'cq/contractors/:id',
-    loadComponent: () => import('./features/contractors/contractor-detail.component').then(m => m.ContractorDetailComponent),
-    canActivate: [authGuard(['Admin', 'Accountant'])]
-  },
-  {
     path: 'cq/budgets',
     loadComponent: () => import('./features/budgets/budget-list.component').then(m => m.BudgetListComponent),
     canActivate: [authGuard(['Admin', 'Accountant'])]
@@ -60,11 +40,6 @@ export const routes: Routes = [
     path: 'cq/reports',
     loadComponent: () => import('./features/reports/reports.component').then(m => m.ReportsComponent),
     canActivate: [authGuard(['Admin', 'Accountant'])]
-  },
-  {
-    path: 'portal/quotes/:token',
-    loadComponent: () => import('./features/portal/portal-quote.component').then(m => m.PortalQuoteComponent),
-    canActivate: [authGuard(['Admin', 'Sales', 'Accountant', 'FieldWorker', 'Customer'])]
   },
   {
     path: 'cq/expenses',

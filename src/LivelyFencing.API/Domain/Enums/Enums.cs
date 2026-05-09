@@ -27,16 +27,6 @@ public enum JobStatus
     OnHold
 }
 
-public enum QuoteStatus
-{
-    Draft,
-    PendingApproval,
-    Approved,
-    Sent,
-    Accepted,
-    Rejected,
-    Expired
-}
 
 public enum LineItemCategory
 {
@@ -48,11 +38,6 @@ public enum LineItemCategory
     Other
 }
 
-public enum TaxIdType
-{
-    SSN,
-    EIN
-}
 
 public enum AuditAction
 {
