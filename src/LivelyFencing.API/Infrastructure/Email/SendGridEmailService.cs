@@ -21,15 +21,15 @@ public class SendGridEmailService
         decimal totalAmount, DateTime validUntil)
     {
         var apiKey = _config["SendGrid:ApiKey"]!;
-        var fromEmail = _config["SendGrid:FromEmail"] ?? "quotes@lookinlivelyexterior.com";
-        var fromName = _config["SendGrid:FromName"] ?? "Lookin' Lively Exterior Solutions";
-        var portalBase = _config["App:PortalBaseUrl"] ?? "https://lookinlivelyexterior.com";
+        var fromEmail = _config["SendGrid:FromEmail"] ?? "noreply@closingbellga.com";
+        var fromName = _config["SendGrid:FromName"] ?? "Closing Bell Real Estate";
+        var portalBase = _config["App:PortalBaseUrl"] ?? "https://closingbellga.com";
 
         var client = new SendGridClient(apiKey);
         var msg = new SendGridMessage
         {
             From = new EmailAddress(fromEmail, fromName),
-            Subject = $"Your Quote from Lookin' Lively Exterior Solutions — #{quoteId.ToString()[..8].ToUpper()}"
+            Subject = $"Your Quote — #{quoteId.ToString()[..8].ToUpper()} | Closing Bell Real Estate"
         };
 
         msg.AddTo(new EmailAddress(toEmail, toName));
@@ -41,8 +41,8 @@ public class SendGridEmailService
 <html>
 <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
   <div style="background: #2E7D32; padding: 24px; text-align: center;">
-    <h1 style="color: white; margin: 0;">Lookin' Lively Exterior Solutions</h1>
-    <p style="color: #C8E6C9; margin: 4px 0 0;">Professional Fencing Solutions</p>
+    <h1 style="color: white; margin: 0;">Closing Bell Real Estate</h1>
+    <p style="color: #C8E6C9; margin: 4px 0 0;">Real Estate Services</p>
   </div>
   <div style="padding: 32px;">
     <h2>Hi {customerName},</h2>
@@ -61,7 +61,7 @@ public class SendGridEmailService
     </div>
     <p style="font-size: 12px; color: #888;">Or copy this link into your browser:<br/><a href="{portalUrl}">{portalUrl}</a></p>
     <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;"/>
-    <p style="font-size: 12px; color: #888;">Questions? Reply to this email or contact us at <a href="mailto:info@lookinlivelyexterior.com">info@lookinlivelyexterior.com</a></p>
+    <p style="font-size: 12px; color: #888;">Questions? Reply to this email or contact us at <a href="mailto:brandon@closingbellga.com">brandon@closingbellga.com</a></p>
   </div>
 </body>
 </html>
@@ -69,7 +69,7 @@ public class SendGridEmailService
 
         // Attach PDF
         var pdfBase64 = Convert.ToBase64String(pdfBytes);
-        msg.AddAttachment($"LLES-Quote-{quoteId.ToString()[..8].ToUpper()}.pdf", pdfBase64, "application/pdf");
+        msg.AddAttachment($"CBGA-Quote-{quoteId.ToString()[..8].ToUpper()}.pdf", pdfBase64, "application/pdf");
 
         var response = await client.SendEmailAsync(msg);
         if (!response.IsSuccessStatusCode)
@@ -85,24 +85,24 @@ public class SendGridEmailService
     public async Task SendContactNotificationAsync(string name, string email, string phone, string message)
     {
         var apiKey = _config["SendGrid:ApiKey"]!;
-        var fromEmail = _config["SendGrid:FromEmail"] ?? "quotes@lookinlivelyexterior.com";
-        var fromName = _config["SendGrid:FromName"] ?? "Lookin' Lively Exterior Solutions";
+        var fromEmail = _config["SendGrid:FromEmail"] ?? "noreply@closingbellga.com";
+        var fromName = _config["SendGrid:FromName"] ?? "Closing Bell Real Estate";
         var adminEmail = _config["App:AdminEmail"] ?? fromEmail;
 
         var client = new SendGridClient(apiKey);
         var msg = new SendGridMessage
         {
             From = new EmailAddress(fromEmail, fromName),
-            Subject = $"New Quote Request from {name}"
+            Subject = $"New Consultation Request from {name}"
         };
-        msg.AddTo(new EmailAddress(adminEmail, "Lookin' Lively Exterior Solutions Admin"));
+        msg.AddTo(new EmailAddress(adminEmail, "Closing Bell Real Estate"));
         msg.HtmlContent = $"""
 <!DOCTYPE html>
 <html>
 <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
   <div style="background: #2E7D32; padding: 24px; text-align: center;">
     <h1 style="color: white; margin: 0;">New Quote Request</h1>
-    <p style="color: #C8E6C9; margin: 4px 0 0;">Submitted via lookinlivelyexterior.com</p>
+    <p style="color: #C8E6C9; margin: 4px 0 0;">Submitted via closingbellga.com</p>
   </div>
   <div style="padding: 32px;">
     <table style="width:100%; border-collapse: collapse;">
