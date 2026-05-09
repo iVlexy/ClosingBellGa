@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using LivelyFencing.API.Data;
 using LivelyFencing.API.Domain.Entities;
 using LivelyFencing.API.Infrastructure.Auth;
+using LivelyFencing.API.Domain.Enums;
 
 namespace LivelyFencing.API.Controllers;
 
@@ -61,6 +62,18 @@ public class CustomersController : ControllerBase
         var c = new Customer { Name = req.Name, Company = req.Company, Email = req.Email, Phone = req.Phone, BillingAddress = req.BillingAddress, City = req.City, State = req.State, Zip = req.Zip };
         _db.Customers.Add(c);
         await _db.SaveChangesAsync();
+
+        // Auto-create a Prospecting transaction for every new client
+        var transaction = new Transaction
+        {
+            ClientId = c.Id,
+            Type = TransactionType.BuyerRepresentation,
+            Status = TransactionStatus.Prospecting,
+            CreatedByEmail = User.GetEmail()
+        };
+        _db.Set<Transaction>().Add(transaction);
+        await _db.SaveChangesAsync();
+
         return CreatedAtAction(nameof(Get), new { id = c.Id }, c);
     }
 
