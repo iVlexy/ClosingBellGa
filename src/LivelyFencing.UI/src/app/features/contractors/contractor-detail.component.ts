@@ -24,7 +24,6 @@ import { AuthService } from '../../core/services/auth.service';
           <p class="subtitle">Contractor</p>
         </div>
         <div class="header-actions">
-          <button mat-stroked-button (click)="download1099()"><mat-icon>download</mat-icon> 1099-NEC {{ currentYear }}</button>
         </div>
       </div>
       <mat-tab-group>
@@ -94,16 +93,6 @@ export class ContractorDetailComponent implements OnInit {
     this.api.addPayment(id, this.newPayment).subscribe((p: any) => {
       this.payments.update(list => [...list, p]);
       this.newPayment = { jobId: null, amount: 0, description: '', paymentDate: '' };
-    });
-  }
-
-  download1099() {
-    const id = this.contractor().id;
-    this.api.download1099(id, this.currentYear).subscribe(blob => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `1099-NEC-${this.contractor().name}-${this.currentYear}.pdf`;
-      a.click(); URL.revokeObjectURL(url);
     });
   }
 }

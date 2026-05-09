@@ -7,9 +7,7 @@ using LivelyFencing.API.Domain.Entities;
 using LivelyFencing.API.Domain.Enums;
 using LivelyFencing.API.Infrastructure.Auth;
 using LivelyFencing.API.Infrastructure.AI;
-using LivelyFencing.API.Infrastructure.PDF;
 using LivelyFencing.API.Infrastructure.Email;
-using QuestPDF.Fluent;
 using Pgvector;
 
 namespace LivelyFencing.API.Controllers;
@@ -207,20 +205,6 @@ public class QuotesController : ControllerBase
         return Ok(new { quote.Id, Status = quote.Status.ToString() });
     }
 
-    [HttpGet("{id}/pdf")]
-    [Authorize(Policy = AuthorizationPolicies.Internal)]
-    public async Task<IActionResult> DownloadPdf(Guid id)
-    {
-        var quote = await _db.Quotes
-            .Include(q => q.Customer).Include(q => q.Job).Include(q => q.LineItems.OrderBy(li => li.SortOrder))
-            .FirstOrDefaultAsync(q => q.Id == id);
-        if (quote == null) return NotFound();
-        var portalBase = _config["App:PortalBaseUrl"] ?? "https://closingbellga.com";
-        var pdf = new QuotePdfDocument(quote, portalBase);
-        var bytes = pdf.GeneratePdf();
-        return File(bytes, "application/pdf", $"CBGA-Quote-{quote.Id.ToString()[..8].ToUpper()}.pdf");
-    }
-
     [HttpDelete("{id}")]
     [Authorize(Policy = AuthorizationPolicies.Admin)]
     public async Task<IActionResult> Delete(Guid id)
@@ -308,18 +292,6 @@ public class PortalController : ControllerBase
         quote.CustomerRejectionReason = req.Reason;
         await _db.SaveChangesAsync();
         return Ok(new { message = "Quote declined." });
-    }
-
-    [HttpGet("{token:guid}/pdf")]
-    public async Task<IActionResult> DownloadPdf(Guid token, [FromServices] IConfiguration config)
-    {
-        var quote = await _db.Quotes.Include(q => q.Customer).Include(q => q.Job).Include(q => q.LineItems.OrderBy(li => li.SortOrder)).FirstOrDefaultAsync(q => q.PortalToken == token);
-        if (quote == null) return NotFound();
-        var email = User.GetEmail();
-        if (!string.Equals(quote.Customer.Email, email, StringComparison.OrdinalIgnoreCase) && !User.IsAdmin()) return StatusCode(403);
-        var portalBase = config["App:PortalBaseUrl"] ?? "https://closingbellga.com";
-        var bytes = new QuotePdfDocument(quote, portalBase).GeneratePdf();
-        return File(bytes, "application/pdf", $"CBGA-Quote-{quote.Id.ToString()[..8].ToUpper()}.pdf");
     }
 }
 

@@ -45,14 +45,12 @@ export class ApiService {
   sendQuote(id: string) { return this.http.patch<any>(`${this.base}/quotes/${id}/send`, {}); }
   deleteQuote(id: string) { return this.http.delete(`${this.base}/quotes/${id}`); }
   reopenQuote(id: string) { return this.http.patch<any>(`${this.base}/quotes/${id}/reopen`, {}); }
-  downloadQuotePdf(id: string) { return this.http.get(`${this.base}/quotes/${id}/pdf`, { responseType: 'blob' }); }
 
   // Portal
   getMyPortalQuotes() { return this.http.get<any[]>(`${this.base}/portal/quotes`); }
   getPortalQuote(token: string) { return this.http.get<any>(`${this.base}/portal/quotes/${token}`); }
   acceptPortalQuote(token: string) { return this.http.post<any>(`${this.base}/portal/quotes/${token}/accept`, {}); }
   rejectPortalQuote(token: string, reason?: string) { return this.http.post<any>(`${this.base}/portal/quotes/${token}/reject`, { reason }); }
-  downloadPortalPdf(token: string) { return this.http.get(`${this.base}/portal/quotes/${token}/pdf`, { responseType: 'blob' }); }
 
   // Contractors
   getContractors() { return this.http.get<any[]>(`${this.base}/contractors`); }
@@ -65,7 +63,6 @@ export class ApiService {
   }
   addPayment(contractorId: string, data: any) { return this.http.post<any>(`${this.base}/contractors/${contractorId}/payments`, data); }
   deletePayment(contractorId: string, paymentId: string) { return this.http.delete(`${this.base}/contractors/${contractorId}/payments/${paymentId}`); }
-  download1099(id: string, year: number) { return this.http.get(`${this.base}/contractors/${id}/1099?year=${year}`, { responseType: 'blob' }); }
 
   // Budgets
   getBudgets(year?: number) { return this.http.get<any[]>(`${this.base}/budgets`, { params: year ? { year } : {} }); }

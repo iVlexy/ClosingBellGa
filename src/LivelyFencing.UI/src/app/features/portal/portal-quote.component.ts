@@ -79,9 +79,6 @@ import { RejectDialogComponent } from '../../shared/dialogs.component';
             <button mat-stroked-button color="warn" (click)="decline()" [disabled]="working">
               <mat-icon>close</mat-icon> Decline
             </button>
-            <button mat-stroked-button (click)="downloadPdf()" [disabled]="working">
-              <mat-icon>picture_as_pdf</mat-icon> Download PDF
-            </button>
           </mat-card-actions>
         </mat-card>
       </div>
@@ -146,15 +143,6 @@ export class PortalQuoteComponent implements OnInit {
         next: () => { this.loadQuote(); this.working = false; },
         error: () => this.working = false
       });
-    });
-  }
-
-  downloadPdf() {
-    this.api.downloadPortalPdf(this.route.snapshot.params['token']).subscribe(blob => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `Quote-${this.quote().id.substring(0,8).toUpperCase()}.pdf`;
-      a.click(); URL.revokeObjectURL(url);
     });
   }
 

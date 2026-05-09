@@ -6,8 +6,6 @@ using LivelyFencing.API.Domain.Entities;
 using LivelyFencing.API.Domain.Enums;
 using LivelyFencing.API.Infrastructure;
 using LivelyFencing.API.Infrastructure.Auth;
-using LivelyFencing.API.Infrastructure.PDF;
-using QuestPDF.Fluent;
 
 namespace LivelyFencing.API.Controllers;
 
@@ -117,30 +115,6 @@ public class ContractorsController : ControllerBase
         p.DeletedByEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "unknown";
         await _db.SaveChangesAsync();
         return NoContent();
-    }
-
-    // 1099-NEC PDF
-    [HttpGet("{id}/1099")]
-    public async Task<IActionResult> Get1099(Guid id, [FromQuery] int year)
-    {
-        var contractor = await _db.Contractors.FindAsync(id);
-        if (contractor == null) return NotFound();
-        var key = _config["Encryption:Key"]!;
-        var taxId = EncryptionService.Decrypt(contractor.TaxIdEncrypted, contractor.TaxIdIV, key);
-        var totalPayments = await _db.ContractorPayments
-            .Where(p => p.ContractorId == id && p.TaxYear == year)
-            .SumAsync(p => p.Amount);
-
-        var formData = new Form1099NecData(
-            contractor, taxId, totalPayments, year,
-            _config["Company:Name"] ?? "Closing Bell Real Estate",
-            _config["Company:Address"] ?? "Your Address Here",
-            _config["Company:TaxId"] ?? "XX-XXXXXXX"
-        );
-
-        var pdf = new Form1099NecDocument(formData);
-        var bytes = pdf.GeneratePdf();
-        return File(bytes, "application/pdf", $"1099-NEC-{contractor.Name.Replace(" ", "_")}-{year}.pdf");
     }
 }
 

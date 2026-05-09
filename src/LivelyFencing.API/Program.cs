@@ -4,9 +4,6 @@ using LivelyFencing.API.Infrastructure.AI;
 using LivelyFencing.API.Infrastructure.Email;
 using Microsoft.EntityFrameworkCore;
 using Pgvector.EntityFrameworkCore;
-using QuestPDF.Infrastructure;
-
-QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 

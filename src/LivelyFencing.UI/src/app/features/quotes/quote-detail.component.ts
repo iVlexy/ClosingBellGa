@@ -35,7 +35,6 @@ import { AuthService } from '../../core/services/auth.service';
           <mat-chip *ngIf="quote().aiGenerated" class="ai-chip"><mat-icon>smart_toy</mat-icon> AI Generated</mat-chip>
         </div>
         <div class="actions">
-          <button mat-stroked-button (click)="downloadPdf()"><mat-icon>picture_as_pdf</mat-icon> Download PDF</button>
           <button mat-raised-button color="primary" *ngIf="quote().status === 'PendingApproval' && auth.isAdmin()" (click)="approve()" [disabled]="working">
             <mat-icon>check_circle</mat-icon> Approve
           </button>
@@ -360,15 +359,6 @@ export class QuoteDetailComponent implements OnInit {
       }
     }).afterClosed().subscribe(saved => {
       if (saved) this.snackBar.open('Expense created', 'View Expenses', { duration: 4000 });
-    });
-  }
-
-  downloadPdf() {
-    this.api.downloadQuotePdf(this.quote().id).subscribe(blob => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `Quote-${this.quote().id.substring(0,8).toUpperCase()}.pdf`;
-      a.click(); URL.revokeObjectURL(url);
     });
   }
 }
