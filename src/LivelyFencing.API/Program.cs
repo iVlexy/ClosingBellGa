@@ -15,6 +15,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 );
 
 
+// HTTP Client (for Cloudflare Images API)
+builder.Services.AddHttpClient();
+
 // Email Service
 builder.Services.AddSingleton<SendGridEmailService>();
 
