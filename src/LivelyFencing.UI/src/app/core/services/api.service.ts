@@ -113,7 +113,7 @@ export class ApiService {
   markLeadConverted(id: string, customerId: string | null) { return this.http.patch(`${this.base}/contact/${id}/converted`, { customerId }); }
 
   // Public
-  submitContactRequest(data: {name: string; email: string; phone: string; message: string; source?: string}) {
+  submitContactRequest(data: {name: string; email: string; phone: string; message: string; source?: string; hasLender?: boolean; lenderName?: string}) {
     return this.http.post<any>(`${this.base}/contact`, data);
   }
 

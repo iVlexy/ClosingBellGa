@@ -33,7 +33,9 @@ public class ContactRequestsController : ControllerBase
             Email = dto.Email.Trim().ToLower(),
             Phone = dto.Phone?.Trim() ?? "",
             Message = dto.Message?.Trim() ?? "",
-            Source = string.IsNullOrWhiteSpace(dto.Source) ? "Website" : dto.Source.Trim()
+            Source = string.IsNullOrWhiteSpace(dto.Source) ? "Website" : dto.Source.Trim(),
+            HasLender = dto.HasLender ?? false,
+            LenderName = dto.LenderName?.Trim()
         };
         _db.ContactRequests.Add(req);
         await _db.SaveChangesAsync();
@@ -47,6 +49,32 @@ public class ContactRequestsController : ControllerBase
             _logger.LogWarning(ex, "Failed to send contact notification for {Email}", req.Email);
         }
 
+        try
+        {
+            var lenderLine = req.HasLender
+                ? $"\n\nLender on file: {(string.IsNullOrWhiteSpace(req.LenderName) ? "Yes (name not provided)" : req.LenderName)}"
+                : "";
+            var confirmBody = $"""
+Dear {req.Name},
+
+Thank you for reaching out to Closing Bell Real Estate! We've received your consultation request and a member of our team will contact you within one business day to schedule your free, no-pressure consultation.{lenderLine}
+
+In the meantime, feel free to browse available listings at www.ClosingBellGa.com or call us directly at 678.477.4786.
+
+We look forward to helping you with your real estate journey!
+
+Warm regards,
+Brandon Bell
+""";
+            await _email.SendTemplateEmailAsync(req.Email, req.Name,
+                "We received your consultation request — Closing Bell Real Estate",
+                confirmBody);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to send confirmation email to {Email}", req.Email);
+        }
+
         return Ok(new { message = "Thank you! We will be in touch shortly." });
     }
     [HttpGet]
@@ -56,7 +84,7 @@ public class ContactRequestsController : ControllerBase
         var leads = await _db.ContactRequests
             .OrderByDescending(r => r.CreatedAt)
             .Select(r => new {
-                r.Id, r.Name, r.Email, r.Phone, r.Message, r.Source, r.CreatedAt, r.Contacted, r.ConvertedAt, r.ConvertedCustomerId
+                r.Id, r.Name, r.Email, r.Phone, r.Message, r.Source, r.CreatedAt, r.Contacted, r.ConvertedAt, r.ConvertedCustomerId, r.HasLender, r.LenderName
             })
             .ToListAsync();
         return Ok(leads);
@@ -85,11 +113,13 @@ public class ContactRequestsController : ControllerBase
             Email = dto.Email.Trim().ToLower(),
             Phone = dto.Phone?.Trim() ?? "",
             Message = dto.Message?.Trim() ?? "",
-            Source = string.IsNullOrWhiteSpace(dto.Source) ? "Manual" : dto.Source.Trim()
+            Source = string.IsNullOrWhiteSpace(dto.Source) ? "Manual" : dto.Source.Trim(),
+            HasLender = dto.HasLender ?? false,
+            LenderName = dto.LenderName?.Trim()
         };
         _db.ContactRequests.Add(req);
         await _db.SaveChangesAsync();
-        return Ok(new { req.Id, req.Name, req.Email, req.Phone, req.Message, req.Source, req.CreatedAt, req.Contacted, req.ConvertedAt, req.ConvertedCustomerId });
+        return Ok(new { req.Id, req.Name, req.Email, req.Phone, req.Message, req.Source, req.CreatedAt, req.Contacted, req.ConvertedAt, req.ConvertedCustomerId, req.HasLender, req.LenderName });
     }
 
     [HttpPatch("{id}/converted")]
@@ -108,5 +138,5 @@ public class ContactRequestsController : ControllerBase
 }
 
 public record ConvertedDto(Guid? CustomerId);
-public record ContactSubmitDto(string Name, string Email, string? Phone, string? Message, string? Source);
-public record ManualLeadDto(string Name, string Email, string? Phone, string? Message, string Source);
+public record ContactSubmitDto(string Name, string Email, string? Phone, string? Message, string? Source, bool? HasLender, string? LenderName);
+public record ManualLeadDto(string Name, string Email, string? Phone, string? Message, string Source, bool? HasLender = null, string? LenderName = null);

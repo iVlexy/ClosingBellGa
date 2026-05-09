@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -76,6 +77,19 @@ import { AuthService } from '../../core/services/auth.service';
           <td mat-cell *matCellDef="let l">
             <a *ngIf="l.phone" [href]="'tel:' + l.phone" class="phone-link">{{ l.phone }}</a>
             <span *ngIf="!l.phone" class="muted">—</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="lender">
+          <th mat-header-cell *matHeaderCellDef>Lender</th>
+          <td mat-cell *matCellDef="let l">
+            <ng-container *ngIf="l.hasLender; else noLender">
+              <span class="lender-chip">
+                <mat-icon style="font-size:12px;width:12px;height:12px;vertical-align:middle;">account_balance</mat-icon>
+                {{ l.lenderName || 'Has Lender' }}
+              </span>
+            </ng-container>
+            <ng-template #noLender><span class="muted">—</span></ng-template>
           </td>
         </ng-container>
 
@@ -166,7 +180,7 @@ export class LeadsComponent implements OnInit {
   private snack = inject(MatSnackBar);
 
   leads = signal<any[]>([]);
-  cols = ['status', 'source', 'name', 'email', 'phone', 'message', 'date', 'actions'];
+  cols = ['status', 'source', 'name', 'email', 'phone', 'lender', 'message', 'date', 'actions'];
 
   newCount = () => this.leads().filter(l => !l.contacted).length;
   convertedCount = () => this.leads().filter(l => l.convertedAt).length;
@@ -225,7 +239,7 @@ export class LeadsComponent implements OnInit {
   selector: 'app-new-lead-dialog',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule,
-    MatButtonModule, MatDialogModule, MatIconModule, MatSelectModule],
+    MatButtonModule, MatDialogModule, MatIconModule, MatSelectModule, MatCheckboxModule],
   template: `
     <h2 mat-dialog-title><mat-icon style="vertical-align:middle;margin-right:8px">person_add_alt</mat-icon> New Lead</h2>
     <mat-dialog-content>
@@ -256,6 +270,13 @@ export class LeadsComponent implements OnInit {
           <mat-label>Notes / Message</mat-label>
           <textarea matInput formControlName="message" rows="3"></textarea>
         </mat-form-field>
+        <div style="grid-column:span 2;margin:0 0 8px;">
+          <mat-checkbox formControlName="hasLender" color="primary">Has a lender</mat-checkbox>
+        </div>
+        <mat-form-field appearance="outline" class="full" *ngIf="form.get('hasLender')?.value">
+          <mat-label>Lender Name (optional)</mat-label>
+          <input matInput formControlName="lenderName">
+        </mat-form-field>
       </form>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
@@ -277,6 +298,8 @@ export class NewLeadDialogComponent {
     phone:   [''],
     source:  ['Manual', Validators.required],
     message: [''],
+    hasLender: [false],
+    lenderName: [''],
   });
 
   save() { if (this.form.valid) this.dialogRef.close(this.form.value); }
@@ -297,6 +320,10 @@ export class NewLeadDialogComponent {
     <mat-dialog-content>
       <div class="lead-summary">
         <p class="lead-message" *ngIf="data.message"><mat-icon>chat</mat-icon> {{ data.message }}</p>
+        <p class="lead-lender" *ngIf="data.hasLender">
+          <mat-icon>account_balance</mat-icon>
+          Lender: <strong>{{ data.lenderName || 'Has lender (name not provided)' }}</strong>
+        </p>
       </div>
       <mat-divider style="margin: 12px 0 20px"></mat-divider>
       <p class="form-hint">Review and complete the customer record:</p>
@@ -351,6 +378,8 @@ export class NewLeadDialogComponent {
   styles: [`
     .lead-summary { background: #F9FBE7; border-left: 3px solid #7CB342; padding: 12px 16px; border-radius: 4px; }
     .lead-message { display: flex; gap: 8px; align-items: flex-start; margin: 0; font-size: 14px; color: #555; }
+    .lead-lender { display: flex; gap: 8px; align-items: center; margin: 8px 0 0; font-size: 14px; color: #2E7D32; }
+    .lead-lender mat-icon { font-size: 16px; width: 16px; height: 16px; flex-shrink: 0; }
     .lead-message mat-icon { color: #7CB342; font-size: 18px; width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
     .form-hint { font-size: 13px; color: #777; margin: 0 0 12px; }
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; padding-top: 4px; }

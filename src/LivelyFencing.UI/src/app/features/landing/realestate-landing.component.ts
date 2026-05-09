@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { TenantService } from '../../core/services/tenant.service';
@@ -17,7 +18,7 @@ import { TenantService } from '../../core/services/tenant.service';
   selector: 'app-realestate-landing',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink, MatIconModule, MatButtonModule,
-    MatFormFieldModule, MatInputModule, MatSnackBarModule, MatProgressSpinnerModule, MatSelectModule],
+    MatFormFieldModule, MatInputModule, MatSnackBarModule, MatProgressSpinnerModule, MatSelectModule, MatCheckboxModule],
   template: `
     <div class="re-page">
 
@@ -168,6 +169,13 @@ import { TenantService } from '../../core/services/tenant.service';
               <mat-form-field appearance="outline" class="re-full">
                 <mat-label>Tell us about your real estate needs</mat-label>
                 <textarea matInput rows="3" formControlName="message"></textarea>
+              </mat-form-field>
+              <div class="re-lender-check">
+                <mat-checkbox formControlName="hasLender" color="primary">I already have a lender</mat-checkbox>
+              </div>
+              <mat-form-field appearance="outline" class="re-full" *ngIf="form.get('hasLender')?.value">
+                <mat-label>Lender Name (optional)</mat-label>
+                <input matInput formControlName="lenderName" placeholder="e.g. Quicken Loans, local credit union...">
               </mat-form-field>
               <button mat-raised-button type="submit" class="re-submit-btn" [disabled]="form.invalid || submitting">
                 <mat-spinner diameter="18" *ngIf="submitting" class="re-btn-spinner"></mat-spinner>
@@ -381,6 +389,7 @@ import { TenantService } from '../../core/services/tenant.service';
     .re-form-card { flex: 1; min-width: 300px; background: #F5F7F5; border-radius: 4px; padding: 36px; box-shadow: 0 4px 24px rgba(0,0,0,.07); border: 1px solid #E8EDE9; }
     .re-form-card h3 { font-size: 18px; font-weight: 700; color: #1A1A1A; margin: 0 0 24px; letter-spacing: .3px; text-transform: uppercase; }
     .re-full { width: 100%; margin-bottom: 4px; }
+    .re-lender-check { margin: 0 0 16px; }
     .re-submit-btn { width: 100% !important; padding: 14px !important; font-size: 13px !important; font-weight: 700 !important; letter-spacing: 1px !important; text-transform: uppercase !important; background: #1A3A2A !important; color: #fff !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; border-radius: 2px !important; }
     .re-submit-btn:hover:not(:disabled) { background: #0D1F14 !important; }
     .re-submit-btn:disabled { background: #ccc !important; }
@@ -493,7 +502,9 @@ export class RealEstateLandingComponent implements OnInit, OnDestroy {
     email:   ['', [Validators.required, Validators.email]],
     phone:   [''],
     referralSource: [''],
-    message: ['']
+    message: [''],
+    hasLender: [false],
+    lenderName: ['']
   });
 
   taglineFallback = "Connecting people with properties. Expert guidance for buyers, sellers, and investors in today's market.";
@@ -554,8 +565,8 @@ export class RealEstateLandingComponent implements OnInit, OnDestroy {
   submit() {
     if (this.form.invalid || this.submitting) return;
     this.submitting = true;
-    const { name, email, phone, message } = this.form.value;
-    this.api.submitContactRequest({ name: name!, email: email!, phone: phone || '', message: message || '', source: this.form.value.referralSource || undefined }).subscribe({
+    const { name, email, phone, message, hasLender, lenderName } = this.form.value;
+    this.api.submitContactRequest({ name: name!, email: email!, phone: phone || '', message: message || '', source: this.form.value.referralSource || undefined, hasLender: hasLender ?? false, lenderName: hasLender ? (lenderName || undefined) : undefined }).subscribe({
       next: () => { this.submitting = false; this.submitted = true; },
       error: () => {
         this.submitting = false;

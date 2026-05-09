@@ -207,6 +207,8 @@ public class ContactRequest
     public bool Contacted { get; set; } = false;
     public DateTime? ConvertedAt { get; set; }
     public Guid? ConvertedCustomerId { get; set; }
+    public bool HasLender { get; set; } = false;
+    public string? LenderName { get; set; }
 }
 
 public class Review
