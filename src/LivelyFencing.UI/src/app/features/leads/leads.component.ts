@@ -260,9 +260,13 @@ export class LeadsComponent implements OnInit {
           <mat-label>Source</mat-label>
           <mat-select formControlName="source">
             <mat-option value="Manual">Manual</mat-option>
-            <mat-option value="Google">Google</mat-option>
-            <mat-option value="Referral">Referral</mat-option>
-            <mat-option value="Social">Social Media</mat-option>
+            <mat-option value="Google Search">Google Search</mat-option>
+            <mat-option value="Google Maps">Google Maps</mat-option>
+            <mat-option value="Facebook">Facebook</mat-option>
+            <mat-option value="Instagram">Instagram</mat-option>
+            <mat-option value="Referral / Word of Mouth">Referral / Word of Mouth</mat-option>
+            <mat-option value="Zillow / Realtor.com">Zillow / Realtor.com</mat-option>
+            <mat-option value="Yard Sign">Yard Sign</mat-option>
             <mat-option value="Other">Other</mat-option>
           </mat-select>
         </mat-form-field>
