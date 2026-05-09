@@ -25,9 +25,9 @@ import { RejectDialogComponent } from '../../shared/dialogs.component';
         </a>
       </div>
       <div class="portal-header">
-        <mat-icon class="logo-icon">fence</mat-icon>
-        <h1>Lookin' Lively Exterior Solutions</h1>
-        <p>Professional Fencing Solutions</p>
+        <mat-icon class="logo-icon">home</mat-icon>
+        <h1>Closing Bell Real Estate</h1>
+        <p>Real Estate Services</p>
       </div>
 
       <div class="portal-content" *ngIf="quote(); else loading">

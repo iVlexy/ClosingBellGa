@@ -218,7 +218,7 @@ public class QuotesController : ControllerBase
         var portalBase = _config["App:PortalBaseUrl"] ?? "https://closingbellga.com";
         var pdf = new QuotePdfDocument(quote, portalBase);
         var bytes = pdf.GeneratePdf();
-        return File(bytes, "application/pdf", $"LLES-Quote-{quote.Id.ToString()[..8].ToUpper()}.pdf");
+        return File(bytes, "application/pdf", $"CBGA-Quote-{quote.Id.ToString()[..8].ToUpper()}.pdf");
     }
 
     [HttpDelete("{id}")]
@@ -319,7 +319,7 @@ public class PortalController : ControllerBase
         if (!string.Equals(quote.Customer.Email, email, StringComparison.OrdinalIgnoreCase) && !User.IsAdmin()) return StatusCode(403);
         var portalBase = config["App:PortalBaseUrl"] ?? "https://closingbellga.com";
         var bytes = new QuotePdfDocument(quote, portalBase).GeneratePdf();
-        return File(bytes, "application/pdf", $"LLES-Quote-{quote.Id.ToString()[..8].ToUpper()}.pdf");
+        return File(bytes, "application/pdf", $"CBGA-Quote-{quote.Id.ToString()[..8].ToUpper()}.pdf");
     }
 }
 

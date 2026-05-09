@@ -36,7 +36,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
     {
         var origins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
-            ?? new[] { "https://lookinlivelyexterior.com" };
+            ?? new[] { "https://closingbellga.com" };
         policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
     });
 });
@@ -50,7 +50,7 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "Lookin' Lively Exterior Solutions API", Version = "v1" });
+    c.SwaggerDoc("v1", new() { Title = "Closing Bell Real Estate API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization", Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,

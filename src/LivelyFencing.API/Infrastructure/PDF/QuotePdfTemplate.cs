@@ -39,9 +39,9 @@ public class QuotePdfDocument : IDocument
             {
                 row.RelativeItem().Column(c =>
                 {
-                    c.Item().DefaultTextStyle(x => x.FontSize(22).Bold().FontColor("#2E7D32")).Text("LOOKIN' LIVELY EXTERIOR SOLUTIONS");
-                    c.Item().DefaultTextStyle(x => x.FontSize(11).FontColor("#555555")).Text("Exterior Solutions");
-                    c.Item().PaddingTop(4).DefaultTextStyle(x => x.FontSize(9).FontColor("#666666")).Text("lookinlivelyexterior.com");
+                    c.Item().DefaultTextStyle(x => x.FontSize(22).Bold().FontColor("#1B4D2E")).Text("CLOSING BELL REAL ESTATE");
+                    c.Item().DefaultTextStyle(x => x.FontSize(11).FontColor("#555555")).Text("Real Estate Services");
+                    c.Item().PaddingTop(4).DefaultTextStyle(x => x.FontSize(9).FontColor("#666666")).Text("closingbellga.com");
                 });
                 row.ConstantItem(160).Column(c =>
                 {

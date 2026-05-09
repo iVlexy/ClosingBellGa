@@ -133,7 +133,7 @@ public class ContractorsController : ControllerBase
 
         var formData = new Form1099NecData(
             contractor, taxId, totalPayments, year,
-            _config["Company:Name"] ?? "Lookin' Lively Exterior Solutions",
+            _config["Company:Name"] ?? "Closing Bell Real Estate",
             _config["Company:Address"] ?? "Your Address Here",
             _config["Company:TaxId"] ?? "XX-XXXXXXX"
         );
