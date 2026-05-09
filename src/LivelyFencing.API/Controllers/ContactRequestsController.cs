@@ -57,9 +57,9 @@ public class ContactRequestsController : ControllerBase
             var confirmBody = $"""
 Dear {req.Name},
 
-Thank you for reaching out to Closing Bell Real Estate! We've received your consultation request and a member of our team will contact you within one business day to schedule your free, no-pressure consultation.{lenderLine}
+Thank you for reaching out to Closing Bell Real Estate! We've received your consultation request and a member of our team will be in touch with you soon to schedule your free, no-pressure consultation.{lenderLine}
 
-In the meantime, feel free to browse available listings at www.ClosingBellGa.com or call us directly at 678.477.4786.
+In the meantime, feel free to browse available listings at www.ClosingBellGa.com.
 
 We look forward to helping you with your real estate journey!
 
