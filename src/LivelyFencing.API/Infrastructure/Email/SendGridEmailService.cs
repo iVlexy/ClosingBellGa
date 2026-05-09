@@ -34,7 +34,7 @@ public class SendGridEmailService
 <html>
 <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
   <div style="background: #2E7D32; padding: 24px; text-align: center;">
-    <h1 style="color: white; margin: 0;">New Quote Request</h1>
+    <h1 style="color: white; margin: 0;">New Consultation Request</h1>
     <p style="color: #C8E6C9; margin: 4px 0 0;">Submitted via closingbellga.com</p>
   </div>
   <div style="padding: 32px;">
