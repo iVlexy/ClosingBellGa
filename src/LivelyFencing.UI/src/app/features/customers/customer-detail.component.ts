@@ -12,6 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatChipsModule } from '@angular/material/chips';
 import { ApiService } from '../../core/services/api.service';
 
@@ -20,7 +21,7 @@ import { ApiService } from '../../core/services/api.service';
   standalone: true,
   imports: [CommonModule, RouterLink, ReactiveFormsModule, MatButtonModule, MatIconModule,
     MatCardModule, MatTooltipModule, MatTabsModule, MatFormFieldModule, MatInputModule,
-    MatSelectModule, MatDividerModule, MatSnackBarModule, MatChipsModule],
+    MatSelectModule, MatDividerModule, MatSnackBarModule, MatChipsModule, MatDialogModule],
   template: `
     <div class="page-container" *ngIf="customer()">
       <div class="page-header">
@@ -238,6 +239,7 @@ import { ApiService } from '../../core/services/api.service';
   styles: [`
     .page-container { padding: 24px; }
     .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+    .header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; padding-top: 28px; }
     .page-title { font-size: 24px; font-weight: 500; color: #1A3A2A; margin: 4px 0 0; }
     .page-subtitle { color: #666; margin: 2px 0 0; }
     .info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
@@ -310,6 +312,7 @@ import { ApiService } from '../../core/services/api.service';
 })
 export class CustomerDetailComponent implements OnInit {
   api = inject(ApiService);
+  private dialog = inject(MatDialog);
   snack = inject(MatSnackBar);
   fb = inject(FormBuilder);
   route = inject(ActivatedRoute);
@@ -317,6 +320,7 @@ export class CustomerDetailComponent implements OnInit {
   customer = signal<any>(null);
   preferences = signal<any[]>([]);
   notes = signal<any[]>([]);
+  leadCreated = signal(false);
   buyerPrefs = signal<any>(null);
   clientTransactions = signal<any[]>([]);
 
@@ -378,4 +382,24 @@ export class CustomerDetailComponent implements OnInit {
   txTypeLabel(t: string) {
     return { BuyerRepresentation: 'Buyer', SellerRepresentation: 'Seller', Dual: 'Dual' }[t] ?? t;
   }
+  createLead() {
+    const c = this.customer();
+    if (!c) return;
+    this.api.createManualLead({
+      name:    c.name,
+      email:   c.email,
+      phone:   c.phone ?? '',
+      message: 'Lead created from existing client record.',
+      source:  'CRM'
+    }).subscribe({
+      next: (lead: any) => {
+        // Link the lead to this customer so it shows as converted
+        this.api.markLeadConverted(lead.id, c.id).subscribe();
+        this.leadCreated.set(true);
+        this.snack.open('Lead created and linked to this client', 'OK', { duration: 3000 });
+      },
+      error: () => this.snack.open('Failed to create lead', 'Dismiss', { duration: 3000 })
+    });
+  }
+
 }
