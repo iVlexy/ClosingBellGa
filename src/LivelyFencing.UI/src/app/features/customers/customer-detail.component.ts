@@ -30,6 +30,14 @@ import { ApiService } from '../../core/services/api.service';
           <h1 class="page-title">{{ customer().name }}</h1>
           <p class="page-subtitle" *ngIf="customer().company">{{ customer().company }}</p>
         </div>
+        <div class="header-actions">
+          <button mat-stroked-button (click)="createLead()" *ngIf="!leadCreated()" matTooltip="Create a lead record for reporting">
+            <mat-icon>contact_page</mat-icon> Create Lead
+          </button>
+          <span *ngIf="leadCreated()" style="color:#2e7d32;font-size:13px;display:flex;align-items:center;gap:4px;">
+            <mat-icon style="font-size:16px;width:16px;height:16px;">check_circle</mat-icon> Lead created
+          </span>
+        </div>
       </div>
 
       <!-- Contact Info cards row -->
