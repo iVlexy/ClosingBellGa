@@ -48,17 +48,13 @@ import { ThemeService } from './core/services/theme.service';
             <mat-icon matListItemIcon>dashboard</mat-icon>
             <span matListItemTitle>Dashboard</span>
           </a>
-          <a mat-list-item routerLink="/cq/customers" routerLinkActive="active-link" *ngIf="auth.hasRole('Admin','Sales','Accountant') && tenant.hasFeature('customers')">
-            <mat-icon matListItemIcon>people</mat-icon>
-            <span matListItemTitle>Clients</span>
-          </a>
           <a mat-list-item routerLink="/cq/leads" routerLinkActive="active-link" *ngIf="auth.hasRole('Admin','Sales') && tenant.hasFeature('leads')">
             <mat-icon matListItemIcon>contact_page</mat-icon>
             <span matListItemTitle>Leads</span>
           </a>
-          <a mat-list-item routerLink="/portal/listings" routerLinkActive="active-link" *ngIf="tenant.hasFeature('listings')">
-            <mat-icon matListItemIcon>home_work</mat-icon>
-            <span matListItemTitle>Listings</span>
+          <a mat-list-item routerLink="/cq/customers" routerLinkActive="active-link" *ngIf="auth.hasRole('Admin','Sales','Accountant') && tenant.hasFeature('customers')">
+            <mat-icon matListItemIcon>people</mat-icon>
+            <span matListItemTitle>Clients</span>
           </a>
           <a mat-list-item routerLink="/cq/transactions" routerLinkActive="active-link" *ngIf="auth.hasRole('Admin','Sales') && tenant.hasFeature('listings')">
             <mat-icon matListItemIcon>swap_horiz</mat-icon>
@@ -72,6 +68,10 @@ import { ThemeService } from './core/services/theme.service';
             <mat-icon matListItemIcon>meeting_room</mat-icon>
             <span matListItemTitle>Open Houses</span>
           </a>
+          <a mat-list-item routerLink="/portal/listings" routerLinkActive="active-link" *ngIf="tenant.hasFeature('listings')">
+            <mat-icon matListItemIcon>home_work</mat-icon>
+            <span matListItemTitle>Listings</span>
+          </a>
           <a mat-list-item routerLink="/cq/email-templates" routerLinkActive="active-link" *ngIf="auth.hasRole('Admin','Sales') && tenant.hasFeature('listings')">
             <mat-icon matListItemIcon>mail_outline</mat-icon>
             <span matListItemTitle>Email Templates</span>
@@ -79,18 +79,6 @@ import { ThemeService } from './core/services/theme.service';
           <a mat-list-item routerLink="/cq/analytics" routerLinkActive="active-link" *ngIf="auth.hasRole('Admin','Sales','Accountant') && tenant.hasFeature('listings')">
             <mat-icon matListItemIcon>analytics</mat-icon>
             <span matListItemTitle>Analytics</span>
-          </a>
-          <a mat-list-item routerLink="/cq/jobs" routerLinkActive="active-link" *ngIf="tenant.hasFeature('jobs')">
-            <mat-icon matListItemIcon>build</mat-icon>
-            <span matListItemTitle>Jobs</span>
-          </a>
-          <a mat-list-item routerLink="/cq/budgets" routerLinkActive="active-link" *ngIf="auth.hasRole('Admin','Accountant') && tenant.hasFeature('budgets')">
-            <mat-icon matListItemIcon>account_balance_wallet</mat-icon>
-            <span matListItemTitle>Budgets</span>
-          </a>
-          <a mat-list-item routerLink="/cq/reports" routerLinkActive="active-link" *ngIf="auth.hasRole('Admin','Accountant') && tenant.hasFeature('reports')">
-            <mat-icon matListItemIcon>bar_chart</mat-icon>
-            <span matListItemTitle>Reports</span>
           </a>
           <a mat-list-item routerLink="/cq/expenses" routerLinkActive="active-link" *ngIf="auth.hasRole('Admin','Accountant') && tenant.hasFeature('expenses')">
             <mat-icon matListItemIcon>receipt_long</mat-icon>
@@ -100,9 +88,17 @@ import { ThemeService } from './core/services/theme.service';
             <mat-icon matListItemIcon>attach_money</mat-icon>
             <span matListItemTitle>Income</span>
           </a>
-          <a mat-list-item routerLink="/cq/help" routerLinkActive="active-link">
-            <mat-icon matListItemIcon>menu_book</mat-icon>
-            <span matListItemTitle>Help</span>
+          <a mat-list-item routerLink="/cq/budgets" routerLinkActive="active-link" *ngIf="auth.hasRole('Admin','Accountant') && tenant.hasFeature('budgets')">
+            <mat-icon matListItemIcon>account_balance_wallet</mat-icon>
+            <span matListItemTitle>Budgets</span>
+          </a>
+          <a mat-list-item routerLink="/cq/reports" routerLinkActive="active-link" *ngIf="auth.hasRole('Admin','Accountant') && tenant.hasFeature('reports')">
+            <mat-icon matListItemIcon>bar_chart</mat-icon>
+            <span matListItemTitle>Reports</span>
+          </a>
+          <a mat-list-item routerLink="/cq/jobs" routerLinkActive="active-link" *ngIf="tenant.hasFeature('jobs')">
+            <mat-icon matListItemIcon>build</mat-icon>
+            <span matListItemTitle>Jobs</span>
           </a>
           <a mat-list-item routerLink="/cq/admin/users" routerLinkActive="active-link" *ngIf="auth.realIsAdmin && !auth.isImpersonating">
             <mat-icon matListItemIcon>manage_accounts</mat-icon>
@@ -115,6 +111,10 @@ import { ThemeService } from './core/services/theme.service';
           <a mat-list-item routerLink="/cq/admin/reviews" routerLinkActive="active-link" *ngIf="auth.hasRole('Admin','Sales') && !auth.isImpersonating">
             <mat-icon matListItemIcon>reviews</mat-icon>
             <span matListItemTitle>Reviews</span>
+          </a>
+          <a mat-list-item routerLink="/cq/help" routerLinkActive="active-link">
+            <mat-icon matListItemIcon>menu_book</mat-icon>
+            <span matListItemTitle>Help</span>
           </a>
         </mat-nav-list>
 
