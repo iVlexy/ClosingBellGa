@@ -15,10 +15,9 @@ public class TransactionAutoAdvanceService : BackgroundService
         _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // Short startup delay, then check every 24 hours
-        await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
+        // Run immediately on startup, then every 24 hours
         while (!stoppingToken.IsCancellationRequested)
         {
             await AdvanceTransactions(stoppingToken);
