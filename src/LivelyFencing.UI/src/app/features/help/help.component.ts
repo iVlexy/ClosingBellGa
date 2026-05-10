@@ -46,12 +46,56 @@ import { MatDividerModule } from '@angular/material/divider';
           <p>Leads are prospective buyers or sellers who haven't yet become active clients. Capturing them early lets you track where they came from and how they convert.</p>
           <ol>
             <li>Navigate to <strong>Leads</strong> in the sidebar.</li>
-            <li>Click <strong>New Lead</strong> and enter name, phone, email, and <strong>Lead Source</strong> (Referral, Zillow, Website, etc.).</li>
+            <li>Click <strong>New Lead</strong> and enter name, phone, email, and <strong>Lead Source</strong> (Referral, Zillow, Instagram, TC Email, Website, etc.).</li>
             <li>Set a <strong>Status</strong>: New → Contacted → Qualified → Converted / Lost.</li>
             <li>Add notes to record conversations and follow-up dates.</li>
             <li>When a lead is ready, click <strong>Convert to Client</strong> — this creates a Client record and links it back to the lead source for funnel reporting.</li>
           </ol>
-          <div class="tip"><mat-icon>lightbulb</mat-icon> Lead source is used in the Analytics → Pipeline Funnel report to show which channels produce closed deals.</div>
+          <h4>Creating a Lead from an Existing Client</h4>
+          <p>Clients auto-imported via the TC Email webhook don't have a lead record, which breaks funnel reporting. To fix this:</p>
+          <ol>
+            <li>Open the client's detail page.</li>
+            <li>Click the <strong>Create Lead</strong> button in the top-right corner of the page header.</li>
+            <li>Select the correct <strong>Lead Source</strong> from the picker (e.g. TC Email, Referral).</li>
+            <li>The lead is created and immediately marked as <em>Converted</em>, linked to this client — no duplicate client is created.</li>
+          </ol>
+          <div class="tip"><mat-icon>lightbulb</mat-icon> Lead source is used in the Analytics → Pipeline Funnel report to show which channels produce closed deals. Always create a lead for TC-imported clients so that source is captured.</div>
+        </mat-expansion-panel>
+
+
+        <!-- TC EMAIL AUTO-IMPORT -->
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title><mat-icon class="si">forward_to_inbox</mat-icon>TC Email Auto-Import</mat-panel-title>
+            <mat-panel-description>
+              <span class="chip admin">Admin</span><span class="chip sales">Sales</span>
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+          <p>When a TC (Transaction Coordinator) sends a <em>New contract</em> email, it can be automatically forwarded into the CRM — creating the client and transaction without any manual data entry.</p>
+
+          <h4>How It Works</h4>
+          <ol>
+            <li>Brandon forwards the TC email to <code>tc&#64;inbound.closingbellga.com</code>.</li>
+            <li>The system parses the subject line for the property address and the email body for buyer name, email, and all contract dates.</li>
+            <li>If the buyer already exists as a client, their record is updated. If not, a new client is created.</li>
+            <li>A transaction is created (or an existing <em>Prospecting</em> deal is updated) with the correct pipeline stage calculated from the dates.</li>
+          </ol>
+
+          <h4>Fields Extracted</h4>
+          <table class="info-table">
+            <tr><td><strong>Property Address</strong></td><td>From the email subject: <em>New contract – 123 Main St, …</em></td></tr>
+            <tr><td><strong>Buyer Name &amp; Email</strong></td><td>From a body line formatted as <em>Name – email&#64;domain.com</em></td></tr>
+            <tr><td><strong>Binding Agreement Date</strong></td><td>Contract start date</td></tr>
+            <tr><td><strong>Earnest Money Date</strong></td><td>Deadline for earnest money deposit</td></tr>
+            <tr><td><strong>Due Diligence End Date</strong></td><td>Drives auto-advance to Finance Contingency stage</td></tr>
+            <tr><td><strong>Finance Contingency Date</strong></td><td>Drives auto-advance to Closed stage</td></tr>
+            <tr><td><strong>CD Due Date</strong></td><td>Closing disclosure deadline</td></tr>
+            <tr><td><strong>Closing Date</strong></td><td>Final closing date</td></tr>
+          </table>
+
+          <h4>Missing Fields Alert</h4>
+          <p>If any field cannot be parsed from the email (e.g. the format is slightly different), Brandon receives an automatic <strong>alert email</strong> listing exactly which fields are missing so they can be filled in manually on the transaction.</p>
+          <div class="tip"><mat-icon>lightbulb</mat-icon> After a TC-imported client is created, open their detail page and click <strong>Create Lead</strong> to add a lead record — this ensures the source is captured in funnel reporting.</div>
         </mat-expansion-panel>
 
         <!-- CLIENTS -->
@@ -135,19 +179,18 @@ import { MatDividerModule } from '@angular/material/divider';
               <span class="chip admin">Admin</span><span class="chip sales">Sales</span>
             </mat-panel-description>
           </mat-expansion-panel-header>
-          <p>The Pipeline is a Kanban board that tracks every active transaction from first contact to close. Click any card to see full details and manage documents.</p>
+          <p>The Pipeline tracks every active transaction from first contact to close in a vertical stacked layout — each stage is a full-width row with a responsive card grid inside. Drag and drop cards between stages to move deals. Click any card to see full details and manage documents.</p>
 
           <h4>Pipeline Stages</h4>
           <table class="info-table">
             <tr><td><span class="badge" style="background:#607d8b;color:#fff">Prospecting</span></td><td>Initial contact — no offer yet</td></tr>
             <tr><td><span class="badge" style="background:#1565C0;color:#fff">Offer Submitted</span></td><td>Offer written and submitted to seller</td></tr>
-            <tr><td><span class="badge" style="background:#6A1B9A;color:#fff">Under Contract</span></td><td>Offer accepted — in escrow</td></tr>
-            <tr><td><span class="badge" style="background:#E65100;color:#fff">Inspection</span></td><td>Home inspection period active</td></tr>
-            <tr><td><span class="badge" style="background:#BF360C;color:#fff">Appraisal</span></td><td>Lender appraisal ordered / in progress</td></tr>
-            <tr><td><span class="badge" style="background:#558B2F;color:#fff">Clear to Close</span></td><td>Lender has issued CTC — closing scheduled</td></tr>
+            <tr><td><span class="badge" style="background:#6A1B9A;color:#fff">Under Contract</span></td><td>Offer accepted — within due diligence period</td></tr>
+            <tr><td><span class="badge" style="background:#E65100;color:#fff">Finance Contingency</span></td><td>Due diligence passed — financing period active</td></tr>
             <tr><td><span class="badge" style="background:#2E7D32;color:#fff">Closed</span></td><td>Title transferred, commission earned</td></tr>
             <tr><td><span class="badge" style="background:#c62828;color:#fff">Fall Through</span></td><td>Deal did not close — track for future follow-up</td></tr>
           </table>
+          <div class="tip"><mat-icon>lightbulb</mat-icon> Stage advancement is also automated overnight — deals move forward based on their contract dates (Due Diligence end date, Finance Contingency date, Closing date) so the board stays current without manual updates.</div>
 
           <h4>Document Checklist</h4>
           <p>Each transaction has a document checklist. Open a deal card and click <strong>Add Doc</strong> to track:</p>
@@ -235,6 +278,26 @@ import { MatDividerModule } from '@angular/material/divider';
             <li>Navigate to <strong>Income</strong> to record any non-commission income (referral fees, rental income, etc.).</li>
           </ol>
           <div class="tip"><mat-icon>lightbulb</mat-icon> Consistent expense categories improve tax summary accuracy. Match them to your Budgets for variance tracking.</div>
+        </mat-expansion-panel>
+
+
+        <!-- BUG REPORT -->
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title><mat-icon class="si">bug_report</mat-icon>Reporting a Problem</mat-panel-title>
+            <mat-panel-description>
+              <span class="chip admin">Admin</span><span class="chip sales">Sales</span><span class="chip accountant">Accountant</span>
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+          <p>If you encounter something that doesn't look right or isn't working, you can submit a bug report directly from the CRM.</p>
+          <ol>
+            <li>Scroll to the bottom of the sidebar and click the <strong>Report a Bug</strong> button.</li>
+            <li>Enter a short <strong>title</strong> describing the issue.</li>
+            <li>Add a <strong>description</strong> — include what you were doing, what you expected, and what happened instead.</li>
+            <li>Set the <strong>priority</strong>: Low (minor annoyance), Medium (affects workflow), or High (blocking).</li>
+            <li>Click <strong>Submit Bug Report</strong> — your name and email are attached automatically.</li>
+          </ol>
+          <div class="tip"><mat-icon>lightbulb</mat-icon> Unhandled system errors are also reported automatically in the background — you don't need to do anything for crashes, but a manual report with context is always helpful.</div>
         </mat-expansion-panel>
 
         <!-- PERMISSIONS -->
