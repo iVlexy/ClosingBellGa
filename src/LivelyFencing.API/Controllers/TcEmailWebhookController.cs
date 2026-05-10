@@ -151,7 +151,7 @@ public class TcEmailWebhookController : ControllerBase
             transaction = existingProspecting;
             transaction.Address ??= address;
             if (address != null) transaction.Address = address;
-            transaction.Status = TransactionStatus.UnderContract;
+            transaction.Status = ResolveStatus(dueDiligenceEndDate, financeContingencyDate, closingDate);
             transaction.ContractDate = contractDate ?? transaction.ContractDate;
             transaction.EarnestMoneyDate = earnestMoneyDate ?? transaction.EarnestMoneyDate;
             transaction.DueDiligenceEndDate = dueDiligenceEndDate ?? transaction.DueDiligenceEndDate;
@@ -171,7 +171,7 @@ public class TcEmailWebhookController : ControllerBase
                 ClientId = customer.Id,
                 Address = address,
                 Type = TransactionType.BuyerRepresentation,
-                Status = TransactionStatus.UnderContract,
+                Status = ResolveStatus(dueDiligenceEndDate, financeContingencyDate, closingDate),
                 ContractDate = contractDate,
                 EarnestMoneyDate = earnestMoneyDate,
                 DueDiligenceEndDate = dueDiligenceEndDate,
@@ -210,7 +210,27 @@ public class TcEmailWebhookController : ControllerBase
         });
     }
 
-    // ── Date extraction helper ────────────────────────────────────────────────
+    // ── Status resolution helper ─────────────────────────────────────────────
+    /// <summary>
+    /// Determines the correct pipeline status based on how far along the
+    /// key dates are relative to today. Mirrors the auto-advance logic.
+    /// </summary>
+    private static TransactionStatus ResolveStatus(
+        DateTime? dueDiligenceEndDate,
+        DateTime? financeContingencyDate,
+        DateTime? closingDate)
+    {
+        var today = DateTime.UtcNow.Date;
+        if (closingDate.HasValue && closingDate.Value.Date <= today)
+            return TransactionStatus.Closed;
+        if (financeContingencyDate.HasValue && financeContingencyDate.Value.Date <= today)
+            return TransactionStatus.Closed; // past finance contingency = effectively closed or fall-through; default closed
+        if (dueDiligenceEndDate.HasValue && dueDiligenceEndDate.Value.Date <= today)
+            return TransactionStatus.FinanceContingency;
+        return TransactionStatus.UnderContract;
+    }
+
+    // ── Date extraction helper ────────────────────────────────────────────────────
     private static DateTime? ExtractDate(string text, string pattern)
     {
         var match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
