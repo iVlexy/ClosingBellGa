@@ -47,6 +47,11 @@ spec:
                 secretKeyRef:
                   name: api-secret
                   key: ENCRYPTION_KEY
+            - name: TC_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: api-secret
+                  key: TC_WEBHOOK_SECRET
             - name: Google__PlacesApiKey
               valueFrom:
                 secretKeyRef:

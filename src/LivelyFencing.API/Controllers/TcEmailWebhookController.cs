@@ -189,15 +189,15 @@ public class TcEmailWebhookController : ControllerBase
         // MM/dd/yyyy
         if (DateTime.TryParseExact(raw, "MM/dd/yyyy",
                 CultureInfo.InvariantCulture, DateTimeStyles.None, out var d1))
-            return d1;
+            return DateTime.SpecifyKind(d1, DateTimeKind.Utc);
         // MM/dd/yy
         if (DateTime.TryParseExact(raw, "MM/dd/yy",
                 CultureInfo.InvariantCulture, DateTimeStyles.None, out var d2))
-            return d2;
+            return DateTime.SpecifyKind(d2, DateTimeKind.Utc);
         // MM/dd  => assume current year
         if (DateTime.TryParseExact(raw + "/" + DateTime.UtcNow.Year,
                 "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var d3))
-            return d3;
+            return DateTime.SpecifyKind(d3, DateTimeKind.Utc);
 
         return null;
     }
