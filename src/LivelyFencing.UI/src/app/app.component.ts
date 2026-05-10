@@ -11,6 +11,11 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatInputModule } from '@angular/material/input';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { Subscription } from 'rxjs';
 import { AuthService } from './core/services/auth.service';
@@ -22,7 +27,8 @@ import { ThemeService } from './core/services/theme.service';
   standalone: true,
   imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, FormsModule,
     MatDialogModule, MatToolbarModule, MatSidenavModule, MatListModule,
-    MatIconModule, MatButtonModule, MatSelectModule, MatFormFieldModule, MatTooltipModule],
+    MatIconModule, MatButtonModule, MatSelectModule, MatFormFieldModule, MatTooltipModule,
+    MatInputModule, MatSnackBarModule, ReactiveFormsModule],
   template: `
     <mat-sidenav-container class="app-container">
       <mat-sidenav #sidenav
@@ -130,6 +136,13 @@ import { ThemeService } from './core/services/theme.service';
             </mat-form-field>
           </div>
         </div>
+
+        <div class="bug-report-row">
+          <button mat-button class="bug-report-btn" (click)="openBugReport()" matTooltip="Report a problem">
+            <mat-icon>bug_report</mat-icon>
+            <span>Report a Bug</span>
+          </button>
+        </div>
       </mat-sidenav>
 
       <mat-sidenav-content>
@@ -198,6 +211,10 @@ import { ThemeService } from './core/services/theme.service';
     .mobile-logo-text { font-size: 15px; font-weight: 700; color: white; margin-left: 6px; }
     .toolbar-spacer { flex: 1; }
     .mobile-toolbar button { color: white !important; }
+    .bug-report-row { padding: 8px 12px 12px; }
+    .bug-report-btn { width: 100%; color: rgba(255,255,255,0.55) !important; font-size: 12px; border: 1px solid rgba(255,255,255,0.15) !important; border-radius: 6px; }
+    .bug-report-btn mat-icon { font-size: 16px; width: 16px; height: 16px; margin-right: 4px; }
+    .bug-report-btn:hover { background: rgba(255,255,255,0.08) !important; color: rgba(255,255,255,0.85) !important; }
   `]
 })
 export class AppComponent implements OnInit, OnDestroy {
@@ -207,6 +224,7 @@ export class AppComponent implements OnInit, OnDestroy {
   tenant = inject(TenantService);
   theme = inject(ThemeService);
   private router = inject(Router);
+  private dialog = inject(MatDialog);
   private bp = inject(BreakpointObserver);
   private bpSub?: Subscription;
 
@@ -239,5 +257,119 @@ export class AppComponent implements OnInit, OnDestroy {
   stopImpersonation() {
     this.auth.stopImpersonation();
     this.router.navigate(['/cq/dashboard']);
+  }
+
+  openBugReport() {
+    this.dialog.open(BugReportDialogComponent, {
+      width: '500px',
+      data: { user: this.auth.currentUser }
+    });
+  }
+}
+
+// ── Inline Bug Report Dialog ─────────────────────────────────────────────────
+import { Component as NgComponent, Inject } from '@angular/core';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
+@NgComponent({
+  selector: 'app-bug-report-dialog',
+  standalone: true,
+  imports: [
+    CommonModule, ReactiveFormsModule,
+    MatDialogModule, MatButtonModule, MatFormFieldModule,
+    MatInputModule, MatSelectModule, MatIconModule,
+    MatSnackBarModule, MatProgressSpinnerModule,
+  ],
+  template: `
+    <h2 mat-dialog-title style="display:flex;align-items:center;gap:8px;">
+      <mat-icon style="color:#c62828;">bug_report</mat-icon> Report a Bug
+    </h2>
+    <mat-dialog-content>
+      <form [formGroup]="form" style="display:flex;flex-direction:column;gap:14px;padding-top:4px;">
+        <mat-form-field appearance="outline">
+          <mat-label>Title *</mat-label>
+          <input matInput formControlName="title" placeholder="Short summary of the issue" maxlength="200" />
+          <mat-hint align="end">{{form.get('title')?.value?.length || 0}}/200</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Description *</mat-label>
+          <textarea matInput formControlName="description" rows="5"
+            placeholder="Steps to reproduce, what you expected vs. what happened..."></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Priority</mat-label>
+          <mat-select formControlName="priority">
+            <mat-option value="low">Low — minor annoyance</mat-option>
+            <mat-option value="medium">Medium — affects workflow</mat-option>
+            <mat-option value="high">High — blocking issue</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </form>
+
+      <div *ngIf="success" style="margin-top:12px;padding:10px 14px;background:#e8f5e9;border-radius:6px;color:#2e7d32;display:flex;align-items:center;gap:8px;">
+        <mat-icon>check_circle</mat-icon> Bug reported — thanks!
+      </div>
+      <div *ngIf="error" style="margin-top:12px;padding:10px 14px;background:#ffebee;border-radius:6px;color:#c62828;display:flex;align-items:center;gap:8px;">
+        <mat-icon>error</mat-icon> {{error}}
+      </div>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close [disabled]="submitting">Cancel</button>
+      <button mat-flat-button color="warn"
+        [disabled]="form.invalid || submitting || success"
+        (click)="submit()">
+        <mat-spinner *ngIf="submitting" diameter="18" style="display:inline-block;margin-right:6px;"></mat-spinner>
+        {{ submitting ? 'Sending…' : 'Submit Bug Report' }}
+      </button>
+    </mat-dialog-actions>
+  `
+})
+export class BugReportDialogComponent {
+  form: FormGroup;
+  submitting = false;
+  success = false;
+  error = '';
+
+  private http = inject(HttpClient);
+  private snack = inject(MatSnackBar);
+  private ref = inject(MatDialogRef<BugReportDialogComponent>);
+
+  constructor(@Inject(MAT_DIALOG_DATA) public data: { user: any }) {
+    const fb = inject(FormBuilder);
+    this.form = fb.group({
+      title:       ['', [Validators.required, Validators.minLength(5)]],
+      description: ['', [Validators.required, Validators.minLength(10)]],
+      priority:    ['medium'],
+    });
+  }
+
+  submit() {
+    if (this.form.invalid) return;
+    this.submitting = true;
+    this.error = '';
+
+    const payload = {
+      title:          this.form.value.title,
+      description:    this.form.value.description,
+      priority:       this.form.value.priority,
+      submitterName:  this.data?.user?.name  ?? 'CRM User',
+      submitterEmail: this.data?.user?.email ?? 'crm@closingbellga.com',
+    };
+
+    this.http.post('https://bcs-api.browningethan23.workers.dev/api/bugs/report', payload)
+      .subscribe({
+        next: () => {
+          this.submitting = false;
+          this.success = true;
+          setTimeout(() => this.ref.close(), 1800);
+        },
+        error: (err) => {
+          this.submitting = false;
+          this.error = 'Failed to submit — please try again. (' + (err.status ?? 'network error') + ')';
+        }
+      });
   }
 }
