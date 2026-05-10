@@ -81,6 +81,7 @@ if (app.Environment.IsDevelopment())
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 
 // Cloudflare JWT auth middleware — validates CF JWT before every request
+app.UseMiddleware<LivelyFencing.API.Infrastructure.ErrorReportingMiddleware>();
 app.UseCloudflareJwt();
 
 app.UseAuthorization();
