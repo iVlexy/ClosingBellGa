@@ -145,4 +145,84 @@ public class SendGridEmailService
         }
         _logger.LogInformation("Template email sent to {Email} (subject: {Subject})", toEmail, subject);
     }
+    public async Task SendTcParseWarningAsync(
+        string address,
+        string buyerName,
+        string buyerEmail,
+        List<string> missingFields,
+        Guid transactionId)
+    {
+        var apiKey    = _config["SendGrid:ApiKey"]!;
+        var fromEmail = _config["SendGrid:FromEmail"] ?? "noreply@closingbellga.com";
+        var fromName  = _config["SendGrid:FromName"]  ?? "Closing Bell Real Estate";
+        var adminEmail = _config["App:AdminEmail"] ?? "brandon@closingbellga.com";
+
+        var missingRows = string.Join("", missingFields.Select(f =>
+            $"<tr><td style=\"padding:8px 12px;border-bottom:1px solid #fce4e4;\">⚠️ {f}</td></tr>"));
+
+        var client = new SendGridClient(apiKey);
+        var msg = new SendGridMessage
+        {
+            From    = new EmailAddress(fromEmail, fromName),
+            Subject = $"⚠️ TC Email Parsed — Missing Fields: {address}"
+        };
+        msg.AddTo(new EmailAddress(adminEmail, "Brandon Bell"));
+        msg.HtmlContent = $"""
+<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#333;">
+  <div style="background:#B71C1C;padding:20px 24px;">
+    <h1 style="color:white;margin:0;font-size:20px;">⚠️ TC Email — Missing Fields</h1>
+    <p style="color:#FFCDD2;margin:6px 0 0;font-size:13px;">A new transaction was auto-imported but some fields could not be read.</p>
+  </div>
+  <div style="padding:24px;">
+    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+      <tr style="background:#F5F5F5;">
+        <td style="padding:8px 12px;font-weight:600;color:#555;width:140px;">Property</td>
+        <td style="padding:8px 12px;">{address}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;font-weight:600;color:#555;">Buyer</td>
+        <td style="padding:8px 12px;">{buyerName} &lt;{buyerEmail}&gt;</td>
+      </tr>
+      <tr style="background:#F5F5F5;">
+        <td style="padding:8px 12px;font-weight:600;color:#555;">Transaction ID</td>
+        <td style="padding:8px 12px;">#{transactionId}</td>
+      </tr>
+    </table>
+
+    <h3 style="color:#B71C1C;margin:0 0 8px;">Fields That Could Not Be Parsed</h3>
+    <table style="width:100%;border-collapse:collapse;background:#FFF8F8;border:1px solid #FFCDD2;border-radius:4px;">
+      {missingRows}
+    </table>
+
+    <p style="margin-top:20px;font-size:14px;color:#555;">
+      Please open the transaction and fill in the missing dates/details manually.
+    </p>
+    <div style="margin-top:16px;">
+      <a href="https://stage.closingbellga.com/transactions"
+         style="background:#1B4D2E;color:white;padding:10px 24px;text-decoration:none;border-radius:4px;font-weight:bold;font-size:14px;">
+        Open Pipeline →
+      </a>
+    </div>
+  </div>
+  <div style="background:#1B4D2E;padding:14px 24px;font-size:11px;color:#A5D6A7;text-align:center;">
+    &copy; 2026 Closing Bell Real Estate — automated notification
+  </div>
+</body>
+</html>
+""";
+
+        var response = await client.SendEmailAsync(msg);
+        if (!response.IsSuccessStatusCode)
+        {
+            var respBody = await response.Body.ReadAsStringAsync();
+            _logger.LogError("SendTcParseWarning failed: {Status} {Body}", response.StatusCode, respBody);
+        }
+        else
+        {
+            _logger.LogInformation("TC parse warning email sent for transaction #{TransactionId}", transactionId);
+        }
+    }
+
 }

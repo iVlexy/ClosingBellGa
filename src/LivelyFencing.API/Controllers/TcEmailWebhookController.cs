@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LivelyFencing.API.Data;
+using LivelyFencing.API.Infrastructure.Email;
 using LivelyFencing.API.Domain.Entities;
 using LivelyFencing.API.Domain.Enums;
 using System.Globalization;
@@ -14,16 +15,18 @@ namespace LivelyFencing.API.Controllers;
 [AllowAnonymous]
 public class TcEmailWebhookController : ControllerBase
 {
-    private readonly AppDbContext _db;
+        private readonly AppDbContext _db;
     private readonly IConfiguration _config;
     private readonly ILogger<TcEmailWebhookController> _logger;
+    private readonly SendGridEmailService _emailService;
 
     public TcEmailWebhookController(AppDbContext db, IConfiguration config,
-        ILogger<TcEmailWebhookController> logger)
+        ILogger<TcEmailWebhookController> logger, SendGridEmailService emailService)
     {
         _db = db;
         _config = config;
         _logger = logger;
+        _emailService = emailService;
     }
 
     /// <summary>
@@ -188,6 +191,35 @@ public class TcEmailWebhookController : ControllerBase
         }
 
         await _db.SaveChangesAsync();
+
+        // ── Notify Brandon of any fields that couldn't be parsed ─────────────
+        var missingFields = new List<string>();
+        if (string.IsNullOrEmpty(address))               missingFields.Add("Property Address (from subject line)");
+        if (string.IsNullOrEmpty(buyerName) || buyerName == "Unknown Buyer")
+                                                          missingFields.Add("Buyer Name (not found in email body)");
+        if (contractDate == null)                         missingFields.Add("Binding Agreement Date");
+        if (earnestMoneyDate == null)                     missingFields.Add("Earnest Money Date");
+        if (dueDiligenceEndDate == null)                  missingFields.Add("Due Diligence End Date");
+        if (financeContingencyDate == null)               missingFields.Add("Finance Contingency Date");
+        if (cdDueDate == null)                            missingFields.Add("CD Due Date");
+        if (closingDate == null)                          missingFields.Add("Closing Date");
+
+        if (missingFields.Count > 0)
+        {
+            try
+            {
+                await _emailService.SendTcParseWarningAsync(
+                    address ?? "(no address)",
+                    customer.Name,
+                    customer.Email,
+                    missingFields,
+                    transaction.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "TC parse warning email failed to send");
+            }
+        }
 
         return Ok(new
         {
