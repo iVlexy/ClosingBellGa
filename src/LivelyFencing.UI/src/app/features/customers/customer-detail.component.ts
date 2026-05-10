@@ -385,21 +385,61 @@ export class CustomerDetailComponent implements OnInit {
   createLead() {
     const c = this.customer();
     if (!c) return;
-    this.api.createManualLead({
-      name:    c.name,
-      email:   c.email,
-      phone:   c.phone ?? '',
-      message: 'Lead created from existing client record.',
-      source:  'CRM'
-    }).subscribe({
-      next: (lead: any) => {
-        // Link the lead to this customer so it shows as converted
-        this.api.markLeadConverted(lead.id, c.id).subscribe();
-        this.leadCreated.set(true);
-        this.snack.open('Lead created and linked to this client', 'OK', { duration: 3000 });
-      },
-      error: () => this.snack.open('Failed to create lead', 'Dismiss', { duration: 3000 })
+    const ref = this.dialog.open(LeadSourceDialogComponent, { width: '360px' });
+    ref.afterClosed().subscribe((source: string | undefined) => {
+      if (!source) return;
+      this.api.createManualLead({
+        name:    c.name,
+        email:   c.email,
+        phone:   c.phone ?? '',
+        message: 'Lead created from existing client record.',
+        source
+      }).subscribe({
+        next: (lead: any) => {
+          this.api.markLeadConverted(lead.id, c.id).subscribe();
+          this.leadCreated.set(true);
+          this.snack.open('Lead created and linked to this client', 'OK', { duration: 3000 });
+        },
+        error: () => this.snack.open('Failed to create lead', 'Dismiss', { duration: 3000 })
+      });
     });
   }
 
+}
+
+// ── Lead Source Picker Dialog ─────────────────────────────────────────────────
+import { Component as NgComponent } from '@angular/core';
+
+@NgComponent({
+  selector: 'app-lead-source-dialog',
+  standalone: true,
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatSelectModule, MatIconModule],
+  template: `
+    <h2 mat-dialog-title>Select Lead Source</h2>
+    <mat-dialog-content style="padding-top:8px;">
+      <mat-form-field appearance="outline" style="width:100%;">
+        <mat-label>Source</mat-label>
+        <mat-select [(value)]="source">
+          <mat-option value="Website">Website</mat-option>
+          <mat-option value="Instagram">Instagram</mat-option>
+          <mat-option value="Facebook">Facebook</mat-option>
+          <mat-option value="Referral">Referral</mat-option>
+          <mat-option value="Zillow">Zillow</mat-option>
+          <mat-option value="Realtor.com">Realtor.com</mat-option>
+          <mat-option value="Cold Call">Cold Call</mat-option>
+          <mat-option value="Open House">Open House</mat-option>
+          <mat-option value="TC Email">TC Email</mat-option>
+          <mat-option value="CRM">CRM / Manual</mat-option>
+          <mat-option value="Other">Other</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close>Cancel</button>
+      <button mat-flat-button color="primary" [mat-dialog-close]="source" [disabled]="!source">Create Lead</button>
+    </mat-dialog-actions>
+  `
+})
+export class LeadSourceDialogComponent {
+  source = 'Website';
 }
