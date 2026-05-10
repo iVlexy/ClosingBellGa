@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, computed, ViewChild, ElementRef, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angular/forms';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
@@ -16,14 +17,13 @@ import { MatDividerModule } from '@angular/material/divider';
 import { ApiService } from '../../core/services/api.service';
 
 const PIPELINE = [
-  { key: 'Prospecting',    label: 'Prospecting',      color: '#607d8b' },
-  { key: 'OfferSubmitted', label: 'Offer Submitted',  color: '#1565C0' },
-  { key: 'UnderContract',  label: 'Under Contract',   color: '#6A1B9A' },
-  { key: 'Inspection',     label: 'Inspection',       color: '#E65100' },
-  { key: 'Appraisal',      label: 'Appraisal',        color: '#BF360C' },
-  { key: 'ClearToClose',   label: 'Clear to Close',   color: '#558B2F' },
-  { key: 'Closed',         label: 'Closed',           color: '#2E7D32' },
-  { key: 'FallThrough',    label: 'Fall Through',     color: '#c62828' },
+  { key: 'Prospecting',        label: 'Prospecting',           color: '#607d8b' },
+  { key: 'OfferSubmitted',     label: 'Offer Submitted',       color: '#1565C0' },
+  { key: 'UnderContract',      label: 'Under Contract',        color: '#6A1B9A' },
+  { key: 'FinanceContingency', label: 'Finance Contingency',   color: '#E65100' },
+  { key: 'ClearToClose',       label: 'Clear to Close',        color: '#558B2F' },
+  { key: 'Closed',             label: 'Closed',                color: '#2E7D32' },
+  { key: 'FallThrough',        label: 'Fall Through',          color: '#c62828' },
 ];
 
 const DOC_STATUSES = ['Pending','Sent','Signed','Received','NotRequired'];
@@ -36,10 +36,10 @@ const TX_TYPES = [
 @Component({
   selector: 'app-transactions',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, MatIconModule,
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, MatButtonModule, MatIconModule,
     MatDialogModule, MatFormFieldModule, MatInputModule, MatSelectModule,
     MatSnackBarModule, MatChipsModule, MatTooltipModule, MatProgressBarModule,
-    MatCheckboxModule, MatDividerModule],
+    MatCheckboxModule, MatDividerModule, MatProgressSpinnerModule],
   template: `
 <div class="page-container">
   <div class="page-header">
@@ -179,16 +179,26 @@ const TX_TYPES = [
         <input matInput type="date" formControlName="offerDate">
       </mat-form-field>
       <mat-form-field appearance="outline">
-        <mat-label>Contract Date</mat-label>
+        <mat-label>Binding / Contract Date</mat-label>
         <input matInput type="date" formControlName="contractDate">
       </mat-form-field>
       <mat-form-field appearance="outline">
-        <mat-label>Inspection</mat-label>
-        <input matInput type="date" formControlName="inspectionDate">
+        <mat-label>Earnest Money Due</mat-label>
+        <input matInput type="date" formControlName="earnestMoneyDate">
       </mat-form-field>
       <mat-form-field appearance="outline">
-        <mat-label>Appraisal</mat-label>
-        <input matInput type="date" formControlName="appraisalDate">
+        <mat-label>Due Diligence Ends</mat-label>
+        <input matInput type="date" formControlName="dueDiligenceEndDate">
+      </mat-form-field>
+    </div>
+    <div class="form-row-4">
+      <mat-form-field appearance="outline">
+        <mat-label>Finance Contingency Ends</mat-label>
+        <input matInput type="date" formControlName="financeContingencyDate">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>CD Due</mat-label>
+        <input matInput type="date" formControlName="cdDueDate">
       </mat-form-field>
     </div>
     <mat-form-field appearance="outline" class="full">
@@ -223,11 +233,13 @@ const TX_TYPES = [
     </div>
 
     <!-- Key dates row -->
-    <div class="detail-dates" *ngIf="data.tx.offerDate || data.tx.closingDate">
+    <div class="detail-dates" *ngIf="data.tx.offerDate || data.tx.closingDate || data.tx.contractDate || data.tx.earnestMoneyDate || data.tx.dueDiligenceEndDate || data.tx.financeContingencyDate || data.tx.cdDueDate">
       <div *ngIf="data.tx.offerDate"><strong>Offer:</strong> {{data.tx.offerDate | date:'MMM d, y'}}</div>
-      <div *ngIf="data.tx.contractDate"><strong>Contract:</strong> {{data.tx.contractDate | date:'MMM d, y'}}</div>
-      <div *ngIf="data.tx.inspectionDate"><strong>Inspection:</strong> {{data.tx.inspectionDate | date:'MMM d, y'}}</div>
-      <div *ngIf="data.tx.appraisalDate"><strong>Appraisal:</strong> {{data.tx.appraisalDate | date:'MMM d, y'}}</div>
+      <div *ngIf="data.tx.contractDate"><strong>Binding Agreement:</strong> {{data.tx.contractDate | date:'MMM d, y'}}</div>
+      <div *ngIf="data.tx.earnestMoneyDate"><strong>Earnest Money:</strong> {{data.tx.earnestMoneyDate | date:'MMM d, y'}}</div>
+      <div *ngIf="data.tx.dueDiligenceEndDate"><strong>Due Diligence Ends:</strong> {{data.tx.dueDiligenceEndDate | date:'MMM d, y'}}</div>
+      <div *ngIf="data.tx.financeContingencyDate"><strong>Finance Contingency:</strong> {{data.tx.financeContingencyDate | date:'MMM d, y'}}</div>
+      <div *ngIf="data.tx.cdDueDate"><strong>CD Due:</strong> {{data.tx.cdDueDate | date:'MMM d, y'}}</div>
       <div *ngIf="data.tx.closingDate"><strong>Closing:</strong> {{data.tx.closingDate | date:'MMM d, y'}}</div>
     </div>
 
@@ -253,6 +265,17 @@ const TX_TYPES = [
         {{s.label}}
       </button>
     </div>
+
+    <mat-divider style="margin:16px 0"></mat-divider>
+
+    <!-- TC Email Parser -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <strong style="font-size:13px">TC Email Auto-fill</strong>
+      <button mat-stroked-button color="primary" style="font-size:12px;height:32px" (click)="openParseTcEmail(data.tx)">
+        <mat-icon style="font-size:16px;width:16px;height:16px;vertical-align:middle">email</mat-icon> Parse TC Email
+      </button>
+    </div>
+    <p style="font-size:11px;color:#888;margin:0 0 4px">Paste the TC email to automatically extract key dates.</p>
 
     <mat-divider style="margin:16px 0"></mat-divider>
 
@@ -291,6 +314,32 @@ const TX_TYPES = [
     <button mat-button color="warn" (click)="deleteTransaction(data.tx)">Delete</button>
     <button mat-button mat-dialog-close>Close</button>
     <button mat-raised-button color="primary" (click)="openForm(data.tx)">Edit</button>
+  </mat-dialog-actions>
+</ng-template>
+
+
+<!-- Parse TC Email Dialog -->
+<ng-template #parseTcEmailDialog let-data>
+  <h2 mat-dialog-title>Parse TC Email</h2>
+  <mat-dialog-content>
+    <p style="font-size:13px;color:#666;margin:0 0 12px">Paste the transaction coordinator email below. Key dates will be extracted and applied automatically.</p>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Email Text</mat-label>
+      <textarea matInput rows="10" [(ngModel)]="tcEmailText" placeholder="Paste the TC email here..."></textarea>
+    </mat-form-field>
+    <div *ngIf="tcParsedResult" class="tc-parsed-result">
+      <div *ngFor="let item of tcParsedResult" class="tc-parsed-item">
+        <mat-icon class="tc-parsed-icon">check_circle</mat-icon>
+        {{item}}
+      </div>
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button mat-raised-button color="primary" (click)="submitParseTcEmail(data.tx)" [disabled]="!tcEmailText || tcParsing">
+      <mat-spinner *ngIf="tcParsing" diameter="16" style="display:inline-block;margin-right:6px"></mat-spinner>
+      {{tcParsing ? 'Parsing...' : 'Extract Dates'}}
+    </button>
   </mat-dialog-actions>
 </ng-template>
 
@@ -392,6 +441,10 @@ const TX_TYPES = [
     .doc-actions mat-icon { font-size: 16px; }
     .active-ds { color: #1A3A2A !important; }
     .no-docs { color: #bbb; font-size: 13px; text-align: center; padding: 12px; }
+    /* TC Email Parser */
+    .tc-parsed-result { background: #f0f7f0; border-radius: 6px; padding: 10px 14px; margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+    .tc-parsed-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #1A3A2A; }
+    .tc-parsed-icon { font-size: 16px; width: 16px; height: 16px; color: #2E7D32; }
     /* Drag & drop */
     .tx-card[draggable=true] { cursor: grab; }
     .tx-card[draggable=true]:active { cursor: grabbing; }
@@ -440,8 +493,10 @@ export class TransactionsComponent implements OnInit {
     closingDate: [''],
     offerDate: [''],
     contractDate: [''],
-    inspectionDate: [''],
-    appraisalDate: [''],
+    earnestMoneyDate: [''],
+    dueDiligenceEndDate: [''],
+    financeContingencyDate: [''],
+    cdDueDate: [''],
     notes: [''],
   });
 
@@ -494,8 +549,10 @@ export class TransactionsComponent implements OnInit {
         closingDate: tx.closingDate ? tx.closingDate.substring(0,10) : '',
         offerDate: tx.offerDate ? tx.offerDate.substring(0,10) : '',
         contractDate: tx.contractDate ? tx.contractDate.substring(0,10) : '',
-        inspectionDate: tx.inspectionDate ? tx.inspectionDate.substring(0,10) : '',
-        appraisalDate: tx.appraisalDate ? tx.appraisalDate.substring(0,10) : '',
+        earnestMoneyDate: tx.earnestMoneyDate ? tx.earnestMoneyDate.substring(0,10) : '',
+        dueDiligenceEndDate: tx.dueDiligenceEndDate ? tx.dueDiligenceEndDate.substring(0,10) : '',
+        financeContingencyDate: tx.financeContingencyDate ? tx.financeContingencyDate.substring(0,10) : '',
+        cdDueDate: tx.cdDueDate ? tx.cdDueDate.substring(0,10) : '',
         notes: tx.notes ?? '',
       });
     } else {
@@ -513,8 +570,9 @@ export class TransactionsComponent implements OnInit {
       salePrice: v.salePrice || null, commissionRate: v.commissionRate || null,
       commissionExpected: v.commissionExpected || null, commissionReceived: v.commissionReceived || null,
       closingDate: v.closingDate || null, offerDate: v.offerDate || null,
-      contractDate: v.contractDate || null, inspectionDate: v.inspectionDate || null,
-      appraisalDate: v.appraisalDate || null, notes: v.notes || null,
+      contractDate: v.contractDate || null, earnestMoneyDate: v.earnestMoneyDate || null,
+      dueDiligenceEndDate: v.dueDiligenceEndDate || null, financeContingencyDate: v.financeContingencyDate || null,
+      cdDueDate: v.cdDueDate || null, notes: v.notes || null,
     };
     const obs = existing ? this.api.updateTransaction(existing.id, payload) : this.api.createTransaction(payload);
     obs.subscribe({
@@ -649,4 +707,41 @@ export class TransactionsComponent implements OnInit {
   @ViewChild('formDialog') _formDialogRef!: TemplateRef<any>;
   @ViewChild('detailDialog') _detailDialogRef!: TemplateRef<any>;
   @ViewChild('addDocDialog') _addDocDialogRef!: TemplateRef<any>;
+  @ViewChild('parseTcEmailDialog') _parseTcEmailDialogRef!: TemplateRef<any>;
+
+  tcEmailText = '';
+  tcParsedResult: string[] | null = null;
+  tcParsing = false;
+
+  openParseTcEmail(tx: any) {
+    this.tcEmailText = '';
+    this.tcParsedResult = null;
+    this.dialog.open(this._parseTcEmailDialogRef!, { data: { tx }, width: '95vw', maxWidth: '640px', maxHeight: '95dvh' });
+  }
+
+  submitParseTcEmail(tx: any) {
+    if (!this.tcEmailText.trim() || this.tcParsing) return;
+    this.tcParsing = true;
+    this.api.parseTcEmail(tx.id, this.tcEmailText).subscribe({
+      next: (result: any) => {
+        this.tcParsing = false;
+        const p = result.parsed;
+        const fmt = (d: string | null) => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : null;
+        const items: string[] = [];
+        if (p.contractDate)           items.push('Binding Agreement: ' + fmt(p.contractDate));
+        if (p.earnestMoneyDate)       items.push('Earnest Money Due: ' + fmt(p.earnestMoneyDate));
+        if (p.dueDiligenceEndDate)    items.push('Due Diligence Ends: ' + fmt(p.dueDiligenceEndDate));
+        if (p.financeContingencyDate) items.push('Finance Contingency Ends: ' + fmt(p.financeContingencyDate));
+        if (p.cdDueDate)              items.push('CD Due: ' + fmt(p.cdDueDate));
+        if (p.closingDate)            items.push('Closing Date: ' + fmt(p.closingDate));
+        if (p.address)                items.push('Address: ' + p.address);
+        this.tcParsedResult = items.length > 0 ? items : ['No dates found — check the email format'];
+        if (items.length > 0) {
+          this.load();
+          this.snack.open(`Extracted ${items.length} item(s) — dates saved!`, 'OK', { duration: 4000 });
+        }
+      },
+      error: () => { this.tcParsing = false; this.snack.open('Error parsing email', 'OK', { duration: 3000 }); }
+    });
+  }
 }

@@ -15,6 +15,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 );
 
 
+// Background Services
+builder.Services.AddHostedService<LivelyFencing.API.Infrastructure.Background.TransactionAutoAdvanceService>();
+
 // HTTP Client (for Cloudflare Images API)
 builder.Services.AddHttpClient();
 

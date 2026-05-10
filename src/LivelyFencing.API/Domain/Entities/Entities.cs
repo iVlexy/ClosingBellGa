@@ -201,8 +201,10 @@ public class Transaction
     public TransactionStatus Status { get; set; } = TransactionStatus.Prospecting;
     public DateTime? OfferDate { get; set; }
     public DateTime? ContractDate { get; set; }
-    public DateTime? InspectionDate { get; set; }
-    public DateTime? AppraisalDate { get; set; }
+    public DateTime? DueDiligenceEndDate { get; set; }
+    public DateTime? FinanceContingencyDate { get; set; }
+    public DateTime? EarnestMoneyDate { get; set; }
+    public DateTime? CdDueDate { get; set; }
     public DateTime? ClosingDate { get; set; }
     public decimal? SalePrice { get; set; }
     public decimal? CommissionRate { get; set; }

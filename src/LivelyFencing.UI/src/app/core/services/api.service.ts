@@ -114,6 +114,7 @@ export class ApiService {
   createTransaction(data: any) { return this.http.post<any>(`${this.base}/transactions`, data); }
   updateTransaction(id: string, data: any) { return this.http.put<any>(`${this.base}/transactions/${id}`, data); }
   updateTransactionStatus(id: string, status: string) { return this.http.patch<any>(`${this.base}/transactions/${id}/status`, { status }); }
+  parseTcEmail(id: string, emailText: string) { return this.http.post<any>(`${this.base}/transactions/${id}/parse-tc-email`, { emailText }); }
   deleteTransaction(id: string) { return this.http.delete(`${this.base}/transactions/${id}`); }
   addTransactionDoc(txId: string, data: any) { return this.http.post<any>(`${this.base}/transactions/${txId}/documents`, data); }
   updateTransactionDoc(txId: string, docId: string, data: any) { return this.http.put<any>(`${this.base}/transactions/${txId}/documents/${docId}`, data); }

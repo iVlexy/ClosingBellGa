@@ -87,8 +87,7 @@ public enum TransactionStatus
     Prospecting,
     OfferSubmitted,
     UnderContract,
-    Inspection,
-    Appraisal,
+    FinanceContingency,
     ClearToClose,
     Closed,
     FallThrough

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LivelyFencing.API.Data;
+using System.Text.RegularExpressions;
 using LivelyFencing.API.Domain.Entities;
 using LivelyFencing.API.Domain.Enums;
 using LivelyFencing.API.Infrastructure.Auth;
@@ -49,8 +50,10 @@ public class TransactionsController : ControllerBase
             Status = req.Status != null && Enum.TryParse<TransactionStatus>(req.Status, out var st) ? st : TransactionStatus.Prospecting,
             OfferDate = req.OfferDate,
             ContractDate = req.ContractDate,
-            InspectionDate = req.InspectionDate,
-            AppraisalDate = req.AppraisalDate,
+            DueDiligenceEndDate = req.DueDiligenceEndDate,
+            FinanceContingencyDate = req.FinanceContingencyDate,
+            EarnestMoneyDate = req.EarnestMoneyDate,
+            CdDueDate = req.CdDueDate,
             ClosingDate = req.ClosingDate,
             SalePrice = req.SalePrice,
             CommissionRate = req.CommissionRate,
@@ -79,8 +82,10 @@ public class TransactionsController : ControllerBase
         t.Status = req.Status != null && Enum.TryParse<TransactionStatus>(req.Status, out var st) ? st : t.Status;
         t.OfferDate = req.OfferDate;
         t.ContractDate = req.ContractDate;
-        t.InspectionDate = req.InspectionDate;
-        t.AppraisalDate = req.AppraisalDate;
+        t.DueDiligenceEndDate = req.DueDiligenceEndDate;
+        t.FinanceContingencyDate = req.FinanceContingencyDate;
+        t.EarnestMoneyDate = req.EarnestMoneyDate;
+        t.CdDueDate = req.CdDueDate;
         t.ClosingDate = req.ClosingDate;
         t.SalePrice = req.SalePrice;
         t.CommissionRate = req.CommissionRate;
@@ -156,6 +161,59 @@ public class TransactionsController : ControllerBase
         return NoContent();
     }
 
+
+    [HttpPost("{id}/parse-tc-email")]
+    [Authorize(Policy = AuthorizationPolicies.AdminOrSales)]
+    public async Task<IActionResult> ParseTcEmail(Guid id, [FromBody] ParseEmailRequest req)
+    {
+        var t = await _db.Transactions.FindAsync(id);
+        if (t == null) return NotFound();
+
+        var text = req.EmailText ?? "";
+        var bindingDate        = ExtractDate(text, @"Binding Agreement Date\s*:\s*(\d{1,2}/\d{1,2}/\d{4})");
+        var earnestMoney       = ExtractDate(text, @"Earnest Money\s*[:\-]?\s*(\d{1,2}/\d{1,2}/?\d{0,4})");
+        var dueDiligence       = ExtractDate(text, @"Due Diligence Period\s*[:\-]?\s*(\d{1,2}/\d{1,2}/?\d{0,4})");
+        var financeContingency = ExtractDate(text, @"Finance contingency ends\s*[:\-]?\s*(\d{1,2}/\d{1,2}(?:/\d{2,4})?)");
+        var cdDue              = ExtractDate(text, @"CD Due\s*[:\-]?\s*(\d{1,2}/\d{1,2}(?:/\d{2,4})?)");
+        var closingDate        = ExtractDate(text, @"Closing Date\s*:\s*(\d{1,2}/\d{1,2}/\d{4})");
+
+        if (bindingDate.HasValue)        t.ContractDate           = bindingDate;
+        if (earnestMoney.HasValue)       t.EarnestMoneyDate       = earnestMoney;
+        if (dueDiligence.HasValue)       t.DueDiligenceEndDate    = dueDiligence;
+        if (financeContingency.HasValue) t.FinanceContingencyDate = financeContingency;
+        if (cdDue.HasValue)              t.CdDueDate              = cdDue;
+        if (closingDate.HasValue)        t.ClosingDate            = closingDate;
+
+        var addrMatch = Regex.Match(text, @"New contract\s*-\s*(.+?)(?:|
+|$)", RegexOptions.IgnoreCase);
+        if (addrMatch.Success && string.IsNullOrEmpty(t.Address))
+            t.Address = addrMatch.Groups[1].Value.Trim();
+
+        await _db.SaveChangesAsync();
+        return Ok(new {
+            parsed = new {
+                t.ContractDate, t.EarnestMoneyDate, t.DueDiligenceEndDate,
+                t.FinanceContingencyDate, t.CdDueDate, t.ClosingDate, t.Address
+            }
+        });
+    }
+
+    private static DateTime? ExtractDate(string text, string pattern)
+    {
+        var m = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
+        if (!m.Success) return null;
+        var ds = m.Groups[1].Value.Trim().TrimEnd('/');
+        if (Regex.IsMatch(ds, @"^\d{1,2}/\d{1,2}$"))
+            ds += "/" + DateTime.UtcNow.Year;
+        if (Regex.IsMatch(ds, @"^\d{1,2}/\d{1,2}/\d{2}$"))
+        { var p = ds.Split('/'); ds = $"{p[0]}/{p[1]}/20{p[2]}"; }
+        if (DateTime.TryParseExact(ds, new[]{"M/d/yyyy","MM/dd/yyyy","M/dd/yyyy","MM/d/yyyy"},
+            System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.None, out var dt))
+            return DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+        return null;
+    }
+
     private static object MapTransaction(Transaction t) => new
     {
         t.Id, t.ClientId,
@@ -164,7 +222,7 @@ public class TransactionsController : ControllerBase
         t.ListingKey, t.Address,
         Type = t.Type.ToString(),
         Status = t.Status.ToString(),
-        t.OfferDate, t.ContractDate, t.InspectionDate, t.AppraisalDate, t.ClosingDate,
+        t.OfferDate, t.ContractDate, t.DueDiligenceEndDate, t.FinanceContingencyDate, t.EarnestMoneyDate, t.CdDueDate, t.ClosingDate,
         t.SalePrice, t.CommissionRate, t.CommissionExpected, t.CommissionReceived,
         t.Notes, t.CreatedByEmail, t.CreatedAt,
         Documents = t.Documents.Select(d => new { d.Id, d.Name, Status = d.Status.ToString(), d.DueDate, d.Notes, d.CreatedAt }).ToList()
@@ -173,10 +231,12 @@ public class TransactionsController : ControllerBase
 
 public record TransactionRequest(
     Guid ClientId, string? ListingKey, string? Address, string Type, string? Status,
-    DateTime? OfferDate, DateTime? ContractDate, DateTime? InspectionDate,
-    DateTime? AppraisalDate, DateTime? ClosingDate,
+    DateTime? OfferDate, DateTime? ContractDate, DateTime? DueDiligenceEndDate,
+    DateTime? FinanceContingencyDate, DateTime? EarnestMoneyDate, DateTime? CdDueDate, DateTime? ClosingDate,
     decimal? SalePrice, decimal? CommissionRate, decimal? CommissionExpected, decimal? CommissionReceived,
     string? Notes);
 
 public record DocRequest(string Name, string? Status, DateTime? DueDate, string? Notes);
 public record TxStatusRequest(string Status);
+
+public record ParseEmailRequest(string? EmailText);
