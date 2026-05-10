@@ -36,8 +36,19 @@ public class ErrorReportingMiddleware
             _logger.LogError(ex, "Unhandled exception on {Method} {Path}",
                 context.Request.Method, context.Request.Path);
 
+            // Capture all request data synchronously before context is disposed
+            var method      = context.Request.Method;
+            var path_       = context.Request.Path.Value ?? "/";
+            var query_      = context.Request.QueryString.Value ?? "";
+            var traceId_    = context.TraceIdentifier;
+            var userId_     = context.User?.Identity?.Name ?? "anonymous";
+            var host_       = context.Request.Host.ToString();
+            var contentType_= context.Request.ContentType ?? "(none)";
+            var userAgent_  = context.Request.Headers["User-Agent"].FirstOrDefault() ?? "(none)";
+            var cfIp_       = context.Request.Headers["CF-Connecting-IP"].FirstOrDefault() ?? "(none)";
+
             // Fire-and-forget bug report — don't let reporting failure break the response
-            _ = Task.Run(() => ReportBugAsync(ex, context));
+            _ = Task.Run(() => ReportBugAsync(ex, method, path_, query_, traceId_, userId_, host_, contentType_, userAgent_, cfIp_));
 
             // Return 500 to caller
             if (!context.Response.HasStarted)
@@ -53,16 +64,15 @@ public class ErrorReportingMiddleware
         }
     }
 
-    private async Task ReportBugAsync(Exception ex, HttpContext context)
+    private async Task ReportBugAsync(
+        Exception ex,
+        string method, string path, string query,
+        string traceId, string userId,
+        string host, string contentType, string userAgent, string cfIp)
     {
         try
         {
-            var method  = context.Request.Method;
-            var path    = context.Request.Path.Value ?? "/";
-            var query   = context.Request.QueryString.Value ?? "";
-            var traceId = context.TraceIdentifier;
-            var userId  = context.User?.Identity?.Name ?? "anonymous";
-            var now     = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC");
+            var now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC");
 
             // Build inner exception chain
             var exChain = new System.Text.StringBuilder();
@@ -91,10 +101,10 @@ public class ErrorReportingMiddleware
 ## Session / Request Context
 - Method: {method}
 - Path: {path}{query}
-- Host: {context.Request.Host}
-- Content-Type: {context.Request.ContentType ?? "(none)"}
-- User-Agent: {context.Request.Headers["User-Agent"].FirstOrDefault() ?? "(none)"}
-- CF-Connecting-IP: {context.Request.Headers["CF-Connecting-IP"].FirstOrDefault() ?? "(none)"}
+- Host: {host}
+- Content-Type: {contentType}
+- User-Agent: {userAgent}
+- CF-Connecting-IP: {cfIp}
 """;
 
             var payload = new
@@ -113,8 +123,11 @@ public class ErrorReportingMiddleware
             if (!response.IsSuccessStatusCode)
             {
                 var body = await response.Content.ReadAsStringAsync();
-                // Use Console.Error as a last resort — ILogger may also be failing
                 Console.Error.WriteLine($"[ErrorReporting] Bug report failed: {response.StatusCode} {body}");
+            }
+            else
+            {
+                _logger.LogInformation("Bug report submitted for {Method} {Path}", method, path);
             }
         }
         catch (Exception reportEx)

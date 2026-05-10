@@ -85,6 +85,7 @@ app.UseMiddleware<LivelyFencing.API.Infrastructure.ErrorReportingMiddleware>();
 app.UseCloudflareJwt();
 
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
