@@ -134,35 +134,67 @@ public class TcEmailWebhookController : ControllerBase
             customer.IsActive = true;
         }
 
-        // ── Create Transaction ────────────────────────────────────────────────
-        var transaction = new Transaction
+        // ── Find or create Transaction ───────────────────────────────────────
+        // If the client has an existing Prospecting transaction, update it.
+        // If their deal has already moved forward, create a new transaction.
+        var existingProspecting = await _db.Transactions
+            .Where(t => t.ClientId == customer.Id && t.Status == TransactionStatus.Prospecting)
+            .OrderByDescending(t => t.CreatedAt)
+            .FirstOrDefaultAsync();
+
+        bool transactionUpdated = existingProspecting != null;
+        Transaction transaction;
+
+        if (existingProspecting != null)
         {
-            ClientId = customer.Id,
-            Address = address,
-            Type = TransactionType.BuyerRepresentation,
-            Status = TransactionStatus.UnderContract,
-            ContractDate = contractDate,
-            EarnestMoneyDate = earnestMoneyDate,
-            DueDiligenceEndDate = dueDiligenceEndDate,
-            FinanceContingencyDate = financeContingencyDate,
-            CdDueDate = cdDueDate,
-            ClosingDate = closingDate,
-            CreatedByEmail = "tc-email-webhook",
-            Notes = $"Auto-imported from TC email. Subject: {subject}",
-        };
+            // Update the Prospecting transaction in-place
+            transaction = existingProspecting;
+            transaction.Address ??= address;
+            if (address != null) transaction.Address = address;
+            transaction.Status = TransactionStatus.UnderContract;
+            transaction.ContractDate = contractDate ?? transaction.ContractDate;
+            transaction.EarnestMoneyDate = earnestMoneyDate ?? transaction.EarnestMoneyDate;
+            transaction.DueDiligenceEndDate = dueDiligenceEndDate ?? transaction.DueDiligenceEndDate;
+            transaction.FinanceContingencyDate = financeContingencyDate ?? transaction.FinanceContingencyDate;
+            transaction.CdDueDate = cdDueDate ?? transaction.CdDueDate;
+            transaction.ClosingDate = closingDate ?? transaction.ClosingDate;
+            transaction.Notes = (transaction.Notes != null ? transaction.Notes + "\n" : "")
+                + $"Updated from TC email. Subject: {subject}";
+            _logger.LogInformation(
+                "TC email webhook: updated existing Prospecting transaction {Id} for client {Client}",
+                transaction.Id, customer.Name);
+        }
+        else
+        {
+            transaction = new Transaction
+            {
+                ClientId = customer.Id,
+                Address = address,
+                Type = TransactionType.BuyerRepresentation,
+                Status = TransactionStatus.UnderContract,
+                ContractDate = contractDate,
+                EarnestMoneyDate = earnestMoneyDate,
+                DueDiligenceEndDate = dueDiligenceEndDate,
+                FinanceContingencyDate = financeContingencyDate,
+                CdDueDate = cdDueDate,
+                ClosingDate = closingDate,
+                CreatedByEmail = "tc-email-webhook",
+                Notes = $"Auto-imported from TC email. Subject: {subject}",
+            };
+            _db.Transactions.Add(transaction);
+            _logger.LogInformation(
+                "TC email webhook: created new transaction for {Address} client {Client}",
+                address ?? "(no address)", customer.Name);
+        }
 
-        _db.Transactions.Add(transaction);
         await _db.SaveChangesAsync();
-
-        _logger.LogInformation(
-            "TC email webhook: created transaction {Id} for {Address} client {Client}",
-            transaction.Id, address ?? "(no address)", customer.Name);
 
         return Ok(new
         {
             transactionId = transaction.Id,
             clientId = customer.Id,
             clientCreated = newClient,
+            transactionUpdated,
             address,
             buyerName = customer.Name,
             buyerEmail = customer.Email,
