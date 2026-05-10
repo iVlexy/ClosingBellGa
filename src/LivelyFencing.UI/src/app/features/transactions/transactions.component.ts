@@ -60,18 +60,19 @@ const TX_TYPES = [
     </div>
   </div>
 
-  <!-- Kanban board -->
+  <!-- Vertical pipeline -->
   <div class="board" #boardEl (dragover)="onBoardDragOver($event)">
-    <div class="board-col" *ngFor="let stage of pipeline">
-      <div class="col-header" [style.border-color]="stage.color">
-        <span class="col-title">{{stage.label}}</span>
-        <span class="col-badge" [style.background]="stage.color">{{countByStatus(stage.key)}}</span>
+    <div class="board-lane" *ngFor="let stage of pipeline"
+      (dragover)="onDragOver($event)"
+      (dragenter)="onDragEnter($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onNativeDrop($event, stage.key)">
+      <div class="lane-header" [style.border-left-color]="stage.color">
+        <span class="lane-dot" [style.background]="stage.color"></span>
+        <span class="lane-title">{{stage.label}}</span>
+        <span class="lane-badge" [style.background]="stage.color">{{countByStatus(stage.key)}}</span>
       </div>
-      <div class="col-cards"
-        (dragover)="onDragOver($event)"
-        (dragenter)="onDragEnter($event)"
-        (dragleave)="onDragLeave($event)"
-        (drop)="onNativeDrop($event, stage.key)">
+      <div class="lane-cards">
         <div class="tx-card" *ngFor="let tx of byStatus(stage.key)"
           draggable="true"
           (dragstart)="onDragStart($event, tx)"
@@ -99,7 +100,7 @@ const TX_TYPES = [
             <span class="doc-label">{{doneDocCount(tx)}}/{{tx.documents.length}} docs</span>
           </div>
         </div>
-        <div class="col-empty" *ngIf="byStatus(stage.key).length === 0">—</div>
+        <div class="col-empty" *ngIf="byStatus(stage.key).length === 0">No deals here</div>
       </div>
     </div>
   </div>
@@ -381,12 +382,15 @@ const TX_TYPES = [
     .sum-dot { width: 8px; height: 8px; border-radius: 50%; }
     .sum-label { color: #555; }
     .sum-count { font-weight: 700; color: #222; }
-    .board { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 16px; min-height: 400px; }
-    .board-col { min-width: 200px; max-width: 220px; flex-shrink: 0; }
-    .col-header { background: #fff; border-radius: 8px 8px 0 0; border-top: 4px solid; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; }
-    .col-title { font-size: 12px; font-weight: 600; color: #333; }
-    .col-badge { color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
-    .col-cards { background: #f3f4f6; border-radius: 0 0 8px 8px; padding: 8px; display: flex; flex-direction: column; gap: 8px; min-height: 200px; }
+    .board { display: flex; flex-direction: column; gap: 0; }
+    .board-lane { border-left: 4px solid #eee; background: #fff; border-bottom: 1px solid #e5e7eb; transition: background .15s; }
+    .board-lane:first-child { border-radius: 8px 8px 0 0; }
+    .board-lane:last-child { border-radius: 0 0 8px 8px; border-bottom: none; }
+    .lane-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; cursor: default; }
+    .lane-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .lane-title { font-size: 13px; font-weight: 700; color: #333; flex: 1; }
+    .lane-badge { color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+    .lane-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; padding: 0 14px 14px; min-height: 52px; }
     .tx-card { background: #fff; border-radius: 8px; padding: 10px 12px; cursor: pointer; border: 1px solid #e5e7eb; transition: box-shadow .15s; position: relative; }
     .tx-hint-bar { position: absolute; top: 7px; right: 8px; pointer-events: none; }
     .tx-hint-text { font-size: 10px; color: #bbb; letter-spacing: .3px; display: inline; }
@@ -447,11 +451,11 @@ const TX_TYPES = [
     /* Drag & drop */
     .tx-card[draggable=true] { cursor: grab; }
     .tx-card[draggable=true]:active { cursor: grabbing; }
-    .col-cards.drag-over { background:#e8f5e9 !important; outline:2px dashed #81C784; outline-offset:-4px; border-radius:0 0 8px 8px; }
+    .board-lane.drag-over { background:#e8f5e9 !important; outline:2px dashed #81C784; outline-offset:-3px; }
     @media (max-width: 600px) {
       .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
       .page-header button { align-self: stretch; }
-      .board-col { min-width: 160px; max-width: 175px; }
+      .lane-cards { grid-template-columns: 1fr; }
       .tx-hint-text { display: none; }
       .tx-hint-icon { display: inline !important; }
       .form-row-2 { flex-direction: column; gap: 0; }
