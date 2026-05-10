@@ -36,6 +36,7 @@ public class CloudflareJwtMiddleware
         var method = context.Request.Method;
         bool isAnonymousRoute =
             path.StartsWith("/health") ||
+            path.StartsWith("/webhooks") ||
             path.StartsWith("/swagger") ||
             method == "OPTIONS" ||
             (path == "/contact" && method == "POST") ||
