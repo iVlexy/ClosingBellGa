@@ -53,13 +53,8 @@ public class TransactionAutoAdvanceService : BackgroundService
                     && t.DueDiligenceEndDate.HasValue && t.DueDiligenceEndDate.Value.Date <= today)
                 { t.Status = TransactionStatus.FinanceContingency; advanced++; }
 
-                // FinanceContingency → ClearToClose when finance contingency expires
+                // FinanceContingency → Closed on closing day
                 else if (t.Status == TransactionStatus.FinanceContingency
-                    && t.FinanceContingencyDate.HasValue && t.FinanceContingencyDate.Value.Date <= today)
-                { t.Status = TransactionStatus.ClearToClose; advanced++; }
-
-                // ClearToClose → Closed on closing day
-                else if (t.Status == TransactionStatus.ClearToClose
                     && t.ClosingDate.HasValue && t.ClosingDate.Value.Date <= today)
                 { t.Status = TransactionStatus.Closed; advanced++; }
             }

@@ -21,7 +21,6 @@ const PIPELINE = [
   { key: 'OfferSubmitted',     label: 'Offer Submitted',       color: '#1565C0' },
   { key: 'UnderContract',      label: 'Under Contract',        color: '#6A1B9A' },
   { key: 'FinanceContingency', label: 'Finance Contingency',   color: '#E65100' },
-  { key: 'ClearToClose',       label: 'Clear to Close',        color: '#558B2F' },
   { key: 'Closed',             label: 'Closed',                color: '#2E7D32' },
   { key: 'FallThrough',        label: 'Fall Through',          color: '#c62828' },
 ];

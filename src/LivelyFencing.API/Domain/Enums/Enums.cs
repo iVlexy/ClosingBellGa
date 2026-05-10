@@ -88,7 +88,6 @@ public enum TransactionStatus
     OfferSubmitted,
     UnderContract,
     FinanceContingency,
-    ClearToClose,
     Closed,
     FallThrough
 }
