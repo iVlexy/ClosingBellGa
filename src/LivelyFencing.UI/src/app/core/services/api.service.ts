@@ -97,7 +97,7 @@ export class ApiService {
   searchListings(params: any = {}) { return this.http.get<any>(`${this.base}/listings`, { params }); }
   getListing(key: string) { return this.http.get<any>(`${this.base}/listings/${key}`); }
   getListingPhotoUrl(url: string): string {
-    return url || 'https://picsum.photos/seed/nophoto/800/600';
+    return url || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgODAwIDYwMCI+PHJlY3Qgd2lkdGg9IjgwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9IiNmMGYwZWIiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0MDAsMjcwKSIgZmlsbD0iI2QwZDBjOCI+PHJlY3QgeD0iLTU1IiB5PSIwIiB3aWR0aD0iMTEwIiBoZWlnaHQ9Ijc1IiByeD0iMyIvPjxyZWN0IHg9Ii0xOCIgeT0iMzUiIHdpZHRoPSIzNiIgaGVpZ2h0PSI0MCIgZmlsbD0iI2YwZjBlYiIvPjxwb2x5Z29uIHBvaW50cz0iMCwtNzAgLTgwLDAgODAsMCIvPjxyZWN0IHg9IjI1IiB5PSItODAiIHdpZHRoPSIxOCIgaGVpZ2h0PSIzOCIgZmlsbD0iI2QwZDBjOCIvPjwvZz48dGV4dCB4PSI0MDAiIHk9IjM5MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9Ii1hcHBsZS1zeXN0ZW0sQmxpbmtNYWNTeXN0ZW1Gb250LFNlZ29lIFVJLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTciIGZpbGw9IiNhYWEiIGxldHRlci1zcGFjaW5nPSIwLjUiPlBob3RvIHVuYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg==';
   }
 
   // Listing Preferences
