@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api-stage.closingbellga.com'
+  apiUrl: 'https://api.closingbellga.com'
 };

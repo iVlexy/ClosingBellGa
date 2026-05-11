@@ -29,7 +29,7 @@ import { TenantService } from '../../core/services/tenant.service';
           <span class="re-brand-name">{{ tenant.config.businessName }}</span>
         </div>
         <div class="re-nav-actions">
-          <a routerLink="/portal/listings" class="re-nav-link re-browse-btn">Browse Listings</a>
+          <!-- Browse Listings hidden until FMLS approval -->
           <a href="#services" class="re-nav-link">Services</a>
           <a href="#contact" class="re-nav-link">Contact</a>
           <span class="re-nav-greeting" *ngIf="currentUser">Hi, {{ currentUser?.name?.split(' ')[0] }}</span>

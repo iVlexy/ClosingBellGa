@@ -63,11 +63,11 @@ spec:
                   name: api-secret
                   key: GOOGLE_PLACE_ID
             - name: App__PortalBaseUrl
-              value: "https://stage.closingbellga.com"
+              value: "https://closingbellga.com"
             - name: Ollama__BaseUrl
               value: "http://ollama.livelyfencing.svc.cluster.local:11434"
             - name: AllowedOrigins__0
-              value: "https://stage.closingbellga.com"
+              value: "https://closingbellga.com"
             - name: AllowedOrigins__1
               value: "https://closingbellga.browning-home-lab.work"
             - name: DOTNET_USE_POLLING_FILE_WATCHER

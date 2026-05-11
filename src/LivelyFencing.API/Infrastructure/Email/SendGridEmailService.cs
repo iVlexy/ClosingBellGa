@@ -200,7 +200,7 @@ public class SendGridEmailService
       Please open the transaction and fill in the missing dates/details manually.
     </p>
     <div style="margin-top:16px;">
-      <a href="https://stage.closingbellga.com/transactions"
+      <a href="https://closingbellga.com/transactions"
          style="background:#1B4D2E;color:white;padding:10px 24px;text-decoration:none;border-radius:4px;font-weight:bold;font-size:14px;">
         Open Pipeline →
       </a>
