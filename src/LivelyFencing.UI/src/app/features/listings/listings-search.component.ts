@@ -117,7 +117,7 @@ import { AuthService } from '../../core/services/auth.service';
       <div class="listing-grid" *ngIf="!loading()">
         <div class="listing-card" *ngFor="let l of listings()" [routerLink]="['/portal/listings', l.listingKey]">
           <div class="card-photo">
-            <img [src]="l.photos?.[0] || 'https://picsum.photos/seed/default/800/600'"
+            <img [src]="api.getListingPhotoUrl(l.photos?.[0])" (error)="onImgError($event)"
                  [alt]="l.unparsedAddress" loading="lazy">
             <span class="status-chip"
               [class.active]="l.standardStatus === 'Active'"
@@ -351,6 +351,12 @@ export class ListingsSearchComponent implements OnInit {
   getReaction(key: string) { return this.myReactions()[key]; }
 
   goLogin() { window.location.href = '/cq/dashboard'; }
+
+  onImgError(event: Event) {
+    const img = event.target as HTMLImageElement;
+    img.onerror = null;
+    img.src = 'https://picsum.photos/seed/nophoto/800/600';
+  }
 
   react(listing: any, reaction: string) {
     this.api.reactToListing({

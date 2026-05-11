@@ -39,7 +39,7 @@ import { AuthService } from '../../core/services/auth.service';
       <!-- Photo gallery -->
       <div class="gallery-wrap">
         <div class="gallery-main">
-          <img [src]="currentPhoto()" [alt]="listing().unparsedAddress">
+          <img [src]="currentPhoto()" [alt]="listing().unparsedAddress" (error)="onImgError($event)">
           <button mat-icon-button class="gal-btn gal-prev" *ngIf="listing().photos?.length > 1" (click)="prevPhoto()">
             <mat-icon>chevron_left</mat-icon>
           </button>
@@ -52,7 +52,7 @@ import { AuthService } from '../../core/services/auth.service';
         </div>
         <div class="gallery-thumbs" *ngIf="listing().photos?.length > 1">
           <img *ngFor="let p of listing().photos; let i = index"
-               [src]="p" [alt]="'Photo ' + (i+1)" loading="lazy"
+               [src]="api.getListingPhotoUrl(p)" [alt]="'Photo ' + (i+1)" loading="lazy" (error)="onImgError($event)"
                [class.active]="i === photoIdx()"
                (click)="photoIdx.set(i)">
         </div>
@@ -294,7 +294,8 @@ export class ListingDetailComponent implements OnInit {
   currentPhoto = computed(() => {
     const l = this.listing();
     if (!l?.photos?.length) return 'https://picsum.photos/seed/default/800/600';
-    return l.photos[this.photoIdx()] ?? l.photos[0];
+    const raw = l.photos[this.photoIdx()] ?? l.photos[0];
+    return this.api.getListingPhotoUrl(raw);
   });
 
   ngOnInit() {
@@ -335,6 +336,12 @@ export class ListingDetailComponent implements OnInit {
     this.myReaction.set(r);
     this.pendingReaction = r;
     this.saved.set(false);
+  }
+
+  onImgError(event: Event) {
+    const img = event.target as HTMLImageElement;
+    img.onerror = null;
+    img.src = 'https://picsum.photos/seed/nophoto/800/600';
   }
 
   saveReaction() {

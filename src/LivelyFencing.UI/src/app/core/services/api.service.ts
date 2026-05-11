@@ -96,6 +96,10 @@ export class ApiService {
   // Listings (Bridge Data Output / FMLS proxy)
   searchListings(params: any = {}) { return this.http.get<any>(`${this.base}/listings`, { params }); }
   getListing(key: string) { return this.http.get<any>(`${this.base}/listings/${key}`); }
+  getListingPhotoUrl(url: string): string {
+    if (!url) return 'https://picsum.photos/seed/default/800/600';
+    return `${this.base}/listings/photo?url=${encodeURIComponent(url)}`;
+  }
 
   // Listing Preferences
   getListingPreferences(customerId: string) { return this.http.get<any[]>(`${this.base}/listing-preferences`, { params: { customerId } }); }

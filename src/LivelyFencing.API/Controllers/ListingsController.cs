@@ -59,6 +59,36 @@ public class ListingsController : ControllerBase
         return await GetBridgeAsync(listingKey);
     }
 
+
+    [HttpGet("photo")]
+    public async Task<IActionResult> ProxyPhoto([FromQuery] string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return BadRequest();
+
+        // Only allow known Bridge CDN domains
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
+            uri.Scheme != "https" ||
+            (!uri.Host.EndsWith(".cloudfront.net") && !uri.Host.EndsWith(".bridgedataoutput.com")))
+            return BadRequest("Invalid image source");
+
+        using var client = _httpFactory.CreateClient();
+        if (!string.IsNullOrWhiteSpace(_serverToken))
+            client.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", _serverToken);
+
+        HttpResponseMessage response;
+        try { response = await client.GetAsync(url); }
+        catch { return StatusCode(502); }
+
+        if (!response.IsSuccessStatusCode)
+            return StatusCode((int)response.StatusCode);
+
+        var content = await response.Content.ReadAsByteArrayAsync();
+        var contentType = response.Content.Headers.ContentType?.ToString() ?? "image/jpeg";
+        return File(content, contentType);
+    }
+
     // ── Dummy fallback ────────────────────────────────────────────────────────
 
     private IActionResult SearchDummy(
@@ -113,7 +143,8 @@ public class ListingsController : ControllerBase
             filters.Add($"(City eq '{c}' or PostalCode eq '{c}')");
         }
         if (!string.IsNullOrWhiteSpace(zip))
-            filters.Add($"PostalCode eq '{zip.Trim().Replace("'", "''")}'");
+            filters.Add($"startswith(PostalCode, '{zip.Trim().Replace("'", "''")}')");
+
         if (minPrice.HasValue)
             filters.Add($"ListPrice ge {minPrice.Value}");
         if (maxPrice.HasValue)
