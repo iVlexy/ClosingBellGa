@@ -77,11 +77,13 @@ export const routes: Routes = [
   },
   {
     path: 'portal/listings',
-    loadComponent: () => import('./features/listings/listings-search.component').then(m => m.ListingsSearchComponent)
+    loadComponent: () => import('./features/listings/listings-search.component').then(m => m.ListingsSearchComponent),
+    canActivate: [authGuard(['Admin', 'FMLSApprover'])]
   },
   {
     path: 'portal/listings/:key',
-    loadComponent: () => import('./features/listings/listing-detail.component').then(m => m.ListingDetailComponent)
+    loadComponent: () => import('./features/listings/listing-detail.component').then(m => m.ListingDetailComponent),
+    canActivate: [authGuard(['Admin', 'FMLSApprover'])]
   },
   { path: 'unauthorized', loadComponent: () => import('./features/unauthorized/unauthorized.component').then(m => m.UnauthorizedComponent) },
   {
@@ -111,7 +113,8 @@ export const routes: Routes = [
   },
   {
     path: 'portal/my-listings',
-    loadComponent: () => import('./features/listings/my-listings.component').then(m => m.MyListingsComponent)
+    loadComponent: () => import('./features/listings/my-listings.component').then(m => m.MyListingsComponent),
+    canActivate: [authGuard(['Admin', 'FMLSApprover'])]
   },
   { path: '**', redirectTo: '/cq/dashboard' }
 ];

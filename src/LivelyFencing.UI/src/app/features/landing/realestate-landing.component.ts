@@ -53,6 +53,9 @@ import { TenantService } from '../../core/services/tenant.service';
               Schedule Consultation
             </a>
             <a href="#services" mat-stroked-button class="re-outline-btn">Our Services</a>
+            <a *ngIf="canBrowseListings()" routerLink="/portal/listings" mat-stroked-button class="re-listings-btn">
+              <mat-icon>home_work</mat-icon> Browse Listings
+            </a>
           </div>
           <div class="re-hero-stats" *ngIf="tenant.config.stats?.length">
             <ng-container *ngFor="let stat of tenant.config.stats; let last = last">
@@ -290,6 +293,7 @@ import { TenantService } from '../../core/services/tenant.service';
     .re-hero-actions { display: flex; gap: 16px; align-items: center; margin-bottom: 48px; flex-wrap: wrap; }
     .re-cta-btn { background: #C9A96E !important; color: #0A0A0A !important; padding: 13px 32px !important; font-size: 14px !important; font-weight: 700 !important; letter-spacing: .5px !important; text-transform: uppercase !important; border-radius: 2px !important; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 20px rgba(201,169,110,.3) !important; }
     .re-cta-btn:hover { background: #B8935A !important; }
+    .re-listings-btn { color: #C9A96E !important; border-color: rgba(201,169,110,.6) !important; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
     .re-outline-btn { color: rgba(255,255,255,.85) !important; border: 1px solid rgba(255,255,255,.35) !important; padding: 12px 28px !important; font-size: 14px !important; font-weight: 500 !important; letter-spacing: .5px !important; text-transform: uppercase !important; border-radius: 2px !important; text-decoration: none; display: inline-block; }
     .re-outline-btn:hover { border-color: rgba(255,255,255,.6) !important; }
     .re-hero-stats { display: flex; align-items: center; gap: 32px; }
@@ -458,6 +462,7 @@ export class RealEstateLandingComponent implements OnInit, OnDestroy {
   submitting = false;
   year = new Date().getFullYear();
   currentUser: any = null;
+  canBrowseListings() { return this.currentUser?.role === 'Admin' || this.currentUser?.role === 'FMLSApprover'; }
   reviews: any[] = [];
   reviewCarouselIndex = 0;
   private _reviewTimer: any;
@@ -495,7 +500,7 @@ export class RealEstateLandingComponent implements OnInit, OnDestroy {
         if (user.role === 'Admin' || user.role === 'Sales' || user.role === 'Accountant' || user.role === 'FieldWorker') {
           this.router.navigate(['/cq/dashboard']);
         } else if (user.role === 'FMLSApprover') {
-          this.router.navigate(['/portal/listings']);
+          this.currentUser = user;
         } else if (user.role === 'Customer') {
           this.currentUser = user;
         }
