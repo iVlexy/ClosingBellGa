@@ -8,7 +8,7 @@ export interface CurrentUser {
   id: string;
   email: string;
   name: string;
-  role: 'Admin' | 'Sales' | 'Accountant' | 'FieldWorker' | 'Customer';
+  role: 'Admin' | 'Sales' | 'Accountant' | 'FieldWorker' | 'Customer' | 'FMLSApprover';
 }
 
 @Injectable({ providedIn: 'root' })
@@ -19,7 +19,7 @@ export class AuthService {
   user$ = this.userSubject.asObservable();
   impersonatedRole$ = this.impersonatedRoleSubject.asObservable();
 
-  readonly allRoles: string[] = ['Sales', 'Accountant', 'FieldWorker', 'Customer'];
+  readonly allRoles: string[] = ['Sales', 'Accountant', 'FieldWorker', 'Customer', 'FMLSApprover'];
 
   getMe(): Observable<CurrentUser | null> {
     if (this.userSubject.value) {

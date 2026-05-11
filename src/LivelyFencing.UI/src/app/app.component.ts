@@ -251,7 +251,7 @@ export class AppComponent implements OnInit, OnDestroy {
     } else {
       this.auth.stopImpersonation();
     }
-    this.router.navigate(role === 'Customer' ? ['/'] : ['/cq/dashboard']);
+    this.router.navigate(role === 'Customer' || role === 'FMLSApprover' ? ['/portal/listings'] : ['/cq/dashboard']);
   }
 
   stopImpersonation() {

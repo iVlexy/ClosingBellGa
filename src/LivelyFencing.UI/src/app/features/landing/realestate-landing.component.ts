@@ -494,6 +494,8 @@ export class RealEstateLandingComponent implements OnInit, OnDestroy {
         if (!user) return;
         if (user.role === 'Admin' || user.role === 'Sales' || user.role === 'Accountant' || user.role === 'FieldWorker') {
           this.router.navigate(['/cq/dashboard']);
+        } else if (user.role === 'FMLSApprover') {
+          this.router.navigate(['/portal/listings']);
         } else if (user.role === 'Customer') {
           this.currentUser = user;
         }

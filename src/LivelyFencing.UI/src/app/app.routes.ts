@@ -77,11 +77,13 @@ export const routes: Routes = [
   },
   {
     path: 'portal/listings',
-    loadComponent: () => import('./features/listings/listings-search.component').then(m => m.ListingsSearchComponent)
+    loadComponent: () => import('./features/listings/listings-search.component').then(m => m.ListingsSearchComponent),
+    canActivate: [authGuard(['Admin', 'Sales', 'Accountant', 'FieldWorker', 'Customer', 'FMLSApprover'])]
   },
   {
     path: 'portal/listings/:key',
-    loadComponent: () => import('./features/listings/listing-detail.component').then(m => m.ListingDetailComponent)
+    loadComponent: () => import('./features/listings/listing-detail.component').then(m => m.ListingDetailComponent),
+    canActivate: [authGuard(['Admin', 'Sales', 'Accountant', 'FieldWorker', 'Customer', 'FMLSApprover'])]
   },
   { path: 'unauthorized', loadComponent: () => import('./features/unauthorized/unauthorized.component').then(m => m.UnauthorizedComponent) },
   {

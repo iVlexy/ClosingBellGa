@@ -109,7 +109,7 @@ export class UserManagementComponent implements OnInit {
 
   users = signal<any[]>([]);
   search = '';
-  roles = ['Admin', 'Sales', 'Accountant', 'FieldWorker', 'Customer'];
+  roles = ['Admin', 'Sales', 'Accountant', 'FieldWorker', 'Customer', 'FMLSApprover'];
   cols = ['name', 'role', 'lastLogin', 'created', 'active'];
 
   filtered = () => {

@@ -6,7 +6,8 @@ public enum UserRole
     Sales,
     Accountant,
     FieldWorker,
-    Customer
+    Customer,
+    FMLSApprover
 }
 
 public enum FencingType

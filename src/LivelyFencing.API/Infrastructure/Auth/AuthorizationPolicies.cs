@@ -25,7 +25,7 @@ public static class AuthorizationPolicies
             policy.RequireClaim(ClaimTypes.Role, "Admin", "Sales", "Accountant", "FieldWorker"));
 
         options.AddPolicy(AnyRole, policy =>
-            policy.RequireClaim(ClaimTypes.Role, "Admin", "Sales", "Accountant", "FieldWorker", "Customer"));
+            policy.RequireClaim(ClaimTypes.Role, "Admin", "Sales", "Accountant", "FieldWorker", "Customer", "FMLSApprover"));
     }
 }
 
