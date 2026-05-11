@@ -1,37 +1,71 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Http.Headers;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace LivelyFencing.API.Controllers;
-
-// NOTE: This controller returns hardcoded Atlanta-area dummy listings.
-// When Brandon receives Bridge Data Output API access from FMLS:
-//   1. Register at https://bridgedataoutput.com and get approved for FMLS dataset
-//   2. Add env vars: Bridge__ServerToken and Bridge__DatasetId to the API deployment
-//   3. Replace DummyListings.All calls below with Bridge API proxy calls
-//   Bridge API: GET https://api.bridgedataoutput.com/api/v2/OData/{datasetId}/Property
-//   Auth header: Authorization: Bearer {serverToken}
-//   RESO Web API docs: https://bridgedataoutput.com/docs/platform/API
-//   Key filter params: $filter=StandardStatus eq 'Active' and City eq 'Atlanta'
-//                      $top=200, $skip=N, $orderby=ListPrice asc
-//   Photo access via Media field on Property resource (CDN URLs, link directly)
 
 [ApiController]
 [Route("listings")]
 public class ListingsController : ControllerBase
 {
+    private readonly IHttpClientFactory _httpFactory;
+    private readonly string? _serverToken;
+    private readonly string? _datasetId;
+
+    public ListingsController(IHttpClientFactory httpFactory, IConfiguration config)
+    {
+        _httpFactory = httpFactory;
+        _serverToken = config["Bridge:ServerToken"];
+        _datasetId   = config["Bridge:DatasetId"];
+    }
+
+    // Bridge is active only when BOTH env vars are configured.
+    // While FMLS dataset is pending approval, DatasetId will be absent and
+    // the controller falls back to DummyListings automatically.
+    private bool UseBridge =>
+        !string.IsNullOrWhiteSpace(_serverToken) &&
+        !string.IsNullOrWhiteSpace(_datasetId);
+
     [HttpGet]
-    public IActionResult Search(
+    public async Task<IActionResult> Search(
         [FromQuery] string? city,
         [FromQuery] string? zip,
         [FromQuery] decimal? minPrice,
         [FromQuery] decimal? maxPrice,
-        [FromQuery] int? minBeds,
+        [FromQuery] int?     minBeds,
         [FromQuery] decimal? minBaths,
-        [FromQuery] string? propertyType,
-        [FromQuery] string? status,
-        [FromQuery] int page = 1)
+        [FromQuery] string?  propertyType,
+        [FromQuery] string?  status,
+        [FromQuery] int      page = 1)
+    {
+        if (!UseBridge)
+            return SearchDummy(city, zip, minPrice, maxPrice, minBeds, minBaths,
+                               propertyType, status, page);
+
+        return await SearchBridgeAsync(city, zip, minPrice, maxPrice, minBeds,
+                                       minBaths, propertyType, status, page);
+    }
+
+    [HttpGet("{listingKey}")]
+    public async Task<IActionResult> Get(string listingKey)
+    {
+        if (!UseBridge)
+        {
+            var dummy = DummyListings.All.FirstOrDefault(
+                l => l.ListingKey.Equals(listingKey, StringComparison.OrdinalIgnoreCase));
+            return dummy == null ? NotFound() : Ok(dummy);
+        }
+        return await GetBridgeAsync(listingKey);
+    }
+
+    // ── Dummy fallback ────────────────────────────────────────────────────────
+
+    private IActionResult SearchDummy(
+        string? city, string? zip, decimal? minPrice, decimal? maxPrice,
+        int? minBeds, decimal? minBaths, string? propertyType, string? status, int page)
     {
         var listings = DummyListings.All;
-
         if (!string.IsNullOrWhiteSpace(city))
             listings = listings.Where(l =>
                 l.City.Contains(city.Trim(), StringComparison.OrdinalIgnoreCase) ||
@@ -59,14 +93,162 @@ public class ListingsController : ControllerBase
         return Ok(new { total, page, pageSize, listings = items });
     }
 
-    [HttpGet("{listingKey}")]
-    public IActionResult Get(string listingKey)
+    // ── Bridge API proxy ──────────────────────────────────────────────────────
+
+    private async Task<IActionResult> SearchBridgeAsync(
+        string? city, string? zip, decimal? minPrice, decimal? maxPrice,
+        int? minBeds, decimal? minBaths, string? propertyType, string? status, int page)
     {
-        var listing = DummyListings.All.FirstOrDefault(
-            l => l.ListingKey.Equals(listingKey, StringComparison.OrdinalIgnoreCase));
-        return listing == null ? NotFound() : Ok(listing);
+        const int pageSize = 12;
+
+        var filters = new List<string>
+        {
+            // Default to Active when caller omits status
+            $"StandardStatus eq '{(string.IsNullOrWhiteSpace(status) ? "Active" : status.Trim())}'"
+        };
+
+        if (!string.IsNullOrWhiteSpace(city))
+        {
+            var c = city.Trim().Replace("'", "''");
+            filters.Add($"(City eq '{c}' or PostalCode eq '{c}')");
+        }
+        if (!string.IsNullOrWhiteSpace(zip))
+            filters.Add($"PostalCode eq '{zip.Trim().Replace("'", "''")}'");
+        if (minPrice.HasValue)
+            filters.Add($"ListPrice ge {minPrice.Value}");
+        if (maxPrice.HasValue)
+            filters.Add($"ListPrice le {maxPrice.Value}");
+        if (minBeds.HasValue)
+            filters.Add($"BedroomsTotal ge {minBeds.Value}");
+        if (minBaths.HasValue)
+            filters.Add($"BathroomsTotalDecimal ge {minBaths.Value}");
+        if (!string.IsNullOrWhiteSpace(propertyType))
+            filters.Add($"PropertySubType eq '{propertyType.Trim().Replace("'", "''")}'");
+
+        var filter = string.Join(" and ", filters);
+        var skip   = (page - 1) * pageSize;
+
+        var url = $"https://api.bridgedataoutput.com/api/v2/OData/{_datasetId}/Property"
+                + $"?$filter={Uri.EscapeDataString(filter)}"
+                + $"&$top={pageSize}&$skip={skip}"
+                + $"&$count=true"
+                + $"&$expand=Media"
+                + $"&$orderby=ListPrice asc";
+
+        using var client = _httpFactory.CreateClient();
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", _serverToken);
+
+        HttpResponseMessage response;
+        try { response = await client.GetAsync(url); }
+        catch { return StatusCode(502, "Unable to reach listings service."); }
+
+        if (!response.IsSuccessStatusCode)
+            return StatusCode((int)response.StatusCode, "Listings service error.");
+
+        var json = await response.Content.ReadAsStringAsync();
+        var bridgeResponse = JsonSerializer.Deserialize<BridgePropertyResponse>(json, _jsonOptions);
+        if (bridgeResponse?.Value == null)
+            return Ok(new { total = 0, page, pageSize, listings = Array.Empty<ListingDto>() });
+
+        var listings = bridgeResponse.Value.Select(MapToDto).ToList();
+        var total    = bridgeResponse.Count ?? listings.Count;
+        return Ok(new { total, page, pageSize, listings });
     }
+
+    private async Task<IActionResult> GetBridgeAsync(string listingKey)
+    {
+        // Single-resource endpoint: /Property('{key}')?$expand=Media
+        var url = $"https://api.bridgedataoutput.com/api/v2/OData/{_datasetId}"
+                + $"/Property('{Uri.EscapeDataString(listingKey)}')?$expand=Media";
+
+        using var client = _httpFactory.CreateClient();
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", _serverToken);
+
+        HttpResponseMessage response;
+        try { response = await client.GetAsync(url); }
+        catch { return StatusCode(502, "Unable to reach listings service."); }
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return NotFound();
+        if (!response.IsSuccessStatusCode)
+            return StatusCode((int)response.StatusCode, "Listings service error.");
+
+        var json = await response.Content.ReadAsStringAsync();
+        var prop = JsonSerializer.Deserialize<BridgeProperty>(json, _jsonOptions);
+        return prop == null ? NotFound() : Ok(MapToDto(prop));
+    }
+
+    // ── Mapping ───────────────────────────────────────────────────────────────
+
+    private static ListingDto MapToDto(BridgeProperty p) => new(
+        p.ListingKey        ?? "",
+        p.UnparsedAddress   ?? "",
+        p.City              ?? "",
+        p.StateOrProvince   ?? "",
+        p.PostalCode        ?? "",
+        p.ListPrice         ?? 0m,
+        p.BedroomsTotal     ?? 0,
+        p.BathroomsTotalDecimal ?? 0m,
+        p.LivingArea        ?? 0,
+        p.PropertyType      ?? "Residential",
+        p.PropertySubType   ?? "",
+        p.StandardStatus    ?? "",
+        p.YearBuilt         ?? 0,
+        (int)(p.LotSizeSquareFeet ?? 0m),
+        p.PublicRemarks     ?? "",
+        p.Media?
+            .OrderBy(m => m.Order ?? 999)
+            .Select(m => m.MediaURL ?? "")
+            .Where(u => !string.IsNullOrEmpty(u))
+            .ToArray()
+        ?? Array.Empty<string>()
+    );
+
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 }
+
+// ── Bridge response models ────────────────────────────────────────────────────
+
+public class BridgePropertyResponse
+{
+    [JsonPropertyName("@odata.count")]
+    public int? Count { get; set; }
+    public List<BridgeProperty>? Value { get; set; }
+}
+
+public class BridgeProperty
+{
+    public string?  ListingKey              { get; set; }
+    public string?  UnparsedAddress         { get; set; }
+    public string?  City                    { get; set; }
+    public string?  StateOrProvince         { get; set; }
+    public string?  PostalCode              { get; set; }
+    public decimal? ListPrice               { get; set; }
+    public int?     BedroomsTotal           { get; set; }
+    public decimal? BathroomsTotalDecimal   { get; set; }
+    public int?     LivingArea              { get; set; }
+    public string?  PropertyType            { get; set; }
+    public string?  PropertySubType         { get; set; }
+    public string?  StandardStatus          { get; set; }
+    public int?     YearBuilt               { get; set; }
+    public decimal? LotSizeSquareFeet       { get; set; }
+    public string?  PublicRemarks           { get; set; }
+    public List<BridgeMedia>? Media         { get; set; }
+}
+
+public class BridgeMedia
+{
+    public string? MediaURL      { get; set; }
+    public int?    Order         { get; set; }
+    public string? MediaCategory { get; set; }
+}
+
+// ── Dummy listings (fallback while FMLS dataset approval is pending) ──────────
 
 public static class DummyListings
 {
@@ -156,19 +338,19 @@ public static class DummyListings
 }
 
 public record ListingDto(
-    string ListingKey,
-    string UnparsedAddress,
-    string City,
-    string StateOrProvince,
-    string PostalCode,
-    decimal ListPrice,
-    int BedroomsTotal,
-    decimal BathroomsTotalDecimal,
-    int LivingArea,
-    string PropertyType,
-    string PropertySubType,
-    string StandardStatus,
-    int YearBuilt,
-    int LotSizeSquareFeet,
-    string PublicRemarks,
+    string   ListingKey,
+    string   UnparsedAddress,
+    string   City,
+    string   StateOrProvince,
+    string   PostalCode,
+    decimal  ListPrice,
+    int      BedroomsTotal,
+    decimal  BathroomsTotalDecimal,
+    int      LivingArea,
+    string   PropertyType,
+    string   PropertySubType,
+    string   StandardStatus,
+    int      YearBuilt,
+    int      LotSizeSquareFeet,
+    string   PublicRemarks,
     string[] Photos);
