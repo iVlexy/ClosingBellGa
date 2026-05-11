@@ -141,7 +141,11 @@ public class ListingsController : ControllerBase
         if (!string.IsNullOrWhiteSpace(city))
         {
             var c = city.Trim().Replace("'", "''");
-            filters.Add($"(City eq '{c}' or PostalCode eq '{c}')");
+            // If input starts with a digit treat it as a zip prefix, otherwise city name
+            if (char.IsDigit(c[0]))
+                filters.Add($"startswith(PostalCode, '{c}')");
+            else
+                filters.Add($"startswith(City, '{c}')");
         }
         if (!string.IsNullOrWhiteSpace(zip))
             filters.Add($"startswith(PostalCode, '{zip.Trim().Replace("'", "''")}')");
