@@ -108,7 +108,10 @@ import { AuthService } from '../../core/services/auth.service';
 
           <div class="listing-id-row">
             <span class="listing-id">MLS# {{ listing().listingKey }}</span>
-            <span class="bridge-note">Data powered by Bridge Data Output / FMLS (demo data)</span>
+            <span class="listing-office" *ngIf="listing().listOfficeName">Listing Courtesy Of {{ listing().listOfficeName }}</span>
+            <span class="listing-agent-phone" *ngIf="listing().listAgentPhone">
+              <a [href]="'tel:' + listing().listAgentPhone">{{ listing().listAgentPhone }}</a>
+            </span>
           </div>
         </div>
 
@@ -166,6 +169,10 @@ import { AuthService } from '../../core/services/auth.service';
             </mat-card-content>
           </mat-card>
         </div>
+      </div>
+
+      <div class="fmls-disclaimer">
+        Listings on this website come from the FMLS IDX Compilation and may be held by brokerage firms other than the owner of this website. The listing brokerage is identified in any listing details. Information is deemed reliable but is not guaranteed. If you believe any FMLS Listing contains material that infringes your copyrighted work, please <a href="https://www.fmls.com/dmca" target="_blank" rel="noopener">click here</a> to review our DMCA policy and learn how to submit a takedown request. &copy; {{ currentYear }} FMLS.
       </div>
     </div>
 
@@ -247,7 +254,11 @@ import { AuthService } from '../../core/services/auth.service';
 
     .listing-id-row { margin-top: 20px; display: flex; gap: 16px; flex-wrap: wrap; }
     .listing-id { font-size: 12px; color: #888; }
-    .bridge-note { font-size: 11px; color: #bbb; font-style: italic; }
+    .listing-office { font-size: 12px; color: #777; font-style: italic; }
+    .listing-agent-phone { font-size: 12px; color: #666; }
+    .listing-agent-phone a { color: #1A3A2A; text-decoration: none; }
+    .fmls-disclaimer { margin: 32px 20px 0; padding: 16px 0 0; font-size: 11px; color: #888; line-height: 1.6; border-top: 1px solid #eee; }
+    .fmls-disclaimer a { color: #666; }
 
     .reaction-card { margin-bottom: 16px; }
     .reaction-row { display: flex; gap: 10px; }
@@ -283,6 +294,7 @@ export class ListingDetailComponent implements OnInit {
   route = inject(ActivatedRoute);
   snack = inject(MatSnackBar);
 
+  currentYear = new Date().getFullYear();
   listing = signal<any>(null);
   loading = signal(true);
   photoIdx = signal(0);

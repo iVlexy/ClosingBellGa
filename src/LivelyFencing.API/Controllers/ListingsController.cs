@@ -135,7 +135,8 @@ public class ListingsController : ControllerBase
         {
             // Default to Active when caller omits status
             $"StandardStatus eq '{(string.IsNullOrWhiteSpace(status) ? "Active" : status.Trim())}'",
-            "ListPrice gt 0"  // exclude test/null-price listings
+            "ListPrice gt 0",             // exclude test/null-price listings
+            "InternetEntireListingDisplayYN ne false"  // FMLS Rule 13.1(b): respect opt-out
         };
 
         if (!string.IsNullOrWhiteSpace(city))
@@ -189,6 +190,7 @@ public class ListingsController : ControllerBase
             .Where(p =>
                 (p.ListPrice ?? 0m) > 0 &&
                 !string.IsNullOrWhiteSpace(p.UnparsedAddress) &&
+                (p.InternetEntireListingDisplayYN != false) &&
                 !(p.PublicRemarks ?? "").Contains("DO NOT USE", StringComparison.OrdinalIgnoreCase))
             .Select(MapToDto).ToList();
         // Bridge test dataset does not return @odata.count; use page math for total
@@ -243,7 +245,9 @@ public class ListingsController : ControllerBase
             .Select(m => m.MediaURL ?? "")
             .Where(u => !string.IsNullOrEmpty(u))
             .ToArray()
-        ?? Array.Empty<string>()
+        ?? Array.Empty<string>(),
+        p.ListOfficeName       ?? "",
+        p.ListAgentDirectPhone ?? ""
     );
 
     private static readonly JsonSerializerOptions _jsonOptions = new()
@@ -278,7 +282,10 @@ public class BridgeProperty
     public int?     YearBuilt               { get; set; }
     public decimal? LotSizeSquareFeet       { get; set; }
     public string?  PublicRemarks           { get; set; }
-    public List<BridgeMedia>? Media         { get; set; }
+    public List<BridgeMedia>? Media                   { get; set; }
+    public string?  ListOfficeName                  { get; set; }
+    public string?  ListAgentDirectPhone            { get; set; }
+    public bool?    InternetEntireListingDisplayYN  { get; set; }
 }
 
 public class BridgeMedia
@@ -393,4 +400,6 @@ public record ListingDto(
     int      YearBuilt,
     int      LotSizeSquareFeet,
     string   PublicRemarks,
-    string[] Photos);
+    string[] Photos,
+    string   ListOfficeName = "",
+    string   ListAgentPhone = "");

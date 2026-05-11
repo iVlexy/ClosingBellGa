@@ -150,6 +150,8 @@ import { AuthService } from '../../core/services/auth.service';
               <span><mat-icon>square_foot</mat-icon>{{ l.livingArea | number }} sqft</span>
             </div>
             <div class="card-subtype">{{ l.propertySubType }}</div>
+            <div class="card-office" *ngIf="l.listOfficeName">Listing Courtesy Of {{ l.listOfficeName }}</div>
+            <div class="card-mls">MLS# {{ l.listingKey }}</div>
           </div>
         </div>
       </div>
@@ -167,6 +169,10 @@ import { AuthService } from '../../core/services/auth.service';
         <button mat-stroked-button [disabled]="page() === totalPages()" (click)="goTo(page() + 1)">
           Next <mat-icon>chevron_right</mat-icon>
         </button>
+      </div>
+
+      <div class="fmls-disclaimer" *ngIf="!loading()">
+        Information Deemed Reliable But Not Guaranteed. If you believe any FMLS Listing contains material that infringes your copyrighted work, please <a href="https://www.fmls.com/dmca" target="_blank" rel="noopener">click here</a> to review our DMCA policy and learn how to submit a takedown request. &copy; FMLS
       </div>
     </div>
     </div>
@@ -267,6 +273,11 @@ import { AuthService } from '../../core/services/auth.service';
 
     .pagination { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 36px; }
     .pagination span { color: #555; }
+
+    .card-office { font-size: 11px; color: #777; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .card-mls { font-size: 10px; color: #aaa; margin-top: 2px; }
+    .fmls-disclaimer { padding: 16px 0 0; margin-top: 24px; font-size: 11px; color: #888; line-height: 1.6; border-top: 1px solid #eee; }
+    .fmls-disclaimer a { color: #777; }
 
     @media (max-width: 599px) {
       .hero-title { font-size: 26px; }
