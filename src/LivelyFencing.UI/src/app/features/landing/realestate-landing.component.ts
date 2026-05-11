@@ -234,41 +234,15 @@ import { TenantService } from '../../core/services/tenant.service';
           <p>We value your feedback. Share your experience working with us.</p>
         </div>
         <div class="re-leave-review-inner">
-          <div class="re-leave-review-card" *ngIf="!reviewSubmitted">
-            <div class="re-star-select">
-              <span class="re-star-label">Your Rating</span>
-              <div class="re-star-row">
-                <mat-icon *ngFor="let s of [1,2,3,4,5]" class="re-pick-star"
-                  [class.re-pick-star-filled]="s <= reviewRating"
-                  (click)="reviewRating = s"
-                  (mouseenter)="reviewHover = s"
-                  (mouseleave)="reviewHover = 0"
-                  [class.re-pick-star-hover]="s <= reviewHover">star</mat-icon>
-              </div>
-            </div>
-            <mat-form-field appearance="outline" class="re-full">
-              <mat-label>Your Name</mat-label>
-              <input matInput [(ngModel)]="reviewName" required />
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="re-full">
-              <mat-label>Email (optional)</mat-label>
-              <input matInput type="email" [(ngModel)]="reviewEmail" />
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="re-full">
-              <mat-label>Your Experience</mat-label>
-              <textarea matInput rows="4" [(ngModel)]="reviewComment" required></textarea>
-            </mat-form-field>
-            <button mat-raised-button class="re-submit-btn"
-              (click)="submitReview()"
-              [disabled]="reviewSubmitting || !reviewName || !reviewComment || reviewRating === 0">
-              <mat-spinner diameter="18" class="re-btn-spinner" *ngIf="reviewSubmitting"></mat-spinner>
-              {{ reviewSubmitting ? 'Submitting...' : 'Submit Review' }}
-            </button>
-          </div>
-          <div class="re-form-success" *ngIf="reviewSubmitted">
-            <mat-icon class="re-success-icon">check_circle</mat-icon>
-            <h3>Thank You!</h3>
-            <p>Your review has been submitted and will appear after approval.</p>
+          <div class="re-leave-review-card re-google-review-card">
+            <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png" alt="Google" class="re-google-logo" />
+            <p class="re-google-review-text">Reviews help other buyers and sellers find us. Click below to share your experience on Google.</p>
+            <a href="https://search.google.com/local/writereview?placeid=ChIJwWRda1CJ9YgRz5oErFejsAg"
+               target="_blank" rel="noopener noreferrer"
+               mat-raised-button class="re-submit-btn re-google-btn">
+              <mat-icon>star_rate</mat-icon>
+              Write a Google Review
+            </a>
           </div>
         </div>
       </section>
@@ -424,13 +398,12 @@ import { TenantService } from '../../core/services/tenant.service';
     /* REVIEWS */
     .re-leave-review-section { padding: 88px 48px; background: #FAFAF8; }
     .re-leave-review-inner { display: flex; justify-content: center; }
-    .re-leave-review-card { background: #fff; border: 1px solid #E8EDE9; border-radius: 4px; padding: 40px; width: 100%; max-width: 560px; box-shadow: 0 4px 24px rgba(0,0,0,.07); display: flex; flex-direction: column; gap: 16px; }
-    .re-star-select { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
-    .re-star-label { font-size: 12px; font-weight: 700; color: #444; letter-spacing: .5px; text-transform: uppercase; }
-    .re-star-row { display: flex; gap: 4px; }
-    .re-pick-star { font-size: 32px; width: 32px; height: 32px; color: #E0E0E0; cursor: pointer; transition: color .15s; }
-    .re-pick-star.re-pick-star-filled { color: #C9A96E; }
-    .re-pick-star.re-pick-star-hover { color: #B8935A; }
+    .re-leave-review-card { background: #fff; border: 1px solid #E8EDE9; border-radius: 4px; padding: 40px; width: 100%; max-width: 480px; box-shadow: 0 4px 24px rgba(0,0,0,.07); display: flex; flex-direction: column; gap: 20px; }
+    .re-google-review-card { align-items: center; text-align: center; }
+    .re-google-logo { height: 30px; width: auto; }
+    .re-google-review-text { color: #555; font-size: 15px; line-height: 1.6; margin: 0; }
+    .re-google-btn { background: #4285F4 !important; color: #fff !important; gap: 8px; }
+    .re-google-btn mat-icon { font-size: 18px; width: 18px; height: 18px; }
 
     /* FOOTER */
     .re-footer { background: #0A0A0A; padding: 48px; text-align: center; border-top: 1px solid #1A3A2A; }
@@ -489,14 +462,6 @@ export class RealEstateLandingComponent implements OnInit, OnDestroy {
   reviews: any[] = [];
   reviewCarouselIndex = 0;
   private _reviewTimer: any;
-  reviewRating = 0;
-  reviewHover = 0;
-  reviewName = '';
-  reviewEmail = '';
-  reviewComment = '';
-  reviewSubmitting = false;
-  reviewSubmitted = false;
-
   form = this.fb.group({
     name:    ['', Validators.required],
     email:   ['', [Validators.required, Validators.email]],
@@ -541,20 +506,6 @@ export class RealEstateLandingComponent implements OnInit, OnDestroy {
   reviewNext() { this.reviewCarouselIndex = (this.reviewCarouselIndex + 1) % this.reviews.length; this.resetReviewTimer(); }
   reviewPrev() { this.reviewCarouselIndex = (this.reviewCarouselIndex - 1 + this.reviews.length) % this.reviews.length; this.resetReviewTimer(); }
   resetReviewTimer() { clearInterval(this._reviewTimer); this._reviewTimer = setInterval(() => this.reviewNext(), 5000); }
-
-  submitReview() {
-    if (!this.reviewName || !this.reviewComment || this.reviewRating === 0) return;
-    this.reviewSubmitting = true;
-    this.api.submitReview({
-      reviewerName: this.reviewName,
-      reviewerEmail: this.reviewEmail || undefined,
-      rating: this.reviewRating,
-      comment: this.reviewComment
-    }).subscribe({
-      next: () => { this.reviewSubmitting = false; this.reviewSubmitted = true; },
-      error: () => { this.reviewSubmitting = false; this.snack.open('Something went wrong. Please try again.', 'OK', { duration: 4000 }); }
-    });
-  }
 
   logout() {
     window.location.href = '/cdn-cgi/access/logout?returnTo=' + window.location.origin + '/';
