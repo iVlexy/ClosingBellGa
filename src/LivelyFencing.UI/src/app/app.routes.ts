@@ -77,13 +77,11 @@ export const routes: Routes = [
   },
   {
     path: 'portal/listings',
-    loadComponent: () => import('./features/listings/listings-search.component').then(m => m.ListingsSearchComponent),
-    canActivate: [authGuard(['Admin', 'Sales', 'Accountant', 'FieldWorker', 'Customer', 'FMLSApprover'])]
+    loadComponent: () => import('./features/listings/listings-search.component').then(m => m.ListingsSearchComponent)
   },
   {
     path: 'portal/listings/:key',
-    loadComponent: () => import('./features/listings/listing-detail.component').then(m => m.ListingDetailComponent),
-    canActivate: [authGuard(['Admin', 'Sales', 'Accountant', 'FieldWorker', 'Customer', 'FMLSApprover'])]
+    loadComponent: () => import('./features/listings/listing-detail.component').then(m => m.ListingDetailComponent)
   },
   { path: 'unauthorized', loadComponent: () => import('./features/unauthorized/unauthorized.component').then(m => m.UnauthorizedComponent) },
   {
@@ -110,6 +108,10 @@ export const routes: Routes = [
     path: 'cq/analytics',
     loadComponent: () => import('./features/analytics/analytics.component').then(m => m.AnalyticsComponent),
     canActivate: [authGuard(['Admin', 'Sales', 'Accountant'])]
+  },
+  {
+    path: 'portal/my-listings',
+    loadComponent: () => import('./features/listings/my-listings.component').then(m => m.MyListingsComponent)
   },
   { path: '**', redirectTo: '/cq/dashboard' }
 ];

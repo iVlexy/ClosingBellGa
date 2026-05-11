@@ -151,6 +151,17 @@ import { AuthService } from '../../core/services/auth.service';
             </mat-card-content>
           </mat-card>
 
+          <!-- Sign-in prompt for guests -->
+          <mat-card class="signin-prompt-card" *ngIf="!isLoggedIn()">
+            <mat-card-content>
+              <mat-icon class="prompt-icon">favorite_border</mat-icon>
+              <p class="prompt-text">Sign in to save this listing and track your favorites.</p>
+              <a mat-flat-button color="primary" href="/" style="width:100%">
+                <mat-icon>login</mat-icon> Sign In
+              </a>
+            </mat-card-content>
+          </mat-card>
+
           <!-- Contact CTA -->
           <mat-card class="contact-card">
             <mat-card-header>
@@ -265,6 +276,9 @@ import { AuthService } from '../../core/services/auth.service';
     .fmls-disclaimer a { color: #666; }
 
     .reaction-card { margin-bottom: 16px; }
+    .signin-prompt-card { margin-bottom: 16px; text-align: center; }
+    .prompt-icon { font-size: 40px; width: 40px; height: 40px; color: #C9A96E; display: block; margin: 8px auto 12px; }
+    .prompt-text { color: #555; font-size: 14px; margin-bottom: 16px; line-height: 1.5; }
     .reaction-row { display: flex; gap: 10px; }
     .react-btn { flex: 1; }
     .react-btn { display: inline-flex !important; align-items: center !important; gap: 6px !important; font-weight: 600 !important; font-size: 14px !important; border-radius: 8px !important; }

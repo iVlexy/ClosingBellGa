@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -18,23 +19,16 @@ import { AuthService } from '../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink, MatCardModule, MatButtonModule,
     MatIconModule, MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatProgressSpinnerModule, MatTooltipModule],
+    MatProgressSpinnerModule, MatTooltipModule, MatSnackBarModule],
   template: `
     <div class="listings-nav">
       <a routerLink="/" class="listings-nav-home">
         <mat-icon>arrow_back</mat-icon> Home
       </a>
+      <a *ngIf="isLoggedIn()" routerLink="/portal/my-listings" class="listings-nav-saved">
+        <mat-icon>favorite</mat-icon> My Saved Listings
+      </a>
     </div>
-    <div class="login-gate" *ngIf="!isLoggedIn()">
-      <mat-icon>lock</mat-icon>
-      <h2>Sign in to Browse Listings</h2>
-      <p>Create a free account or log in to search Atlanta metro area properties and save your favorites.</p>
-      <button mat-flat-button class="gate-btn" (click)="goLogin()">
-        <mat-icon>login</mat-icon> Log In / Sign Up
-      </button>
-      <a mat-button routerLink="/">← Back to Home</a>
-    </div>
-    <div *ngIf="isLoggedIn()">
     <div class="search-hero">
       <div class="hero-inner">
         <h1 class="hero-title">Find Your Next Home</h1>
@@ -179,25 +173,21 @@ import { AuthService } from '../../core/services/auth.service';
         <span class="tech-entity">Technical contact responsible for this IDX display: Ethan Browning &mdash; <a href="mailto:browningethan23&#64;gmail.com">browningethan23&#64;gmail.com</a></span>
       </div>
     </div>
-    </div>
   `,
   styles: [`
-    .login-gate {
-      min-height: 80vh; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; text-align: center;
-      padding: 40px 24px; background: #f9f9f7;
-    }
-    .login-gate mat-icon { font-size: 56px; width: 56px; height: 56px; color: #C9A96E; margin-bottom: 16px; }
-    .login-gate h2 { font-size: 26px; font-weight: 700; color: #1A3A2A; margin: 0 0 12px; }
-    .login-gate p { color: #666; max-width: 380px; line-height: 1.6; margin: 0 0 28px; }
-    .gate-btn { background: #1A3A2A !important; color: #fff !important; padding: 0 28px; height: 48px; font-size: 15px; border-radius: 8px; margin-bottom: 12px; }
-    .gate-btn mat-icon { margin-right: 6px; }
     .listings-nav {
       background: color-mix(in srgb, var(--mat-sys-primary, #1A3A2A) 45%, black);
       padding: 10px 20px;
       display: flex;
       align-items: center;
+      justify-content: space-between;
     }
+    .listings-nav-saved {
+      display: flex; align-items: center; gap: 4px;
+      color: #C9A96E; text-decoration: none;
+      font-size: 13px; font-weight: 600;
+    }
+    .listings-nav-saved mat-icon { font-size: 16px; width: 16px; height: 16px; }
     .listings-nav-home {
       display: flex; align-items: center; gap: 4px;
       color: rgba(255,255,255,.8); text-decoration: none;
@@ -308,6 +298,7 @@ import { AuthService } from '../../core/services/auth.service';
 export class ListingsSearchComponent implements OnInit {
   api = inject(ApiService);
   auth = inject(AuthService);
+  snack = inject(MatSnackBar);
 
   listings = signal<any[]>([]);
   total = signal(0);
@@ -325,9 +316,8 @@ export class ListingsSearchComponent implements OnInit {
   totalPages = computed(() => Math.max(1, Math.ceil(this.total() / 12)));
 
   ngOnInit() {
-    if (!this.isLoggedIn()) { window.location.href = '/cq/dashboard'; return; }
     this.doSearch();
-    this.loadReactions();
+    if (this.isLoggedIn()) this.loadReactions();
   }
 
   isLoggedIn() { return !!this.auth.currentUser; }
@@ -378,7 +368,6 @@ export class ListingsSearchComponent implements OnInit {
 
   getReaction(key: string) { return this.myReactions()[key]; }
 
-  goLogin() { window.location.href = '/cq/dashboard'; }
 
   onImgError(event: Event) {
     const img = event.target as HTMLImageElement;
@@ -387,6 +376,11 @@ export class ListingsSearchComponent implements OnInit {
   }
 
   react(listing: any, reaction: string) {
+    if (!this.isLoggedIn()) {
+      const sb = this.snack.open('Sign in to save listings', 'Sign In', { duration: 4000 });
+      sb.onAction().subscribe(() => window.location.href = '/');
+      return;
+    }
     this.api.reactToListing({
       listingKey: listing.listingKey,
       listingAddress: listing.unparsedAddress,
