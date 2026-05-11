@@ -42,7 +42,8 @@ public class CloudflareJwtMiddleware
             (path == "/contact" && method == "POST") ||
             (path == "/reviews" && method == "GET") ||
             (path == "/reviews" && method == "POST") ||
-            (path == "/site-settings/carousel" && method == "GET");
+            (path == "/site-settings/carousel" && method == "GET") ||
+            path.StartsWith("/listings");
         if (isAnonymousRoute)
         {
             await _next(context);
