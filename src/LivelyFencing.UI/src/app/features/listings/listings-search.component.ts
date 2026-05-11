@@ -174,6 +174,10 @@ import { AuthService } from '../../core/services/auth.service';
       <div class="fmls-disclaimer" *ngIf="!loading()">
         Information Deemed Reliable But Not Guaranteed. If you believe any FMLS Listing contains material that infringes your copyrighted work, please <a href="https://www.fmls.com/dmca" target="_blank" rel="noopener">click here</a> to review our DMCA policy and learn how to submit a takedown request. &copy; FMLS
       </div>
+      <div class="broker-disclosure">
+        <strong>Willow Bend Properties</strong> &bull; <a href="tel:+16784515205">(678) 451-5205</a> &bull; <a href="mailto:willowbendpropertiesga&#64;gmail.com">willowbendpropertiesga&#64;gmail.com</a><br>
+        <span class="tech-entity">Technical contact responsible for this IDX display: Ethan Browning &mdash; <a href="mailto:browningethan23&#64;gmail.com">browningethan23&#64;gmail.com</a></span>
+      </div>
     </div>
     </div>
   `,
@@ -214,6 +218,14 @@ import { AuthService } from '../../core/services/auth.service';
     .f-xs { min-width: 120px; }
     .filter-bar ::ng-deep .mat-mdc-text-field-wrapper { background: #fff; border-radius: 8px; }
     .filter-bar ::ng-deep label.mdc-floating-label { color: #555 !important; }
+    .filter-bar ::ng-deep .mdc-floating-label--float-above { color: rgba(255,255,255,.9) !important; }
+    .filter-bar ::ng-deep .mdc-notched-outline__notch { border-color: rgba(255,255,255,.6) !important; }
+    .filter-bar ::ng-deep .mdc-notched-outline__leading,
+    .filter-bar ::ng-deep .mdc-notched-outline__trailing { border-color: rgba(255,255,255,.3) !important; }
+    .filter-bar ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+    .filter-bar ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing,
+    .filter-bar ::ng-deep .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch { border-color: #C9A96E !important; }
+    .filter-bar ::ng-deep .mat-mdc-form-field.mat-focused .mdc-floating-label--float-above { color: #C9A96E !important; }
     .search-btn {
       height: 56px; padding: 0 28px; font-size: 15px;
       background: #C9A96E !important; color: #fff !important;
@@ -278,6 +290,11 @@ import { AuthService } from '../../core/services/auth.service';
     .card-mls { font-size: 10px; color: #aaa; margin-top: 2px; }
     .fmls-disclaimer { padding: 16px 0 0; margin-top: 24px; font-size: 11px; color: #888; line-height: 1.6; border-top: 1px solid #eee; }
     .fmls-disclaimer a { color: #777; }
+
+    .broker-disclosure { padding: 10px 0 0; margin-top: 8px; font-size: 11px; color: #666; line-height: 1.8; }
+    .broker-disclosure a { color: #555; }
+    .broker-disclosure strong { color: #444; }
+    .tech-entity { color: #999; font-size: 10px; }
 
     @media (max-width: 599px) {
       .hero-title { font-size: 26px; }

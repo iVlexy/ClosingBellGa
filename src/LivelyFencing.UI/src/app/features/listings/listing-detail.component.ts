@@ -174,6 +174,10 @@ import { AuthService } from '../../core/services/auth.service';
       <div class="fmls-disclaimer">
         Listings on this website come from the FMLS IDX Compilation and may be held by brokerage firms other than the owner of this website. The listing brokerage is identified in any listing details. Information is deemed reliable but is not guaranteed. If you believe any FMLS Listing contains material that infringes your copyrighted work, please <a href="https://www.fmls.com/dmca" target="_blank" rel="noopener">click here</a> to review our DMCA policy and learn how to submit a takedown request. &copy; {{ currentYear }} FMLS.
       </div>
+      <div class="broker-disclosure">
+        <strong>Willow Bend Properties</strong> &bull; <a href="tel:+16784515205">(678) 451-5205</a> &bull; <a href="mailto:willowbendpropertiesga&#64;gmail.com">willowbendpropertiesga&#64;gmail.com</a><br>
+        <span class="tech-entity">Technical contact responsible for this IDX display: Ethan Browning &mdash; <a href="mailto:browningethan23&#64;gmail.com">browningethan23&#64;gmail.com</a></span>
+      </div>
     </div>
 
     <div class="not-found" *ngIf="!loading() && !listing()">
@@ -275,6 +279,11 @@ import { AuthService } from '../../core/services/auth.service';
     .not-found { text-align: center; padding: 80px 20px; }
     .not-found mat-icon { font-size: 60px; width: 60px; height: 60px; color: #ccc; display: block; margin: 0 auto 16px; }
     .not-found h2 { color: #888; margin-bottom: 16px; }
+
+    .broker-disclosure { padding: 10px 0 0; margin-top: 8px; font-size: 11px; color: #666; line-height: 1.8; }
+    .broker-disclosure a { color: #555; }
+    .broker-disclosure strong { color: #444; }
+    .tech-entity { color: #999; font-size: 10px; }
 
     @media (max-width: 860px) {
       .content-grid { grid-template-columns: 1fr; }

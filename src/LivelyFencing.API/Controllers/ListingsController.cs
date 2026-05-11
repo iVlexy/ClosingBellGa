@@ -224,9 +224,14 @@ public class ListingsController : ControllerBase
 
     // ── Mapping ───────────────────────────────────────────────────────────────
 
-    private static ListingDto MapToDto(BridgeProperty p) => new(
+    private static ListingDto MapToDto(BridgeProperty p)
+    {
+        var addr = (p.InternetAddressDisplayYN == false)
+            ? "Address Not Disclosed"
+            : (p.UnparsedAddress ?? "");
+        return new(
         p.ListingKey        ?? "",
-        p.UnparsedAddress   ?? "",
+        addr,
         p.City              ?? "",
         p.StateOrProvince   ?? "",
         p.PostalCode        ?? "",
@@ -248,7 +253,8 @@ public class ListingsController : ControllerBase
         ?? Array.Empty<string>(),
         p.ListOfficeName       ?? "",
         p.ListAgentDirectPhone ?? ""
-    );
+        );
+    }
 
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
@@ -286,6 +292,7 @@ public class BridgeProperty
     public string?  ListOfficeName                  { get; set; }
     public string?  ListAgentDirectPhone            { get; set; }
     public bool?    InternetEntireListingDisplayYN  { get; set; }
+    public bool?    InternetAddressDisplayYN        { get; set; }
 }
 
 public class BridgeMedia
