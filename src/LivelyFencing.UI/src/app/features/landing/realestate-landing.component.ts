@@ -237,7 +237,7 @@ import { TenantService } from '../../core/services/tenant.service';
           <div class="re-leave-review-card re-google-review-card">
             <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png" alt="Google" class="re-google-logo" />
             <p class="re-google-review-text">Reviews help other buyers and sellers find us. Click below to share your experience on Google.</p>
-            <a href="https://search.google.com/local/writereview?placeid=ChIJwWRda1CJ9YgRz5oErFejsAg"
+            <a href="https://search.google.com/local/writereview?placeid=ChIJD9bNYLpjX4gRqWEwl5cL_A8"
                target="_blank" rel="noopener noreferrer"
                mat-raised-button class="re-submit-btn re-google-btn">
               <mat-icon>star_rate</mat-icon>
