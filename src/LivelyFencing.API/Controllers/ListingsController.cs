@@ -185,7 +185,12 @@ public class ListingsController : ControllerBase
         if (bridgeResponse?.Value == null)
             return Ok(new { total = 0, page, pageSize, listings = Array.Empty<ListingDto>() });
 
-        var listings = bridgeResponse.Value.Select(MapToDto).ToList();
+        var listings = bridgeResponse.Value
+            .Where(p =>
+                (p.ListPrice ?? 0m) > 0 &&
+                !string.IsNullOrWhiteSpace(p.UnparsedAddress) &&
+                !(p.PublicRemarks ?? "").Contains("DO NOT USE", StringComparison.OrdinalIgnoreCase))
+            .Select(MapToDto).ToList();
         // Bridge test dataset does not return @odata.count; use page math for total
         var total    = bridgeResponse.Count ?? (skip + listings.Count + (listings.Count == pageSize ? pageSize : 0));
         return Ok(new { total, page, pageSize, listings });
