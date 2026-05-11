@@ -97,8 +97,7 @@ export class ApiService {
   searchListings(params: any = {}) { return this.http.get<any>(`${this.base}/listings`, { params }); }
   getListing(key: string) { return this.http.get<any>(`${this.base}/listings/${key}`); }
   getListingPhotoUrl(url: string): string {
-    if (!url) return 'https://picsum.photos/seed/default/800/600';
-    return `${this.base}/listings/photo?url=${encodeURIComponent(url)}`;
+    return url || 'https://picsum.photos/seed/nophoto/800/600';
   }
 
   // Listing Preferences

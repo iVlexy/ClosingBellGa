@@ -134,7 +134,8 @@ public class ListingsController : ControllerBase
         var filters = new List<string>
         {
             // Default to Active when caller omits status
-            $"StandardStatus eq '{(string.IsNullOrWhiteSpace(status) ? "Active" : status.Trim())}'"
+            $"StandardStatus eq '{(string.IsNullOrWhiteSpace(status) ? "Active" : status.Trim())}'",
+            "ListPrice gt 0"  // exclude test/null-price listings
         };
 
         if (!string.IsNullOrWhiteSpace(city))
