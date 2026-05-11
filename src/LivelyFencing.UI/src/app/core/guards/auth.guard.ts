@@ -16,8 +16,9 @@ export const authGuard = (allowedRoles: string[]): CanActivateFn => {
         }
         const effectiveRole = auth.impersonatedRole ?? user.role;
         if (allowedRoles.includes(effectiveRole)) return true;
-        // Wrong role: customers go to landing, internal users go to unauthorized
-        return router.createUrlTree(effectiveRole === 'Customer' ? ['/'] : ['/unauthorized']);
+        // Wrong role: portal-only roles go to landing, internal users go to unauthorized
+        const portalOnly = effectiveRole === 'Customer' || effectiveRole === 'FMLSApprover';
+        return router.createUrlTree(portalOnly ? ['/'] : ['/unauthorized']);
       }),
       catchError(() => of(router.createUrlTree(['/'])))
     );
