@@ -55,14 +55,32 @@ public class TcEmailWebhookController : ControllerBase
         var fromField = form["from"].ToString();
 
         _logger.LogInformation("TC email webhook received. Subject: {Subject}", subject);
+        _logger.LogInformation("TC email body snippet: {Snippet}", textBody[..Math.Min(500, textBody.Length)]);
 
         // ── Extract property address from subject ─────────────────────────────
         // Expected format: "New contract - 5831 Ridgedale Ct, Gainesville, GA 30506"
         string? address = null;
+        // Format A: "New Contract - ADDRESS"
         var subjectMatch = Regex.Match(subject,
             @"new\s+contract\s*[-\u2013]\s*(.+)", RegexOptions.IgnoreCase);
         if (subjectMatch.Success)
             address = subjectMatch.Groups[1].Value.Trim();
+        // Format B: "New Contract ADDRESS - COMPANY"
+        if (string.IsNullOrEmpty(address))
+        {
+            var altMatch = Regex.Match(subject,
+                @"new\s+contract\s+(.+?)\s*[-\u2013]", RegexOptions.IgnoreCase);
+            if (altMatch.Success)
+                address = altMatch.Groups[1].Value.Trim();
+        }
+        // Format C: anything after "New Contract "
+        if (string.IsNullOrEmpty(address))
+        {
+            var lastMatch = Regex.Match(subject,
+                @"new\s+contract\s+(.+)", RegexOptions.IgnoreCase);
+            if (lastMatch.Success)
+                address = lastMatch.Groups[1].Value.Trim();
+        }
 
         // ── Extract buyer name + email from body ──────────────────────────────
         // Lines like: "Jason Rel - Teamrelrod@gmail.com"
