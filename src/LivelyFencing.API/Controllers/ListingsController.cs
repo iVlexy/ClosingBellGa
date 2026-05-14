@@ -231,6 +231,7 @@ public class ListingsController : ControllerBase
             : (p.UnparsedAddress ?? "");
         return new(
         p.ListingKey        ?? "",
+        p.ListingId         ?? "",
         addr,
         p.City              ?? "",
         p.StateOrProvince   ?? "",
@@ -274,6 +275,7 @@ public class BridgePropertyResponse
 public class BridgeProperty
 {
     public string?  ListingKey              { get; set; }
+    public string?  ListingId               { get; set; }
     public string?  UnparsedAddress         { get; set; }
     public string?  City                    { get; set; }
     public string?  StateOrProvince         { get; set; }
@@ -393,6 +395,7 @@ public static class DummyListings
 
 public record ListingDto(
     string   ListingKey,
+    string   ListingId,
     string   UnparsedAddress,
     string   City,
     string   StateOrProvince,

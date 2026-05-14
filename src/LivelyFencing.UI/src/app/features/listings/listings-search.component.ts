@@ -145,7 +145,7 @@ import { AuthService } from '../../core/services/auth.service';
             </div>
             <div class="card-subtype">{{ l.propertySubType }}</div>
             <div class="card-office" *ngIf="l.listOfficeName">Listing Courtesy Of {{ l.listOfficeName }}</div>
-            <div class="card-mls">MLS# {{ l.listingKey }}</div>
+            <div class="card-mls">MLS# {{ l.listingId }}</div>
           </div>
         </div>
       </div>

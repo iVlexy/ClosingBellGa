@@ -107,7 +107,7 @@ import { AuthService } from '../../core/services/auth.service';
           </div>
 
           <div class="listing-id-row">
-            <span class="listing-id">MLS# {{ listing().listingKey }}</span>
+            <span class="listing-id">MLS# {{ listing().listingId }}</span>
             <span class="listing-office" *ngIf="listing().listOfficeName">Listing Courtesy Of {{ listing().listOfficeName }}</span>
             <span class="listing-agent-phone" *ngIf="listing().listAgentPhone">
               <a [href]="'tel:' + listing().listAgentPhone">{{ listing().listAgentPhone }}</a>
