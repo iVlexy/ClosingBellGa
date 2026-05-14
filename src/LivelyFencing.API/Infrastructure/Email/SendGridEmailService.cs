@@ -225,4 +225,74 @@ public class SendGridEmailService
         }
     }
 
+    public async Task SendNewListingLeadAsync(
+        string name, string email, string listingAddress, decimal? listingPrice)
+    {
+        var apiKey     = _config["SendGrid:ApiKey"]!;
+        var fromEmail  = _config["SendGrid:FromEmail"] ?? "noreply@closingbellga.com";
+        var fromName   = _config["SendGrid:FromName"]  ?? "Closing Bell Real Estate";
+        var adminEmail = _config["App:AdminEmail"]     ?? "brandon@closingbellga.com";
+
+        var priceStr = listingPrice.HasValue
+            ? listingPrice.Value.ToString("C0")
+            : "N/A";
+
+        var client = new SendGridClient(apiKey);
+        var msg = new SendGridMessage
+        {
+            From    = new EmailAddress(fromEmail, fromName),
+            Subject = $"New Lead — Listing Interest: {listingAddress}"
+        };
+        msg.AddTo(new EmailAddress(adminEmail, "Brandon Bell"));
+        msg.HtmlContent = $"""
+<!DOCTYPE html>
+<html>
+<body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#333;">
+  <div style="background:#1B4D2E;padding:24px;text-align:center;">
+    <h1 style="color:white;margin:0;font-size:20px;">New Listing Lead</h1>
+    <p style="color:#C8E6C9;margin:6px 0 0;font-size:13px;">A new user liked a listing on closingbellga.com</p>
+  </div>
+  <div style="padding:28px;">
+    <table style="width:100%;border-collapse:collapse;">
+      <tr style="background:#F5F5F5;">
+        <td style="padding:10px 14px;font-weight:600;color:#555;width:130px;">Name</td>
+        <td style="padding:10px 14px;">{name}</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 14px;font-weight:600;color:#555;">Email</td>
+        <td style="padding:10px 14px;"><a href="mailto:{email}" style="color:#1B4D2E;">{email}</a></td>
+      </tr>
+      <tr style="background:#F5F5F5;">
+        <td style="padding:10px 14px;font-weight:600;color:#555;">Liked Listing</td>
+        <td style="padding:10px 14px;">{listingAddress}</td>
+      </tr>
+      <tr>
+        <td style="padding:10px 14px;font-weight:600;color:#555;">List Price</td>
+        <td style="padding:10px 14px;">{priceStr}</td>
+      </tr>
+    </table>
+    <div style="margin-top:24px;text-align:center;">
+      <a href="https://closingbellga.com/portal/clients"
+         style="background:#1B4D2E;color:white;padding:12px 28px;text-decoration:none;border-radius:4px;font-weight:bold;font-size:14px;">
+        View in CRM →
+      </a>
+    </div>
+  </div>
+  <div style="background:#1B4D2E;padding:14px 24px;font-size:11px;color:#A5D6A7;text-align:center;">
+    &copy; 2026 Closing Bell Real Estate — automated notification
+  </div>
+</body>
+</html>
+""";
+
+        var response = await client.SendEmailAsync(msg);
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Body.ReadAsStringAsync();
+            _logger.LogError("SendNewListingLeadAsync failed: {Status} {Body}", response.StatusCode, body);
+            throw new Exception($"Failed to send listing lead email: {response.StatusCode}");
+        }
+        _logger.LogInformation("Listing lead notification sent for {Email} — {Address}", email, listingAddress);
+    }
+
 }

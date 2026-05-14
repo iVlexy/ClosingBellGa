@@ -5,6 +5,7 @@ using LivelyFencing.API.Data;
 using LivelyFencing.API.Domain.Entities;
 using LivelyFencing.API.Domain.Enums;
 using LivelyFencing.API.Infrastructure.Auth;
+using LivelyFencing.API.Infrastructure.Email;
 
 namespace LivelyFencing.API.Controllers;
 
@@ -14,7 +15,18 @@ namespace LivelyFencing.API.Controllers;
 public class ListingPreferencesController : ControllerBase
 {
     private readonly AppDbContext _db;
-    public ListingPreferencesController(AppDbContext db) => _db = db;
+    private readonly SendGridEmailService _email;
+    private readonly ILogger<ListingPreferencesController> _logger;
+
+    public ListingPreferencesController(
+        AppDbContext db,
+        SendGridEmailService email,
+        ILogger<ListingPreferencesController> logger)
+    {
+        _db = db;
+        _email = email;
+        _logger = logger;
+    }
 
     // Admin/Sales: get all preferences for a customer
     [HttpGet]
