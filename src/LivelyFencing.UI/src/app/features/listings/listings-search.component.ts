@@ -10,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -19,7 +20,7 @@ import { AuthService } from '../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink, MatCardModule, MatButtonModule,
     MatIconModule, MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatProgressSpinnerModule, MatTooltipModule, MatSnackBarModule],
+    MatProgressSpinnerModule, MatTooltipModule, MatSnackBarModule, MatCheckboxModule],
   template: `
     <div class="listings-nav">
       <a routerLink="/" class="listings-nav-home">
@@ -81,8 +82,10 @@ import { AuthService } from '../../core/services/auth.service';
               <mat-option value="Single Family Residence">Single Family</mat-option>
               <mat-option value="Condominium">Condo</mat-option>
               <mat-option value="Townhouse">Townhouse</mat-option>
+              <mat-option value="Residential Lease">For Rent</mat-option>
             </mat-select>
           </mat-form-field>
+          <mat-checkbox [(ngModel)]="hideRentals" (ngModelChange)="doSearch()" class="hide-rentals-cb">Hide rentals</mat-checkbox>
           <button mat-flat-button class="search-btn" (click)="doSearch()">
             <mat-icon>search</mat-icon> Search
           </button>
@@ -109,7 +112,7 @@ import { AuthService } from '../../core/services/auth.service';
       </div>
 
       <div class="listing-grid" *ngIf="!loading()">
-        <div class="listing-card" *ngFor="let l of listings()" [routerLink]="['/portal/listings', l.listingKey]">
+        <div class="listing-card" *ngFor="let l of listings()" [routerLink]="['/listings', l.listingKey]">
           <div class="card-photo">
             <img [src]="api.getListingPhotoUrl(l.photos?.[0])" (error)="onImgError($event)"
                  [alt]="l.unparsedAddress" loading="lazy">
@@ -119,7 +122,7 @@ import { AuthService } from '../../core/services/auth.service';
               [class.soon]="l.standardStatus === 'Coming Soon'">
               {{ l.standardStatus }}
             </span>
-            <div class="reaction-btns" *ngIf="isLoggedIn()" (click)="$event.stopPropagation()">
+            <div class="reaction-btns" (click)="$event.stopPropagation()">
               <button mat-icon-button class="rb like"
                 [class.on]="getReaction(l.listingKey) === 'Like'"
                 (click)="react(l, 'Like')"
@@ -135,7 +138,10 @@ import { AuthService } from '../../core/services/auth.service';
             </div>
           </div>
           <div class="card-body">
-            <div class="card-price">{{ l.listPrice | currency:'USD':'symbol':'1.0-0' }}</div>
+            <div class="card-price">
+              {{ l.listPrice | currency:'USD':'symbol':'1.0-0' }}<span *ngIf="isRental(l)" class="per-mo">/mo</span>
+            </div>
+            <span *ngIf="isRental(l)" class="rental-badge">For Rent</span>
             <div class="card-addr">{{ l.unparsedAddress }}</div>
             <div class="card-loc">{{ l.city }}, {{ l.stateOrProvince }} {{ l.postalCode }}</div>
             <div class="card-stats">
@@ -262,7 +268,10 @@ import { AuthService } from '../../core/services/auth.service';
     .rb.pass.on mat-icon { color: #555; }
 
     .card-body { padding: 14px 16px; }
-    .card-price { font-size: 22px; font-weight: 700; color: #1A3A2A; margin-bottom: 3px; }
+    .card-price { font-size: 22px; font-weight: 700; color: #1A3A2A; margin-bottom: 3px; display: flex; align-items: baseline; gap: 2px; }
+    .per-mo { font-size: 14px; font-weight: 500; color: #555; }
+    .rental-badge { display: inline-block; background: #2a6496; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; padding: 2px 8px; border-radius: 10px; margin-bottom: 4px; }
+    .hide-rentals-cb { color: #fff; font-size: 13px; align-self: center; }
     .card-addr { font-size: 14px; font-weight: 500; color: #111; }
     .card-loc { font-size: 12px; color: #777; margin-bottom: 10px; }
     .card-stats { display: flex; gap: 12px; margin-bottom: 6px; flex-wrap: wrap; }
@@ -312,6 +321,9 @@ export class ListingsSearchComponent implements OnInit {
   maxPrice: number | null = null;
   minBeds: number | null = null;
   propType = '';
+  hideRentals = false;
+
+  isRental(l: any) { return l.propertyType === 'Residential Lease'; }
 
   totalPages = computed(() => Math.max(1, Math.ceil(this.total() / 12)));
 
@@ -334,7 +346,8 @@ export class ListingsSearchComponent implements OnInit {
 
     this.api.searchListings(params).subscribe({
       next: (res: any) => {
-        this.listings.set(res.listings ?? []);
+        const all = res.listings ?? [];
+        this.listings.set(this.hideRentals ? all.filter((l: any) => l.propertyType !== 'Residential Lease') : all);
         this.total.set(res.total ?? 0);
         this.loading.set(false);
         this.applySort();
@@ -378,7 +391,7 @@ export class ListingsSearchComponent implements OnInit {
   react(listing: any, reaction: string) {
     if (!this.isLoggedIn()) {
       const sb = this.snack.open('Sign in to save listings', 'Sign In', { duration: 4000 });
-      sb.onAction().subscribe(() => window.location.href = '/');
+      sb.onAction().subscribe(() => window.location.href = '/cq/dashboard');
       return;
     }
     this.api.reactToListing({

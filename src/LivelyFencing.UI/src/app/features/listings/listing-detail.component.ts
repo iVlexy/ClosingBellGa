@@ -25,7 +25,7 @@ import { AuthService } from '../../core/services/auth.service';
     <div class="detail-page" *ngIf="!loading() && listing()">
       <!-- Nav bar -->
       <div class="detail-nav">
-        <a mat-button routerLink="/portal/listings">
+        <a mat-button routerLink="/listings">
           <mat-icon>arrow_back</mat-icon> Back to Search
         </a>
         <span class="status-chip"
@@ -63,7 +63,8 @@ import { AuthService } from '../../core/services/auth.service';
         <!-- Left: property details -->
         <div class="detail-main">
           <div class="price-row">
-            <span class="listing-price">{{ listing().listPrice | currency:'USD':'symbol':'1.0-0' }}</span>
+            <span class="listing-price">{{ listing().listPrice | currency:'USD':'symbol':'1.0-0' }}<span *ngIf="isRental()" class="per-mo">/mo</span></span>
+            <span *ngIf="isRental()" class="rental-badge">For Rent</span>
           </div>
           <h1 class="listing-addr">{{ listing().unparsedAddress }}</h1>
           <p class="listing-loc">{{ listing().city }}, {{ listing().stateOrProvince }} {{ listing().postalCode }}</p>
@@ -118,7 +119,7 @@ import { AuthService } from '../../core/services/auth.service';
         <!-- Right: reaction panel + contact CTA -->
         <div class="detail-sidebar">
           <!-- Reaction panel - authenticated users only -->
-          <mat-card class="reaction-card" *ngIf="isLoggedIn()">
+          <mat-card class="reaction-card">
             <mat-card-header>
               <mat-card-title>Your Reaction</mat-card-title>
             </mat-card-header>
@@ -148,17 +149,6 @@ import { AuthService } from '../../core/services/auth.service';
                 Save Reaction
               </button>
               <p class="saved-msg" *ngIf="saved()">✓ Saved to your preferences</p>
-            </mat-card-content>
-          </mat-card>
-
-          <!-- Sign-in prompt for guests -->
-          <mat-card class="signin-prompt-card" *ngIf="!isLoggedIn()">
-            <mat-card-content>
-              <mat-icon class="prompt-icon">favorite_border</mat-icon>
-              <p class="prompt-text">Sign in to save this listing and track your favorites.</p>
-              <a mat-flat-button color="primary" href="/" style="width:100%">
-                <mat-icon>login</mat-icon> Sign In
-              </a>
             </mat-card-content>
           </mat-card>
 
@@ -194,7 +184,7 @@ import { AuthService } from '../../core/services/auth.service';
     <div class="not-found" *ngIf="!loading() && !listing()">
       <mat-icon>home_work</mat-icon>
       <h2>Listing not found</h2>
-      <a mat-button routerLink="/portal/listings">← Back to Search</a>
+      <a mat-button routerLink="/listings">← Back to Search</a>
     </div>
   `,
   styles: [`
@@ -250,6 +240,8 @@ import { AuthService } from '../../core/services/auth.service';
 
     .price-row { margin-bottom: 4px; }
     .listing-price { font-size: 36px; font-weight: 700; color: #1A3A2A; }
+    .per-mo { font-size: 18px; font-weight: 500; color: #555; margin-left: 2px; }
+    .rental-badge { display: inline-block; background: #2a6496; color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; padding: 3px 10px; border-radius: 10px; margin-left: 12px; vertical-align: middle; }
     .listing-addr { font-size: 22px; font-weight: 600; margin: 0 0 4px; }
     .listing-loc { color: #666; margin: 0 0 24px; }
 
@@ -346,6 +338,7 @@ export class ListingDetailComponent implements OnInit {
   }
 
   isLoggedIn() { return !!this.auth.currentUser; }
+  isRental() { return this.listing()?.propertyType === 'Residential Lease'; }
 
   prevPhoto() {
     const len = this.listing()?.photos?.length ?? 0;
@@ -368,6 +361,11 @@ export class ListingDetailComponent implements OnInit {
   }
 
   setReaction(r: string) {
+    if (!this.isLoggedIn()) {
+      const sb = this.snack.open('Sign in to save listings', 'Sign In', { duration: 4000 });
+      sb.onAction().subscribe(() => window.location.href = '/cq/dashboard');
+      return;
+    }
     this.myReaction.set(r);
     this.pendingReaction = r;
     this.saved.set(false);

@@ -214,7 +214,7 @@ import { ApiService } from '../../core/services/api.service';
                       <div class="pref-city">{{ p.listingCity }}</div>
                       <div class="pref-price">{{ p.listingPrice | currency:'USD':'symbol':'1.0-0' }}</div>
                     </div>
-                    <a mat-icon-button [routerLink]="['/portal/listings', p.listingKey]" matTooltip="View listing">
+                    <a mat-icon-button [routerLink]="['/listings', p.listingKey]" matTooltip="View listing">
                       <mat-icon>open_in_new</mat-icon>
                     </a>
                   </div>
@@ -230,7 +230,7 @@ import { ApiService } from '../../core/services/api.service';
                       <div class="pref-city">{{ p.listingCity }}</div>
                       <div class="pref-price">{{ p.listingPrice | currency:'USD':'symbol':'1.0-0' }}</div>
                     </div>
-                    <a mat-icon-button [routerLink]="['/portal/listings', p.listingKey]" matTooltip="View listing">
+                    <a mat-icon-button [routerLink]="['/listings', p.listingKey]" matTooltip="View listing">
                       <mat-icon>open_in_new</mat-icon>
                     </a>
                   </div>

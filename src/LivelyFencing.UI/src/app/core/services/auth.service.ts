@@ -21,15 +21,26 @@ export class AuthService {
 
   readonly allRoles: string[] = ['Sales', 'Accountant', 'FieldWorker', 'Customer', 'FMLSApprover'];
 
+  private meRequest: Observable<CurrentUser | null> | null = null;
+  private meFetched = false;
+
   getMe(): Observable<CurrentUser | null> {
-    if (this.userSubject.value) {
-      return of(this.userSubject.value);
+    if (this.userSubject.value) return of(this.userSubject.value);
+    if (this.meFetched) return of(null);
+    if (!this.meRequest) {
+      this.meRequest = this.http.get<CurrentUser>(`${environment.apiUrl}/auth/me`).pipe(
+        tap(user => { this.userSubject.next(user); this.meFetched = true; }),
+        catchError(() => { this.meFetched = true; return of(null); }),
+        shareReplay(1)
+      );
     }
-    return this.http.get<CurrentUser>(`${environment.apiUrl}/auth/me`).pipe(
-      tap(user => this.userSubject.next(user)),
-      catchError(() => of(null)),
-      shareReplay(1)
-    );
+    return this.meRequest;
+  }
+
+  resetAuth(): void {
+    this.meFetched = false;
+    this.meRequest = null;
+    this.userSubject.next(null);
   }
 
   get currentUser(): CurrentUser | null {

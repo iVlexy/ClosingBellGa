@@ -53,7 +53,7 @@ import { TenantService } from '../../core/services/tenant.service';
               Schedule Consultation
             </a>
             <a href="#services" mat-stroked-button class="re-outline-btn">Our Services</a>
-            <a *ngIf="canBrowseListings()" routerLink="/portal/listings" mat-stroked-button class="re-listings-btn">
+            <a *ngIf="canBrowseListings()" routerLink="/listings" mat-stroked-button class="re-listings-btn">
               <mat-icon>home_work</mat-icon> Browse Listings
             </a>
           </div>
@@ -462,7 +462,7 @@ export class RealEstateLandingComponent implements OnInit, OnDestroy {
   submitting = false;
   year = new Date().getFullYear();
   currentUser: any = null;
-  canBrowseListings() { return this.currentUser?.role === 'Admin' || this.currentUser?.role === 'FMLSApprover'; }
+  canBrowseListings() { return this.tenant.hasFeature('listings'); }
   reviews: any[] = [];
   reviewCarouselIndex = 0;
   private _reviewTimer: any;

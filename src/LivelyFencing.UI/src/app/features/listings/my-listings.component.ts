@@ -16,7 +16,7 @@ import { AuthService } from '../../core/services/auth.service';
     MatIconModule, MatProgressSpinnerModule, MatChipsModule],
   template: `
     <div class="my-listings-nav">
-      <a routerLink="/portal/listings" class="nav-back">
+      <a routerLink="/listings" class="nav-back">
         <mat-icon>arrow_back</mat-icon> Back to Search
       </a>
     </div>
@@ -45,7 +45,7 @@ import { AuthService } from '../../core/services/auth.service';
           <h2 class="section-head"><mat-icon class="like-icon">favorite</mat-icon> Liked ({{ liked().length }})</h2>
           <div class="listing-grid">
             <div class="listing-card" *ngFor="let p of liked()"
-                 [routerLink]="[\'/portal/listings\', p.listingKey]">
+                 [routerLink]="[\'/listings\', p.listingKey]">
               <div class="card-photo">
                 <img [src]="api.getListingPhotoUrl(p.listingPhotoUrl)" [alt]="p.listingAddress" (error)="onImgError($event)" loading="lazy">
                 <span class="like-badge"><mat-icon>favorite</mat-icon></span>
@@ -70,7 +70,7 @@ import { AuthService } from '../../core/services/auth.service';
           <h2 class="section-head"><mat-icon class="pass-icon">thumb_down</mat-icon> Passed On ({{ disliked().length }})</h2>
           <div class="listing-grid">
             <div class="listing-card passed" *ngFor="let p of disliked()"
-                 [routerLink]="[\'/portal/listings\', p.listingKey]">
+                 [routerLink]="[\'/listings\', p.listingKey]">
               <div class="card-photo">
                 <img [src]="api.getListingPhotoUrl(p.listingPhotoUrl)" [alt]="p.listingAddress" (error)="onImgError($event)" loading="lazy">
                 <span class="pass-badge"><mat-icon>thumb_down</mat-icon></span>
@@ -90,7 +90,7 @@ import { AuthService } from '../../core/services/auth.service';
         <div class="empty" *ngIf="liked().length === 0 && disliked().length === 0">
           <mat-icon>home_work</mat-icon>
           <p>You haven\'t saved any listings yet.</p>
-          <a mat-flat-button class="browse-btn" routerLink="/portal/listings">Browse Listings</a>
+          <a mat-flat-button class="browse-btn" routerLink="/listings">Browse Listings</a>
         </div>
       </div>
     </div>

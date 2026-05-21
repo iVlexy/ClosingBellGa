@@ -68,7 +68,7 @@ import { ThemeService } from './core/services/theme.service';
             <mat-icon matListItemIcon>meeting_room</mat-icon>
             <span matListItemTitle>Open Houses</span>
           </a>
-          <a mat-list-item routerLink="/portal/listings" routerLinkActive="active-link" *ngIf="tenant.hasFeature('listings')">
+          <a mat-list-item routerLink="/listings" routerLinkActive="active-link" *ngIf="tenant.hasFeature('listings')">
             <mat-icon matListItemIcon>home_work</mat-icon>
             <span matListItemTitle>Listings</span>
           </a>
@@ -251,7 +251,7 @@ export class AppComponent implements OnInit, OnDestroy {
     } else {
       this.auth.stopImpersonation();
     }
-    this.router.navigate(role === 'Customer' || role === 'FMLSApprover' ? ['/portal/listings'] : ['/cq/dashboard']);
+    this.router.navigate(role === 'Customer' || role === 'FMLSApprover' ? ['/listings'] : ['/cq/dashboard']);
   }
 
   stopImpersonation() {

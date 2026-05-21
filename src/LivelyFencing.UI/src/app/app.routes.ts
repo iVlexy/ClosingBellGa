@@ -76,14 +76,12 @@ export const routes: Routes = [
     canActivate: [authGuard(['Admin', 'Sales', 'Accountant', 'FieldWorker'])]
   },
   {
-    path: 'portal/listings',
-    loadComponent: () => import('./features/listings/listings-search.component').then(m => m.ListingsSearchComponent),
-    canActivate: [authGuard(['Admin', 'FMLSApprover'])]
+    path: 'listings',
+    loadComponent: () => import('./features/listings/listings-search.component').then(m => m.ListingsSearchComponent)
   },
   {
-    path: 'portal/listings/:key',
-    loadComponent: () => import('./features/listings/listing-detail.component').then(m => m.ListingDetailComponent),
-    canActivate: [authGuard(['Admin', 'FMLSApprover'])]
+    path: 'listings/:key',
+    loadComponent: () => import('./features/listings/listing-detail.component').then(m => m.ListingDetailComponent)
   },
   { path: 'unauthorized', loadComponent: () => import('./features/unauthorized/unauthorized.component').then(m => m.UnauthorizedComponent) },
   {

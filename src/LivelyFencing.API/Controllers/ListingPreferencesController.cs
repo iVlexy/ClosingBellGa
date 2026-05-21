@@ -63,10 +63,9 @@ public class ListingPreferencesController : ControllerBase
         var role = User.GetRole();
         Guid customerId;
 
-        if (role is "Admin" or "Sales")
+        if (role is "Admin" or "Sales" && req.CustomerId.HasValue)
         {
-            if (!req.CustomerId.HasValue)
-                return BadRequest(new { error = "customerId is required for admin/sales" });
+            // Admin/Sales acting on behalf of a specific customer
             customerId = req.CustomerId.Value;
         }
         else

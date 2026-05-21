@@ -238,7 +238,9 @@ public class ListingsController : ControllerBase
         p.PostalCode        ?? "",
         p.ListPrice         ?? 0m,
         p.BedroomsTotal     ?? 0,
-        p.BathroomsTotalDecimal ?? 0m,
+        (p.BathroomsTotalDecimal > 0)
+            ? p.BathroomsTotalDecimal.Value
+            : (p.BathroomsFull ?? 0) + (p.BathroomsHalf ?? 0) * 0.5m,
         p.LivingArea        ?? 0,
         p.PropertyType      ?? "Residential",
         p.PropertySubType   ?? "",
@@ -283,6 +285,8 @@ public class BridgeProperty
     public decimal? ListPrice               { get; set; }
     public int?     BedroomsTotal           { get; set; }
     public decimal? BathroomsTotalDecimal   { get; set; }
+    public int?     BathroomsFull           { get; set; }
+    public int?     BathroomsHalf           { get; set; }
     public int?     LivingArea              { get; set; }
     public string?  PropertyType            { get; set; }
     public string?  PropertySubType         { get; set; }
