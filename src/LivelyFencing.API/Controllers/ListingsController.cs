@@ -37,15 +37,17 @@ public class ListingsController : ControllerBase
         [FromQuery] decimal? minBaths,
         [FromQuery] string?  propertyType,
         [FromQuery] string?  status,
+        [FromQuery] string?  sort,
         [FromQuery] int      page = 1)
     {
         if (!UseBridge)
             return SearchDummy(city, zip, minPrice, maxPrice, minBeds, minBaths,
-                               propertyType, status, page);
+                               propertyType, status, sort, page);
 
         return await SearchBridgeAsync(city, zip, minPrice, maxPrice, minBeds,
-                                       minBaths, propertyType, status, page);
+                                       minBaths, propertyType, status, sort, page);
     }
+
 
     [HttpGet("{listingKey}")]
     public async Task<IActionResult> Get(string listingKey)
@@ -89,9 +91,11 @@ public class ListingsController : ControllerBase
         return File(content, contentType);
     }
 
-    // ── Dummy fallback ────────────────────────────────────────────────────────
-
     private IActionResult SearchDummy(
+        string? city, string? zip, decimal? minPrice, decimal? maxPrice,
+        int? minBeds, decimal? minBaths, string? propertyType, string? status,
+        string? sort, int page)
+
         string? city, string? zip, decimal? minPrice, decimal? maxPrice,
         int? minBeds, decimal? minBaths, string? propertyType, string? status, int page)
     {
@@ -113,15 +117,25 @@ public class ListingsController : ControllerBase
         if (!string.IsNullOrWhiteSpace(propertyType))
             listings = listings.Where(l =>
                 l.PropertySubType.Equals(propertyType, StringComparison.OrdinalIgnoreCase)).ToList();
-        if (!string.IsNullOrWhiteSpace(status))
-            listings = listings.Where(l =>
-                l.StandardStatus.Equals(status, StringComparison.OrdinalIgnoreCase)).ToList();
-
+        listings = sort switch
+        {
+            "price-desc" => listings.OrderByDescending(l => l.ListPrice).ToList(),
+            "sqft-desc"  => listings.OrderByDescending(l => l.LivingArea).ToList(),
+            "year-desc"  => listings.OrderByDescending(l => l.YearBuilt).ToList(),
+            _            => listings.OrderBy(l => l.ListPrice).ToList(),
+        };
         const int pageSize = 12;
         var total = listings.Count;
         var items = listings.Skip((page - 1) * pageSize).Take(pageSize).ToList();
         return Ok(new { total, page, pageSize, listings = items });
     }
+
+        var total = listings.Count;
+        var items = listings.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+    private async Task<IActionResult> SearchBridgeAsync(
+        string? city, string? zip, decimal? minPrice, decimal? maxPrice,
+        int? minBeds, decimal? minBaths, string? propertyType, string? status,
+        string? sort, int page)
 
     // ── Bridge API proxy ──────────────────────────────────────────────────────
 
@@ -133,17 +147,25 @@ public class ListingsController : ControllerBase
 
         var filters = new List<string>
         {
-            // Default to Active when caller omits status
-            $"StandardStatus eq '{(string.IsNullOrWhiteSpace(status) ? "Active" : status.Trim())}'",
-            "ListPrice gt 0",             // exclude test/null-price listings
-            "InternetEntireListingDisplayYN ne false"  // FMLS Rule 13.1(b): respect opt-out
-        };
 
         if (!string.IsNullOrWhiteSpace(city))
         {
             var c = city.Trim().Replace("'", "''");
             // If input starts with a digit treat it as a zip prefix, otherwise city name
             if (char.IsDigit(c[0]))
+                filters.Add($"startswith(PostalCode, '{c}')");
+            else
+                filters.Add($"startswith(City, '{c}')");
+        }
+        else if (string.IsNullOrWhiteSpace(zip) && sort == "suggested")
+        {
+            filters.Add("(City eq 'Dahlonega' or City eq 'Cumming' or City eq 'Dawsonville')");
+            if (!minPrice.HasValue && !maxPrice.HasValue)
+                filters.Add("ListPrice ge 150000 and ListPrice le 750000");
+        }
+        if (!string.IsNullOrWhiteSpace(zip))
+            filters.Add($"startswith(PostalCode, '{zip.Trim().Replace("'", "''")}')");
+
                 filters.Add($"startswith(PostalCode, '{c}')");
             else
                 filters.Add($"startswith(City, '{c}')");
@@ -168,7 +190,13 @@ public class ListingsController : ControllerBase
         var url = $"https://api.bridgedataoutput.com/api/v2/OData/{_datasetId}/Property"
                 + $"?$filter={Uri.EscapeDataString(filter)}"
                 + $"&$top={pageSize}&$skip={skip}"
-                + $"&$orderby=ListPrice%20asc";
+                + $"&$orderby={sort switch {
+                    "price-desc" => "ListPrice%20desc",
+                    "sqft-desc"  => "LivingArea%20desc",
+                    "year-desc"  => "YearBuilt%20desc",
+                    _              => "ListPrice%20asc"
+                }}";
+
 
         using var client = _httpFactory.CreateClient();
         client.DefaultRequestHeaders.Authorization =

@@ -98,12 +98,12 @@ import { AuthService } from '../../core/services/auth.service';
         <span class="result-count">{{ total() }} {{ total() === 1 ? 'property' : 'properties' }}</span>
         <mat-form-field appearance="outline" class="sort-field">
           <mat-label>Sort by</mat-label>
-          <mat-select [(ngModel)]="sortBy" (ngModelChange)="applySort()">
+          <mat-select [(ngModel)]="sortBy" (ngModelChange)="doSearch()">
+            <mat-option value="suggested">Suggested</mat-option>
             <mat-option value="price-asc">Price: Low → High</mat-option>
             <mat-option value="price-desc">Price: High → Low</mat-option>
             <mat-option value="sqft-desc">Largest First</mat-option>
             <mat-option value="year-desc">Newest Construction</mat-option>
-          </mat-select>
         </mat-form-field>
       </div>
 
@@ -272,7 +272,7 @@ import { AuthService } from '../../core/services/auth.service';
     .per-mo { font-size: 14px; font-weight: 500; color: #555; }
     .rental-badge { display: inline-block; background: #2a6496; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; padding: 2px 8px; border-radius: 10px; margin-bottom: 4px; }
     .hide-rentals-cb { color: #fff; font-size: 13px; align-self: center; }
-    .card-addr { font-size: 14px; font-weight: 500; color: #111; }
+    .hide-rentals-cb { font-size: 13px; align-self: center; } .hide-rentals-cb ::ng-deep .mdc-label { color: #fff !important; }
     .card-loc { font-size: 12px; color: #777; margin-bottom: 10px; }
     .card-stats { display: flex; gap: 12px; margin-bottom: 6px; flex-wrap: wrap; }
     .card-stats span { display: flex; align-items: center; gap: 3px; font-size: 12px; color: #444; }
@@ -314,15 +314,13 @@ export class ListingsSearchComponent implements OnInit {
   page = signal(1);
   loading = signal(false);
   myReactions = signal<Record<string, string>>({});
-  sortBy = 'price-asc';
-
+  sortBy = 'suggested';
   city = '';
   minPrice: number | null = null;
   maxPrice: number | null = null;
   minBeds: number | null = null;
   propType = '';
-  hideRentals = false;
-
+  hideRentals = true;
   isRental(l: any) { return l.propertyType === 'Residential Lease'; }
 
   totalPages = computed(() => Math.max(1, Math.ceil(this.total() / 12)));
@@ -343,27 +341,17 @@ export class ListingsSearchComponent implements OnInit {
     if (this.maxPrice != null) params['maxPrice'] = this.maxPrice;
     if (this.minBeds != null) params['minBeds'] = this.minBeds;
     if (this.propType) params['propertyType'] = this.propType;
-
+    if (this.propType) params['propertyType'] = this.propType;
+    if (this.sortBy) params['sort'] = this.sortBy;
     this.api.searchListings(params).subscribe({
       next: (res: any) => {
         const all = res.listings ?? [];
         this.listings.set(this.hideRentals ? all.filter((l: any) => l.propertyType !== 'Residential Lease') : all);
         this.total.set(res.total ?? 0);
         this.loading.set(false);
-        this.applySort();
         window.scrollTo({ top: 0, behavior: 'smooth' });
-      },
       error: () => this.loading.set(false)
     });
-  }
-
-  applySort() {
-    const arr = [...this.listings()];
-    if (this.sortBy === 'price-asc') arr.sort((a, b) => a.listPrice - b.listPrice);
-    else if (this.sortBy === 'price-desc') arr.sort((a, b) => b.listPrice - a.listPrice);
-    else if (this.sortBy === 'sqft-desc') arr.sort((a, b) => b.livingArea - a.livingArea);
-    else if (this.sortBy === 'year-desc') arr.sort((a, b) => b.yearBuilt - a.yearBuilt);
-    this.listings.set(arr);
   }
 
   goTo(p: number) {
