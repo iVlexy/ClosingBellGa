@@ -232,7 +232,7 @@ public class ListingsController : ControllerBase
     {
         const int pageSize = 12;
         var statusVal  = string.IsNullOrWhiteSpace(status) ? "Active" : status.Trim();
-        var baseFilter = $"StandardStatus eq '{statusVal}' and ListPrice gt 0 and InternetEntireListingDisplayYN ne false";
+        var baseFilter = $"StandardStatus eq '{statusVal}' and ListPrice gt 0 and InternetEntireListingDisplayYN ne false and (PostalCode eq '30028' or PostalCode eq '30534' or PostalCode eq '30533' or PostalCode eq '30506')";
 
         using var client = _httpFactory.CreateClient();
         client.DefaultRequestHeaders.Authorization =
