@@ -244,9 +244,9 @@ public class ListingsController : ControllerBase
             top: 10, skip: 0, orderby: "ListPrice asc");
         var agentKeys = agentListings.Select(l => l.ListingKey).ToHashSet();
 
-        // Step 2: curated mid-market — $250k–$750k, 3+ beds
+        // Step 2: curated mid-market — $400k–$750k, 3+ beds
         var curatedFilter = baseFilter
-            + " and ListPrice ge 250000 and ListPrice le 750000 and BedroomsTotal ge 3";
+            + " and ListPrice ge 400000 and ListPrice le 750000 and BedroomsTotal ge 3";
 
         // On page 1: agent listings fill the first slots; curated fills the rest.
         // On page 2+: no agent listings, offset curated skip to account for page-1 displacement.

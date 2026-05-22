@@ -100,7 +100,6 @@ import { AuthService } from '../../core/services/auth.service';
           <mat-label>Sort by</mat-label>
           <mat-select [(ngModel)]="sortBy" (ngModelChange)="doSearch()">
             <mat-option value="suggested">Suggested</mat-option>
-            <mat-option value="agent">Brandon's Listings</mat-option>
             <mat-option value="price-asc">Price: Low → High</mat-option>
             <mat-option value="price-desc">Price: High → Low</mat-option>
             <mat-option value="sqft-desc">Largest First</mat-option>
