@@ -353,7 +353,8 @@ public class ListingsController : ControllerBase
             .ToArray()
         ?? Array.Empty<string>(),
         p.ListOfficeName       ?? "",
-        p.ListAgentDirectPhone ?? ""
+        p.ListAgentDirectPhone ?? "",
+        p.ListingId            ?? ""
         );
     }
 
@@ -375,6 +376,7 @@ public class BridgePropertyResponse
 public class BridgeProperty
 {
     public string?  ListingKey              { get; set; }
+    public string?  ListingId               { get; set; }
     public string?  UnparsedAddress         { get; set; }
     public string?  City                    { get; set; }
     public string?  StateOrProvince         { get; set; }
@@ -512,4 +514,5 @@ public record ListingDto(
     string   PublicRemarks,
     string[] Photos,
     string   ListOfficeName = "",
-    string   ListAgentPhone = "");
+    string   ListAgentPhone = "",
+    string   ListingId     = "");
