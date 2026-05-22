@@ -48,7 +48,6 @@ public class ListingsController : ControllerBase
                                        minBaths, propertyType, status, sort, page);
     }
 
-
     [HttpGet("{listingKey}")]
     public async Task<IActionResult> Get(string listingKey)
     {
@@ -91,13 +90,12 @@ public class ListingsController : ControllerBase
         return File(content, contentType);
     }
 
+    // ── Dummy fallback ────────────────────────────────────────────────────────
+
     private IActionResult SearchDummy(
         string? city, string? zip, decimal? minPrice, decimal? maxPrice,
         int? minBeds, decimal? minBaths, string? propertyType, string? status,
         string? sort, int page)
-
-        string? city, string? zip, decimal? minPrice, decimal? maxPrice,
-        int? minBeds, decimal? minBaths, string? propertyType, string? status, int page)
     {
         var listings = DummyListings.All;
         if (!string.IsNullOrWhiteSpace(city))
@@ -117,6 +115,9 @@ public class ListingsController : ControllerBase
         if (!string.IsNullOrWhiteSpace(propertyType))
             listings = listings.Where(l =>
                 l.PropertySubType.Equals(propertyType, StringComparison.OrdinalIgnoreCase)).ToList();
+        if (!string.IsNullOrWhiteSpace(status))
+            listings = listings.Where(l =>
+                l.StandardStatus.Equals(status, StringComparison.OrdinalIgnoreCase)).ToList();
         listings = sort switch
         {
             "price-desc" => listings.OrderByDescending(l => l.ListPrice).ToList(),
@@ -124,51 +125,50 @@ public class ListingsController : ControllerBase
             "year-desc"  => listings.OrderByDescending(l => l.YearBuilt).ToList(),
             _            => listings.OrderBy(l => l.ListPrice).ToList(),
         };
+
         const int pageSize = 12;
         var total = listings.Count;
         var items = listings.Skip((page - 1) * pageSize).Take(pageSize).ToList();
         return Ok(new { total, page, pageSize, listings = items });
     }
 
-        var total = listings.Count;
-        var items = listings.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-    private async Task<IActionResult> SearchBridgeAsync(
-        string? city, string? zip, decimal? minPrice, decimal? maxPrice,
-        int? minBeds, decimal? minBaths, string? propertyType, string? status,
-        string? sort, int page)
-
     // ── Bridge API proxy ──────────────────────────────────────────────────────
 
     private async Task<IActionResult> SearchBridgeAsync(
         string? city, string? zip, decimal? minPrice, decimal? maxPrice,
-        int? minBeds, decimal? minBaths, string? propertyType, string? status, int page)
+        int? minBeds, decimal? minBaths, string? propertyType, string? status,
+        string? sort, int page)
     {
         const int pageSize = 12;
 
+        // Suggested w/o city or zip: Brandon first + curated mid-market
+        if (string.IsNullOrWhiteSpace(city) && string.IsNullOrWhiteSpace(zip) && sort == "suggested")
+            return await SearchSuggestedAsync(minPrice, maxPrice, minBeds, minBaths, propertyType, status, page);
+
         var filters = new List<string>
         {
+            // Default to Active when caller omits status
+            $"StandardStatus eq '{(string.IsNullOrWhiteSpace(status) ? "Active" : status.Trim())}'",
+            "ListPrice gt 0",             // exclude test/null-price listings
+            "InternetEntireListingDisplayYN ne false"  // FMLS Rule 13.1(b): respect opt-out
+        };
 
         if (!string.IsNullOrWhiteSpace(city))
         {
             var c = city.Trim().Replace("'", "''");
-            // If input starts with a digit treat it as a zip prefix, otherwise city name
-            if (char.IsDigit(c[0]))
+            if (c.All(char.IsDigit))
+                // Pure digits → ZIP prefix
                 filters.Add($"startswith(PostalCode, '{c}')");
+            else if (char.IsDigit(c[0]))
+                // Starts with a number followed by letters/spaces → street address
+                filters.Add($"contains(UnparsedAddress, '{c}')");
             else
+                // Text → city name
                 filters.Add($"startswith(City, '{c}')");
         }
-        else if (string.IsNullOrWhiteSpace(zip) && sort == "suggested")
+        else if (string.IsNullOrWhiteSpace(zip) && sort == "agent")
         {
-            filters.Add("(City eq 'Dahlonega' or City eq 'Cumming' or City eq 'Dawsonville')");
-            if (!minPrice.HasValue && !maxPrice.HasValue)
-                filters.Add("ListPrice ge 150000 and ListPrice le 750000");
-        }
-        if (!string.IsNullOrWhiteSpace(zip))
-            filters.Add($"startswith(PostalCode, '{zip.Trim().Replace("'", "''")}')");
-
-                filters.Add($"startswith(PostalCode, '{c}')");
-            else
-                filters.Add($"startswith(City, '{c}')");
+            filters.Add("ListAgentMlsId eq 'BELLBRAN'");
         }
         if (!string.IsNullOrWhiteSpace(zip))
             filters.Add($"startswith(PostalCode, '{zip.Trim().Replace("'", "''")}')");
@@ -191,12 +191,11 @@ public class ListingsController : ControllerBase
                 + $"?$filter={Uri.EscapeDataString(filter)}"
                 + $"&$top={pageSize}&$skip={skip}"
                 + $"&$orderby={sort switch {
-                    "price-desc" => "ListPrice%20desc",
-                    "sqft-desc"  => "LivingArea%20desc",
-                    "year-desc"  => "YearBuilt%20desc",
-                    _              => "ListPrice%20asc"
+                    "price-desc" => "ListPrice desc",
+                    "sqft-desc"  => "LivingArea desc",
+                    "year-desc"  => "YearBuilt desc",
+                    _            => "ListPrice asc"
                 }}";
-
 
         using var client = _httpFactory.CreateClient();
         client.DefaultRequestHeaders.Authorization =
@@ -224,6 +223,80 @@ public class ListingsController : ControllerBase
         // Bridge test dataset does not return @odata.count; use page math for total
         var total    = bridgeResponse.Count ?? (skip + listings.Count + (listings.Count == pageSize ? pageSize : 0));
         return Ok(new { total, page, pageSize, listings });
+    }
+
+
+    private async Task<IActionResult> SearchSuggestedAsync(
+        decimal? minPrice, decimal? maxPrice, int? minBeds, decimal? minBaths,
+        string? propertyType, string? status, int page)
+    {
+        const int pageSize = 12;
+        var statusVal  = string.IsNullOrWhiteSpace(status) ? "Active" : status.Trim();
+        var baseFilter = $"StandardStatus eq '{statusVal}' and ListPrice gt 0 and InternetEntireListingDisplayYN ne false";
+
+        using var client = _httpFactory.CreateClient();
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", _serverToken);
+
+        // Step 1: Brandon's listings always lead the results (he has very few)
+        var agentListings = await FetchBridgeListingsAsync(client,
+            baseFilter + " and ListAgentMlsId eq 'BELLBRAN'",
+            top: 10, skip: 0, orderby: "ListPrice asc");
+        var agentKeys = agentListings.Select(l => l.ListingKey).ToHashSet();
+
+        // Step 2: curated mid-market — $250k–$750k, 3+ beds
+        var curatedFilter = baseFilter
+            + " and ListPrice ge 250000 and ListPrice le 750000 and BedroomsTotal ge 3";
+
+        // On page 1: agent listings fill the first slots; curated fills the rest.
+        // On page 2+: no agent listings, offset curated skip to account for page-1 displacement.
+        int agentCount   = agentListings.Count;
+        int curatedSlots = pageSize - (page == 1 ? agentCount : 0);
+        int curatedSkip  = page == 1
+            ? 0
+            : (pageSize - agentCount) + (page - 2) * pageSize;
+
+        // Fetch a few extra to absorb any agent-key deduplication
+        var curatedRaw = await FetchBridgeListingsAsync(client,
+            curatedFilter, top: curatedSlots + agentCount, skip: curatedSkip, orderby: "ListPrice asc");
+        var curatedDeduped = curatedRaw
+            .Where(l => !agentKeys.Contains(l.ListingKey))
+            .Take(curatedSlots)
+            .ToList();
+
+        var listings = page == 1
+            ? agentListings.Concat(curatedDeduped).ToList()
+            : curatedDeduped;
+
+        var total = agentCount + curatedSkip + curatedDeduped.Count
+                  + (curatedDeduped.Count == curatedSlots ? pageSize : 0);
+
+        return Ok(new { total, page, pageSize, listings });
+    }
+
+    private async Task<List<ListingDto>> FetchBridgeListingsAsync(
+        HttpClient client, string filter, int top, int skip, string orderby)
+    {
+        var url = $"https://api.bridgedataoutput.com/api/v2/OData/{_datasetId}/Property"
+                + $"?$filter={Uri.EscapeDataString(filter)}"
+                + $"&$top={top}&$skip={skip}&$orderby={Uri.EscapeDataString(orderby)}";
+
+        HttpResponseMessage resp;
+        try { resp = await client.GetAsync(url); }
+        catch { return new List<ListingDto>(); }
+
+        if (!resp.IsSuccessStatusCode) return new List<ListingDto>();
+
+        var json   = await resp.Content.ReadAsStringAsync();
+        var bridge = JsonSerializer.Deserialize<BridgePropertyResponse>(json, _jsonOptions);
+        return (bridge?.Value ?? new List<BridgeProperty>())
+            .Where(p =>
+                (p.ListPrice ?? 0m) > 0 &&
+                !string.IsNullOrWhiteSpace(p.UnparsedAddress) &&
+                p.InternetEntireListingDisplayYN != false &&
+                !(p.PublicRemarks ?? "").Contains("DO NOT USE", StringComparison.OrdinalIgnoreCase))
+            .Select(MapToDto)
+            .ToList();
     }
 
     private async Task<IActionResult> GetBridgeAsync(string listingKey)
@@ -259,16 +332,13 @@ public class ListingsController : ControllerBase
             : (p.UnparsedAddress ?? "");
         return new(
         p.ListingKey        ?? "",
-        p.ListingId         ?? "",
         addr,
         p.City              ?? "",
         p.StateOrProvince   ?? "",
         p.PostalCode        ?? "",
         p.ListPrice         ?? 0m,
         p.BedroomsTotal     ?? 0,
-        (p.BathroomsTotalDecimal > 0)
-            ? p.BathroomsTotalDecimal.Value
-            : (p.BathroomsFull ?? 0) + (p.BathroomsHalf ?? 0) * 0.5m,
+        p.BathroomsTotalDecimal ?? 0m,
         p.LivingArea        ?? 0,
         p.PropertyType      ?? "Residential",
         p.PropertySubType   ?? "",
@@ -305,7 +375,6 @@ public class BridgePropertyResponse
 public class BridgeProperty
 {
     public string?  ListingKey              { get; set; }
-    public string?  ListingId               { get; set; }
     public string?  UnparsedAddress         { get; set; }
     public string?  City                    { get; set; }
     public string?  StateOrProvince         { get; set; }
@@ -313,8 +382,6 @@ public class BridgeProperty
     public decimal? ListPrice               { get; set; }
     public int?     BedroomsTotal           { get; set; }
     public decimal? BathroomsTotalDecimal   { get; set; }
-    public int?     BathroomsFull           { get; set; }
-    public int?     BathroomsHalf           { get; set; }
     public int?     LivingArea              { get; set; }
     public string?  PropertyType            { get; set; }
     public string?  PropertySubType         { get; set; }
@@ -342,81 +409,81 @@ public static class DummyListings
 {
     public static readonly List<ListingDto> All = new()
     {
-        new ListingDto("ATL001", "ATL001", "742 Peachtree Hills Ave NE", "Atlanta", "GA", "30305",
+        new ListingDto("ATL001", "742 Peachtree Hills Ave NE", "Atlanta", "GA", "30305",
             649000m, 4, 3.5m, 2840, "Residential", "Single Family Residence", "Active", 1985, 8712,
             "Stunning renovation in the heart of Buckhead. Chef's kitchen with quartz countertops, " +
             "hardwood floors throughout, oversized primary suite with spa bath. Private backyard oasis " +
             "with deck and mature landscaping.",
             new[] { "https://picsum.photos/seed/atl001a/800/600", "https://picsum.photos/seed/atl001b/800/600", "https://picsum.photos/seed/atl001c/800/600" }),
 
-        new ListingDto("ATL002", "ATL002", "805 Juniper St NE Apt 12", "Atlanta", "GA", "30308",
+        new ListingDto("ATL002", "805 Juniper St NE Apt 12", "Atlanta", "GA", "30308",
             385000m, 2, 2.0m, 1180, "Residential", "Condominium", "Active", 2008, 0,
             "Stylish Midtown condo steps from Piedmont Park. Floor-to-ceiling windows, modern kitchen " +
             "with stainless appliances, in-unit laundry, and rooftop pool access. Walk to the BeltLine, " +
             "restaurants, and MARTA.",
             new[] { "https://picsum.photos/seed/atl002a/800/600", "https://picsum.photos/seed/atl002b/800/600" }),
 
-        new ListingDto("ATL003", "ATL003", "256 Elizabeth St NE", "Atlanta", "GA", "30307",
+        new ListingDto("ATL003", "256 Elizabeth St NE", "Atlanta", "GA", "30307",
             495000m, 3, 2.5m, 2100, "Residential", "Townhouse", "Active", 2015, 2178,
             "Modern Inman Park townhouse with private rooftop deck and city views. Open floor plan, " +
             "gourmet kitchen, and attached two-car garage. Short walk to Krog Street Market and the BeltLine.",
             new[] { "https://picsum.photos/seed/atl003a/800/600", "https://picsum.photos/seed/atl003b/800/600" }),
 
-        new ListingDto("ATL004", "ATL004", "1019 N Highland Ave NE", "Atlanta", "GA", "30306",
+        new ListingDto("ATL004", "1019 N Highland Ave NE", "Atlanta", "GA", "30306",
             720000m, 4, 3.0m, 3100, "Residential", "Single Family Residence", "Active", 1925, 7840,
             "Classic Virginia-Highland craftsman fully renovated. Original hardwood floors, coffered " +
             "ceilings, and two fireplaces. Chef's kitchen opens to sunroom overlooking professionally " +
             "landscaped yard with pergola.",
             new[] { "https://picsum.photos/seed/atl004a/800/600", "https://picsum.photos/seed/atl004b/800/600", "https://picsum.photos/seed/atl004c/800/600" }),
 
-        new ListingDto("ATL005", "ATL005", "312 Commerce Dr", "Decatur", "GA", "30030",
+        new ListingDto("ATL005", "312 Commerce Dr", "Decatur", "GA", "30030",
             425000m, 3, 2.0m, 1850, "Residential", "Single Family Residence", "Active", 1978, 10890,
             "Charming Decatur ranch on a large level lot. Fully updated kitchen and bathrooms, new HVAC, " +
             "screened back porch, and two-car garage. Walking distance to downtown Decatur and MARTA.",
             new[] { "https://picsum.photos/seed/atl005a/800/600", "https://picsum.photos/seed/atl005b/800/600" }),
 
-        new ListingDto("ATL006", "ATL006", "1422 Memorial Dr SE", "Atlanta", "GA", "30317",
+        new ListingDto("ATL006", "1422 Memorial Dr SE", "Atlanta", "GA", "30317",
             299000m, 2, 1.0m, 1050, "Residential", "Single Family Residence", "Active", 1940, 6534,
             "Classic East Atlanta Village bungalow with original hardwood floors and rocking chair porch. " +
             "Large backyard, great opportunity for first-time buyers or investors. Sold as-is.",
             new[] { "https://picsum.photos/seed/atl006a/800/600", "https://picsum.photos/seed/atl006b/800/600" }),
 
-        new ListingDto("ATL007", "ATL007", "4550 Club Dr NE", "Atlanta", "GA", "30319",
+        new ListingDto("ATL007", "4550 Club Dr NE", "Atlanta", "GA", "30319",
             785000m, 5, 4.0m, 3800, "Residential", "Single Family Residence", "Active", 2005, 14375,
             "Executive Brookhaven home on quiet cul-de-sac. Soaring ceilings, chef's kitchen, finished " +
             "basement with media room and wet bar. Landscaped yard with outdoor kitchen, fireplace, and " +
             "professional lighting.",
             new[] { "https://picsum.photos/seed/atl007a/800/600", "https://picsum.photos/seed/atl007b/800/600", "https://picsum.photos/seed/atl007c/800/600" }),
 
-        new ListingDto("ATL008", "ATL008", "671 Grant Park Ave SE", "Atlanta", "GA", "30315",
+        new ListingDto("ATL008", "671 Grant Park Ave SE", "Atlanta", "GA", "30315",
             475000m, 3, 2.0m, 1780, "Residential", "Single Family Residence", "Active", 1935, 6000,
             "Beautifully renovated Grant Park craftsman across from the park. Updated kitchen, period " +
             "details preserved, master suite addition, and private fenced backyard. Steps from the " +
             "BeltLine and Atlanta Zoo.",
             new[] { "https://picsum.photos/seed/atl008a/800/600", "https://picsum.photos/seed/atl008b/800/600" }),
 
-        new ListingDto("ATL009", "ATL009", "1538 Oakdale Rd NE", "Atlanta", "GA", "30307",
+        new ListingDto("ATL009", "1538 Oakdale Rd NE", "Atlanta", "GA", "30307",
             550000m, 4, 3.0m, 2400, "Residential", "Single Family Residence", "Active Under Contract", 1920, 7500,
             "Gorgeous Candler Park craftsman on a tree-lined street. Wrap-around porch, original period " +
             "details, updated systems, and finished attic primary suite. Rare find in one of Atlanta's " +
             "most desirable in-town neighborhoods.",
             new[] { "https://picsum.photos/seed/atl009a/800/600", "https://picsum.photos/seed/atl009b/800/600" }),
 
-        new ListingDto("ATL010", "ATL010", "2240 Village Green Dr", "Smyrna", "GA", "30080",
+        new ListingDto("ATL010", "2240 Village Green Dr", "Smyrna", "GA", "30080",
             490000m, 4, 3.0m, 2650, "Residential", "Single Family Residence", "Active", 2024, 5500,
             "Brand new construction in Smyrna's newest master-planned community. Open-concept living, " +
             "9-foot ceilings, quartz countertops, LVP flooring, and smart home tech. Community pool, " +
             "clubhouse, and walking trails. Full builder warranty.",
             new[] { "https://picsum.photos/seed/atl010a/800/600", "https://picsum.photos/seed/atl010b/800/600" }),
 
-        new ListingDto("ATL011", "ATL011", "3344 Peachtree Rd NE Unit 2505", "Atlanta", "GA", "30326",
+        new ListingDto("ATL011", "3344 Peachtree Rd NE Unit 2505", "Atlanta", "GA", "30326",
             625000m, 3, 3.0m, 2200, "Residential", "Condominium", "Active", 2015, 0,
             "Sophisticated 25th-floor Buckhead condo with sweeping skyline views. Wall-to-wall windows, " +
             "chef's kitchen, spa bath, two parking spaces. Full-service building with concierge, resort " +
             "pool, fitness center, and dog park.",
             new[] { "https://picsum.photos/seed/atl011a/800/600", "https://picsum.photos/seed/atl011b/800/600" }),
 
-        new ListingDto("ATL012", "ATL012", "144 Rogers St NE", "Atlanta", "GA", "30317",
+        new ListingDto("ATL012", "144 Rogers St NE", "Atlanta", "GA", "30317",
             389000m, 3, 2.0m, 1500, "Residential", "Single Family Residence", "Coming Soon", 1945, 8712,
             "Charming Kirkwood bungalow with outstanding curb appeal. Updated kitchen with butcher block " +
             "counters, renovated baths, original hardwoods, large master suite, and level fenced backyard. " +
@@ -427,7 +494,6 @@ public static class DummyListings
 
 public record ListingDto(
     string   ListingKey,
-    string   ListingId,
     string   UnparsedAddress,
     string   City,
     string   StateOrProvince,

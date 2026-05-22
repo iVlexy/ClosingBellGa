@@ -36,8 +36,8 @@ import { AuthService } from '../../core/services/auth.service';
         <p class="hero-sub">Browse Atlanta metro area properties</p>
         <div class="filter-bar">
           <mat-form-field appearance="outline" class="f-city">
-            <mat-label>City or ZIP</mat-label>
-            <input matInput [(ngModel)]="city" (keydown.enter)="doSearch()" placeholder="Atlanta, Decatur…">
+            <mat-label>City, ZIP, or Address</mat-label>
+            <input matInput [(ngModel)]="city" (keydown.enter)="doSearch()" placeholder="Atlanta, 30305, 742 Peachtree…">
             <mat-icon matSuffix>location_on</mat-icon>
           </mat-form-field>
           <mat-form-field appearance="outline" class="f-sm">
@@ -100,10 +100,12 @@ import { AuthService } from '../../core/services/auth.service';
           <mat-label>Sort by</mat-label>
           <mat-select [(ngModel)]="sortBy" (ngModelChange)="doSearch()">
             <mat-option value="suggested">Suggested</mat-option>
+            <mat-option value="agent">Brandon's Listings</mat-option>
             <mat-option value="price-asc">Price: Low → High</mat-option>
             <mat-option value="price-desc">Price: High → Low</mat-option>
             <mat-option value="sqft-desc">Largest First</mat-option>
             <mat-option value="year-desc">Newest Construction</mat-option>
+          </mat-select>
         </mat-form-field>
       </div>
 
@@ -341,7 +343,6 @@ export class ListingsSearchComponent implements OnInit {
     if (this.maxPrice != null) params['maxPrice'] = this.maxPrice;
     if (this.minBeds != null) params['minBeds'] = this.minBeds;
     if (this.propType) params['propertyType'] = this.propType;
-    if (this.propType) params['propertyType'] = this.propType;
     if (this.sortBy) params['sort'] = this.sortBy;
     this.api.searchListings(params).subscribe({
       next: (res: any) => {
@@ -350,6 +351,7 @@ export class ListingsSearchComponent implements OnInit {
         this.total.set(res.total ?? 0);
         this.loading.set(false);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
       error: () => this.loading.set(false)
     });
   }
