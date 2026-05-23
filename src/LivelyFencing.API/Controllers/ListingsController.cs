@@ -38,14 +38,15 @@ public class ListingsController : ControllerBase
         [FromQuery] string?  propertyType,
         [FromQuery] string?  status,
         [FromQuery] string?  sort,
-        [FromQuery] int      page = 1)
+        [FromQuery] int      page = 1,
+        [FromQuery] bool     hideRentals = false)
     {
         if (!UseBridge)
             return SearchDummy(city, zip, minPrice, maxPrice, minBeds, minBaths,
                                propertyType, status, sort, page);
 
         return await SearchBridgeAsync(city, zip, minPrice, maxPrice, minBeds,
-                                       minBaths, propertyType, status, sort, page);
+                                       minBaths, propertyType, status, sort, page, hideRentals);
     }
 
     [HttpGet("{listingKey}")]
@@ -137,7 +138,7 @@ public class ListingsController : ControllerBase
     private async Task<IActionResult> SearchBridgeAsync(
         string? city, string? zip, decimal? minPrice, decimal? maxPrice,
         int? minBeds, decimal? minBaths, string? propertyType, string? status,
-        string? sort, int page)
+        string? sort, int page, bool hideRentals = false)
     {
         const int pageSize = 12;
 
@@ -152,6 +153,7 @@ public class ListingsController : ControllerBase
             "ListPrice gt 0",             // exclude test/null-price listings
             "InternetEntireListingDisplayYN ne false"  // FMLS Rule 13.1(b): respect opt-out
         };
+        if (hideRentals) filters.Add("PropertyType ne 'Residential Lease'");
 
         if (!string.IsNullOrWhiteSpace(city))
         {

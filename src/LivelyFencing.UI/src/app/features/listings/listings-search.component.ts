@@ -343,6 +343,7 @@ export class ListingsSearchComponent implements OnInit {
     if (this.minBeds != null) params['minBeds'] = this.minBeds;
     if (this.propType) params['propertyType'] = this.propType;
     if (this.sortBy) params['sort'] = this.sortBy;
+    if (this.hideRentals) params['hideRentals'] = true;
     this.api.searchListings(params).subscribe({
       next: (res: any) => {
         const all = res.listings ?? [];
