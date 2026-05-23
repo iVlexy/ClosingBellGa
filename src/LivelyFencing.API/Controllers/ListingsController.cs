@@ -163,7 +163,7 @@ public class ListingsController : ControllerBase
                 filters.Add($"startswith(PostalCode, '{c}')");
             else if (char.IsDigit(c[0]))
                 // Starts with a number followed by letters/spaces → street address
-                filters.Add($"contains(UnparsedAddress, '{c}')");
+                filters.Add($"contains(UnparsedAddress, '{NormalizeAddress(c)}')");
             else
                 // Text → city name
                 filters.Add($"startswith(City, '{c}')");
@@ -358,6 +358,31 @@ public class ListingsController : ControllerBase
         p.ListAgentDirectPhone ?? "",
         p.ListingId            ?? ""
         );
+    }
+
+    private static string NormalizeAddress(string addr)
+    {
+        // Expand common USPS street-suffix abbreviations so that
+        // "Freeman Rd" matches "Freeman Road" in Bridge API data.
+        var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Aly"]  = "Alley",       ["Ave"]  = "Avenue",      ["Blvd"] = "Boulevard",
+            ["Cir"]  = "Circle",      ["Ct"]   = "Court",       ["Dr"]   = "Drive",
+            ["Expy"] = "Expressway",  ["Fwy"]  = "Freeway",     ["Hwy"]  = "Highway",
+            ["Ln"]   = "Lane",        ["Pkwy"] = "Parkway",     ["Pl"]   = "Place",
+            ["Plz"]  = "Plaza",       ["Pt"]   = "Point",       ["Rd"]   = "Road",
+            ["Rte"]  = "Route",       ["Sq"]   = "Square",      ["St"]   = "Street",
+            ["Ter"]  = "Terrace",     ["Terr"] = "Terrace",     ["Tpke"] = "Turnpike",
+            ["Trl"]  = "Trail",       ["Xing"] = "Crossing",
+        };
+        var words = addr.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 0; i < words.Length; i++)
+        {
+            var w = words[i].TrimEnd(',', '.');
+            if (map.TryGetValue(w, out var full))
+                words[i] = full;
+        }
+        return string.Join(" ", words);
     }
 
     private static readonly JsonSerializerOptions _jsonOptions = new()
