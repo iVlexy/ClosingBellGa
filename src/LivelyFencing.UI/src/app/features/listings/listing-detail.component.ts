@@ -100,6 +100,11 @@ import { AuthService } from '../../core/services/auth.service';
               <span class="stat-val">{{ listing().propertySubType }}</span>
               <span class="stat-lbl">Type</span>
             </div>
+            <div class="stat-box" *ngIf="listing().daysOnMarket > 0">
+              <mat-icon>schedule</mat-icon>
+              <span class="stat-val">{{ listing().daysOnMarket }}</span>
+              <span class="stat-lbl">Days on Market</span>
+            </div>
           </div>
 
           <div class="description-section">
