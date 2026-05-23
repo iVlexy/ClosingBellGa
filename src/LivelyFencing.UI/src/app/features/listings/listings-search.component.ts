@@ -161,6 +161,7 @@ import { AuthService } from '../../core/services/auth.service';
               <span><mat-icon>bed</mat-icon>{{ l.bedroomsTotal }} bd</span>
               <span><mat-icon>bathtub</mat-icon>{{ l.bathroomsTotalDecimal }} ba</span>
               <span><mat-icon>square_foot</mat-icon>{{ l.livingArea | number }} sqft</span>
+              <span *ngIf="l.daysOnMarket > 0"><mat-icon>schedule</mat-icon>{{ l.daysOnMarket }} DOM</span>
             </div>
             <div class="card-subtype">{{ l.propertySubType }}</div>
             <div class="card-office" *ngIf="l.listOfficeName">Listing Courtesy Of {{ l.listOfficeName }}</div>

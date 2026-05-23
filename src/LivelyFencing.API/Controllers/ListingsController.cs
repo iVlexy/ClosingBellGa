@@ -419,7 +419,8 @@ public class ListingsController : ControllerBase
         ?? Array.Empty<string>(),
         p.ListOfficeName       ?? "",
         p.ListAgentDirectPhone ?? "",
-        p.ListingId            ?? ""
+        p.ListingId            ?? "",
+        p.DaysOnMarket         ?? 0
         );
     }
 
@@ -486,6 +487,7 @@ public class BridgeProperty
     public List<BridgeMedia>? Media                   { get; set; }
     public string?  ListOfficeName                  { get; set; }
     public string?  ListAgentDirectPhone            { get; set; }
+    public int?     DaysOnMarket                    { get; set; }
     public bool?    InternetEntireListingDisplayYN  { get; set; }
     public bool?    InternetAddressDisplayYN        { get; set; }
 }
@@ -605,4 +607,5 @@ public record ListingDto(
     string[] Photos,
     string   ListOfficeName = "",
     string   ListAgentPhone = "",
-    string   ListingId     = "");
+    string   ListingId     = "",
+    int      DaysOnMarket  = 0);
