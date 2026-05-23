@@ -62,6 +62,69 @@ public class ListingsController : ControllerBase
     }
 
 
+    [HttpGet("autocomplete")]
+    public async Task<IActionResult> Autocomplete([FromQuery] string? q)
+    {
+        if (!UseBridge || string.IsNullOrWhiteSpace(q) || q.Trim().Length < 2)
+            return Ok(new { suggestions = Array.Empty<object>() });
+
+        var t = q.Trim().Replace("'", "''");
+        string filter;
+
+        if (t.All(char.IsDigit))
+            filter = $"(startswith(PostalCode, '{t}') or startswith(UnparsedAddress, '{t}')) and PropertyType ne 'Residential Lease' and StandardStatus eq 'Active' and InternetEntireListingDisplayYN ne false";
+        else if (char.IsDigit(t[0]))
+        {
+            var norm = NormalizeAddress(t);
+            filter = $"contains(UnparsedAddress, '{norm}') and PropertyType ne 'Residential Lease' and StandardStatus eq 'Active' and InternetEntireListingDisplayYN ne false";
+        }
+        else
+            filter = $"startswith(City, '{t}') and PropertyType ne 'Residential Lease' and StandardStatus eq 'Active' and InternetEntireListingDisplayYN ne false and ListPrice gt 0";
+
+        using var client = _httpFactory.CreateClient();
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", _serverToken);
+
+        var url = $"https://api.bridgedataoutput.com/api/v2/OData/{_datasetId}/Property"
+                + $"?$filter={Uri.EscapeDataString(filter)}"
+                + "&$select=UnparsedAddress,City,StateOrProvince,PostalCode,InternetAddressDisplayYN"
+                + "&$top=20";
+
+        HttpResponseMessage resp;
+        try { resp = await client.GetAsync(url); }
+        catch { return Ok(new { suggestions = Array.Empty<object>() }); }
+
+        if (!resp.IsSuccessStatusCode)
+            return Ok(new { suggestions = Array.Empty<object>() });
+
+        var json = await resp.Content.ReadAsStringAsync();
+        var data = JsonSerializer.Deserialize<BridgePropertyResponse>(json, _jsonOptions);
+
+        var suggestions = new List<object>();
+        var seenZips   = new HashSet<string>();
+        var seenCities = new HashSet<string>();
+        var seenAddrs  = new HashSet<string>();
+
+        foreach (var p in data?.Value ?? [])
+        {
+            var zip   = p.PostalCode      ?? "";
+            var city  = p.City            ?? "";
+            var state = p.StateOrProvince ?? "GA";
+            var addr  = (p.InternetAddressDisplayYN == false) ? "" : (p.UnparsedAddress ?? "");
+
+            if (!string.IsNullOrEmpty(zip) && zip.StartsWith(t) && seenZips.Add(zip))
+                suggestions.Add(new { label = $"{zip} – {city}, {state}", type = "zip", value = zip });
+
+            if (!string.IsNullOrEmpty(city) && city.StartsWith(t, StringComparison.OrdinalIgnoreCase) && seenCities.Add(city.ToLower()))
+                suggestions.Add(new { label = $"{city}, {state}", type = "city", value = city });
+
+            if (!string.IsNullOrEmpty(addr) && seenAddrs.Add(addr.ToLower()))
+                suggestions.Add(new { label = $"{addr}, {city}, {state} {zip}".Trim(), type = "address", value = addr });
+        }
+
+        return Ok(new { suggestions = suggestions.Take(8) });
+    }
+
     [HttpGet("photo")]
     public async Task<IActionResult> ProxyPhoto([FromQuery] string url)
     {

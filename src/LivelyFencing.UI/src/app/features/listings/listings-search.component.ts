@@ -11,6 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -20,7 +21,8 @@ import { AuthService } from '../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink, MatCardModule, MatButtonModule,
     MatIconModule, MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatProgressSpinnerModule, MatTooltipModule, MatSnackBarModule, MatCheckboxModule],
+    MatProgressSpinnerModule, MatTooltipModule, MatSnackBarModule, MatCheckboxModule,
+    MatAutocompleteModule],
   template: `
     <div class="listings-nav">
       <a routerLink="/" class="listings-nav-home">
@@ -37,9 +39,19 @@ import { AuthService } from '../../core/services/auth.service';
         <div class="filter-bar">
           <mat-form-field appearance="outline" class="f-city">
             <mat-label>City, ZIP, or Address</mat-label>
-            <input matInput [(ngModel)]="city" (keydown.enter)="doSearch()" placeholder="Atlanta, 30305, 742 Peachtree…">
+            <input matInput #cityInput [(ngModel)]="city"
+                   (input)="onCityInput(cityInput.value)"
+                   (keydown.enter)="doSearch()"
+                   [matAutocomplete]="cityAuto"
+                   placeholder="Atlanta, 30305, 742 Peachtree…">
             <mat-icon matSuffix>location_on</mat-icon>
           </mat-form-field>
+          <mat-autocomplete #cityAuto (optionSelected)="onSuggestionSelected($event.option.value)">
+            <mat-option *ngFor="let s of autoSuggestions()" [value]="s.value">
+              <mat-icon style="font-size:16px;vertical-align:middle;margin-right:6px">{{ s.type === 'address' ? 'home' : 'location_on' }}</mat-icon>
+              {{ s.label }}
+            </mat-option>
+          </mat-autocomplete>
           <mat-form-field appearance="outline" class="f-sm">
             <mat-label>Min Price</mat-label>
             <mat-select [(ngModel)]="minPrice">
@@ -322,6 +334,8 @@ export class ListingsSearchComponent implements OnInit {
   minBeds: number | null = null;
   propType = '';
   hideRentals = true;
+  autoSuggestions = signal<any[]>([]);
+  private _acTimer: any;
   isRental(l: any) { return l.propertyType === 'Residential Lease'; }
 
   totalPages = computed(() => Math.max(1, Math.ceil(this.total() / 12)));
@@ -370,6 +384,20 @@ export class ListingsSearchComponent implements OnInit {
   }
 
   getReaction(key: string) { return this.myReactions()[key]; }
+
+  onCityInput(v: string) {
+    clearTimeout(this._acTimer);
+    if (v.length < 2) { this.autoSuggestions.set([]); return; }
+    this._acTimer = setTimeout(() =>
+      this.api.getAutocompleteSuggestions(v).subscribe((r: any) =>
+        this.autoSuggestions.set(r.suggestions ?? [])), 250);
+  }
+
+  onSuggestionSelected(value: string) {
+    this.city = value;
+    this.autoSuggestions.set([]);
+    this.doSearch();
+  }
 
 
   onImgError(event: Event) {
